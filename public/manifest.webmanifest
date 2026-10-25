@@ -1,0 +1,42 @@
+{
+  "id": "/",
+  "name": "MárcIA",
+  "short_name": "MárcIA",
+  "description": "Registre, organize e entenda sua vida financeira por voz, texto, foto ou WhatsApp.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/app/inicio?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#F7F5FB",
+  "theme_color": "#7C3AED",
+  "categories": ["finance", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/marcia-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/marcia-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/marcia-app.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/marcia-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

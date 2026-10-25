@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Ícone padrão do aplicativo</title>
+  <desc id="desc">Avatar estilizado de uma assistente virtual</desc>
+  <defs>
+    <linearGradient id="bg" x1="58" y1="28" x2="454" y2="484" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A76BFF"/>
+      <stop offset="0.52" stop-color="#6C3BFF"/>
+      <stop offset="1" stop-color="#3B1B94"/>
+    </linearGradient>
+    <linearGradient id="suit" x1="256" y1="309" x2="256" y2="482" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E7DCFF"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#241442" flood-opacity=".32"/>
+    </filter>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#bg)"/>
+  <circle cx="405" cy="102" r="72" fill="#FFFFFF" opacity=".09"/>
+  <circle cx="89" cy="413" r="105" fill="#D8C3FF" opacity=".10"/>
+  <g filter="url(#shadow)">
+    <path d="M124 463c10-82 58-137 132-137s122 55 132 137H124Z" fill="url(#suit)"/>
+    <path d="m217 334 39 72 39-72c-12-6-25-9-39-9s-27 3-39 9Z" fill="#B48AFF"/>
+    <path d="M169 230c0-78 39-127 91-127 60 0 91 48 91 127 0 70-38 120-94 120-53 0-88-50-88-120Z" fill="#FFD9C9"/>
+    <path d="M167 241c-9-72 13-142 86-152 61-8 110 38 105 126-18-13-31-35-38-63-24 34-70 57-153 63v26Z" fill="#2D174B"/>
+    <path d="M177 245c-17-8-31 2-29 23 2 21 15 32 34 29l-5-52Zm167 0c17-8 31 2 29 23-2 21-15 32-34 29l5-52Z" fill="#FFD9C9"/>
+    <path d="M211 251c8-8 20-8 28 0M276 251c8-8 20-8 28 0" fill="none" stroke="#3B2455" stroke-width="8" stroke-linecap="round"/>
+    <path d="M232 295c15 12 34 12 49 0" fill="none" stroke="#D77483" stroke-width="8" stroke-linecap="round"/>
+    <path d="M151 248c0-65 37-121 105-121s105 56 105 121" fill="none" stroke="#F4F0FF" stroke-width="17" stroke-linecap="round"/>
+    <rect x="139" y="232" width="31" height="70" rx="15.5" fill="#FFFFFF"/>
+    <rect x="342" y="232" width="31" height="70" rx="15.5" fill="#FFFFFF"/>
+    <path d="M357 292c0 28-20 40-52 40" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="302" cy="332" r="10" fill="#35D39A"/>
+  </g>
+  <circle cx="407" cy="407" r="52" fill="#FFFFFF"/>
+  <circle cx="407" cy="407" r="41" fill="#35D39A"/>
+  <path d="m386 408 14 14 29-32" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

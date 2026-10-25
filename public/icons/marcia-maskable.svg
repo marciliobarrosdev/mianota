@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Ícone padrão do aplicativo</title>
+  <desc id="desc">Ícone adaptável de uma assistente virtual</desc>
+  <defs>
+    <linearGradient id="bg" x1="34" y1="18" x2="485" y2="501" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A76BFF"/>
+      <stop offset="0.52" stop-color="#6C3BFF"/>
+      <stop offset="1" stop-color="#3B1B94"/>
+    </linearGradient>
+    <linearGradient id="suit" x1="256" y1="312" x2="256" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E7DCFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="410" cy="88" r="78" fill="#FFFFFF" opacity=".09"/>
+  <circle cx="83" cy="433" r="118" fill="#D8C3FF" opacity=".10"/>
+  <path d="M139 467c9-69 51-115 117-115s108 46 117 115H139Z" fill="url(#suit)"/>
+  <path d="m222 359 34 60 34-60c-11-5-22-7-34-7s-23 2-34 7Z" fill="#B48AFF"/>
+  <path d="M181 242c0-66 33-108 77-108 51 0 78 41 78 108 0 60-33 102-80 102-45 0-75-42-75-102Z" fill="#FFD9C9"/>
+  <path d="M179 251c-8-61 11-120 73-129 52-7 94 33 89 107-15-11-26-30-32-54-21 29-60 49-130 54v22Z" fill="#2D174B"/>
+  <path d="M187 255c-15-7-26 2-24 20 1 18 12 27 28 25l-4-45Zm143 0c15-7 26 2 24 20-1 18-12 27-28 25l4-45Z" fill="#FFD9C9"/>
+  <path d="M217 260c7-7 17-7 24 0M272 260c7-7 17-7 24 0" fill="none" stroke="#3B2455" stroke-width="7" stroke-linecap="round"/>
+  <path d="M235 298c13 10 29 10 42 0" fill="none" stroke="#D77483" stroke-width="7" stroke-linecap="round"/>
+  <path d="M166 257c0-55 32-103 90-103s90 48 90 103" fill="none" stroke="#F4F0FF" stroke-width="15" stroke-linecap="round"/>
+  <rect x="156" y="243" width="27" height="60" rx="13.5" fill="#FFFFFF"/>
+  <rect x="329" y="243" width="27" height="60" rx="13.5" fill="#FFFFFF"/>
+  <path d="M343 294c0 24-17 34-45 34" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="296" cy="328" r="9" fill="#35D39A"/>
+  <circle cx="386" cy="393" r="45" fill="#FFFFFF"/>
+  <circle cx="386" cy="393" r="35" fill="#35D39A"/>
+  <path d="m368 394 12 12 25-28" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
