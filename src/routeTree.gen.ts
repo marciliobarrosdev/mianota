@@ -9,146 +9,101 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
-import { Route as TermosRouteImport } from './routes/termos'
-import { Route as SuperadminRouteImport } from './routes/superadmin'
-import { Route as ResetSenhaRouteImport } from './routes/reset-senha'
-import { Route as ReembolsoRouteImport } from './routes/reembolso'
-import { Route as PrivacidadeRouteImport } from './routes/privacidade'
-import { Route as MasterRouteImport } from './routes/master'
-import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
-import { Route as EntrarRouteImport } from './routes/entrar'
-import { Route as DemoRouteImport } from './routes/demo'
-import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as MasterIndexRouteImport } from './routes/master/index'
-import { Route as DemoIndexRouteImport } from './routes/demo/index'
-import { Route as AppIndexRouteImport } from './routes/app/index'
-import { Route as MasterWhatsappQrRouteImport } from './routes/master/whatsapp-qr'
-import { Route as MasterWhatsappMetaRouteImport } from './routes/master/whatsapp-meta'
-import { Route as MasterWhatsappRouteImport } from './routes/master/whatsapp'
-import { Route as MasterPlanosRouteImport } from './routes/master/planos'
-import { Route as MasterPainelRouteImport } from './routes/master/painel'
-import { Route as MasterPagamentosRouteImport } from './routes/master/pagamentos'
-import { Route as MasterOnboardingRouteImport } from './routes/master/onboarding'
-import { Route as MasterNovoAssinanteRouteImport } from './routes/master/novo-assinante'
-import { Route as MasterNovaEmpresaRouteImport } from './routes/master/nova-empresa'
-import { Route as MasterIntegracoesRouteImport } from './routes/master/integracoes'
-import { Route as MasterImplantacaoRouteImport } from './routes/master/implantacao'
-import { Route as MasterIaCreditosRouteImport } from './routes/master/ia-creditos'
-import { Route as MasterEmpresasRouteImport } from './routes/master/empresas'
-import { Route as MasterConversasRouteImport } from './routes/master/conversas'
-import { Route as MasterConfiguracoesRouteImport } from './routes/master/configuracoes'
-import { Route as MasterChecklistRouteImport } from './routes/master/checklist'
-import { Route as MasterAssinaturasRouteImport } from './routes/master/assinaturas'
-import { Route as MasterAssinantesRouteImport } from './routes/master/assinantes'
-import { Route as DemoWhatsappRouteImport } from './routes/demo/whatsapp'
-import { Route as DemoServicosRouteImport } from './routes/demo/servicos'
-import { Route as DemoRelatoriosRouteImport } from './routes/demo/relatorios'
-import { Route as DemoRecorrenciasRouteImport } from './routes/demo/recorrencias'
-import { Route as DemoPlanejamentoRouteImport } from './routes/demo/planejamento'
-import { Route as DemoOrdensRouteImport } from './routes/demo/ordens'
-import { Route as DemoOrcamentosRouteImport } from './routes/demo/orcamentos'
-import { Route as DemoNotificacoesRouteImport } from './routes/demo/notificacoes'
-import { Route as DemoMovimentacoesRouteImport } from './routes/demo/movimentacoes'
-import { Route as DemoMetasRouteImport } from './routes/demo/metas'
-import { Route as DemoMarciaRouteImport } from './routes/demo/marcia'
-import { Route as DemoIntegracoesRouteImport } from './routes/demo/integracoes'
-import { Route as DemoIaRouteImport } from './routes/demo/ia'
-import { Route as DemoEquipeRouteImport } from './routes/demo/equipe'
-import { Route as DemoDashboardRouteImport } from './routes/demo/dashboard'
-import { Route as DemoConversasRouteImport } from './routes/demo/conversas'
-import { Route as DemoContasRouteImport } from './routes/demo/contas'
-import { Route as DemoConfiguracoesRouteImport } from './routes/demo/configuracoes'
-import { Route as DemoConexoesRouteImport } from './routes/demo/conexoes'
-import { Route as DemoClientesRouteImport } from './routes/demo/clientes'
-import { Route as DemoCartoesRouteImport } from './routes/demo/cartoes'
-import { Route as DemoCalendarioRouteImport } from './routes/demo/calendario'
-import { Route as DemoAgendaRouteImport } from './routes/demo/agenda'
-import { Route as CsatTokenRouteImport } from './routes/csat.$token'
-import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
-import { Route as AppRecorrenciasRouteImport } from './routes/app/recorrencias'
-import { Route as AppPlanejamentoRouteImport } from './routes/app/planejamento'
-import { Route as AppOrdensRouteImport } from './routes/app/ordens'
-import { Route as AppOrcamentosRouteImport } from './routes/app/orcamentos'
-import { Route as AppOperacaoRouteImport } from './routes/app/operacao'
-import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
-import { Route as AppNotificacoesRouteImport } from './routes/app/notificacoes'
-import { Route as AppMovimentacoesRouteImport } from './routes/app/movimentacoes'
-import { Route as AppMarciaRouteImport } from './routes/app/marcia'
-import { Route as AppIntegracoesRouteImport } from './routes/app/integracoes'
-import { Route as AppInicioRouteImport } from './routes/app/inicio'
-import { Route as AppHojeRouteImport } from './routes/app/hoje'
-import { Route as AppGuiaRouteImport } from './routes/app/guia'
-import { Route as AppFinanceiroRouteImport } from './routes/app/financeiro'
-import { Route as AppDashboardRouteImport } from './routes/app/dashboard'
-import { Route as AppConversasRouteImport } from './routes/app/conversas'
-import { Route as AppContasRouteImport } from './routes/app/contas'
-import { Route as AppConfiguracoesRouteImport } from './routes/app/configuracoes'
-import { Route as AppConexaoRouteImport } from './routes/app/conexao'
-import { Route as AppClientesRouteImport } from './routes/app/clientes'
-import { Route as AppCheckoutRouteImport } from './routes/app/checkout'
-import { Route as AppCartoesRouteImport } from './routes/app/cartoes'
-import { Route as AppCalendarioRouteImport } from './routes/app/calendario'
-import { Route as AppAgenteRouteImport } from './routes/app/agente'
-import { Route as AppAgendaRouteImport } from './routes/app/agenda'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
+import { Route as MasterRouteImport } from './routes/master'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as ReembolsoRouteImport } from './routes/reembolso'
+import { Route as ResetSenhaRouteImport } from './routes/reset-senha'
+import { Route as SuperadminRouteImport } from './routes/superadmin'
+import { Route as TermosRouteImport } from './routes/termos'
+import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as ApiManifestDotwebmanifestRouteImport } from './routes/api/manifest[.]webmanifest'
-import { Route as AppOrdensOrderIdRouteImport } from './routes/app/ordens.$orderId'
-import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp-webhook'
-import { Route as ApiPublicSupportWhatsappWebhookRouteImport } from './routes/api/public/support-whatsapp-webhook'
-import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
-import { Route as ApiPublicGoogleCallbackRouteImport } from './routes/api/public/google-callback'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppAgendaRouteImport } from './routes/app/agenda'
+import { Route as AppAgenteRouteImport } from './routes/app/agente'
+import { Route as AppCalendarioRouteImport } from './routes/app/calendario'
+import { Route as AppCartoesRouteImport } from './routes/app/cartoes'
+import { Route as AppCheckoutRouteImport } from './routes/app/checkout'
+import { Route as AppClientesRouteImport } from './routes/app/clientes'
+import { Route as AppConexaoRouteImport } from './routes/app/conexao'
+import { Route as AppConfiguracoesRouteImport } from './routes/app/configuracoes'
+import { Route as AppContasRouteImport } from './routes/app/contas'
+import { Route as AppConversasRouteImport } from './routes/app/conversas'
+import { Route as AppDashboardRouteImport } from './routes/app/dashboard'
+import { Route as AppFinanceiroRouteImport } from './routes/app/financeiro'
+import { Route as AppGuiaRouteImport } from './routes/app/guia'
+import { Route as AppHojeRouteImport } from './routes/app/hoje'
+import { Route as AppInicioRouteImport } from './routes/app/inicio'
+import { Route as AppIntegracoesRouteImport } from './routes/app/integracoes'
+import { Route as AppMarciaRouteImport } from './routes/app/marcia'
+import { Route as AppMovimentacoesRouteImport } from './routes/app/movimentacoes'
+import { Route as AppNotificacoesRouteImport } from './routes/app/notificacoes'
+import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
+import { Route as AppOperacaoRouteImport } from './routes/app/operacao'
+import { Route as AppOrcamentosRouteImport } from './routes/app/orcamentos'
+import { Route as AppOrdensRouteImport } from './routes/app/ordens'
+import { Route as AppPlanejamentoRouteImport } from './routes/app/planejamento'
+import { Route as AppRecorrenciasRouteImport } from './routes/app/recorrencias'
+import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
+import { Route as CsatTokenRouteImport } from './routes/csat.$token'
+import { Route as DemoIndexRouteImport } from './routes/demo/index'
+import { Route as DemoAgendaRouteImport } from './routes/demo/agenda'
+import { Route as DemoCalendarioRouteImport } from './routes/demo/calendario'
+import { Route as DemoCartoesRouteImport } from './routes/demo/cartoes'
+import { Route as DemoClientesRouteImport } from './routes/demo/clientes'
+import { Route as DemoConexoesRouteImport } from './routes/demo/conexoes'
+import { Route as DemoConfiguracoesRouteImport } from './routes/demo/configuracoes'
+import { Route as DemoContasRouteImport } from './routes/demo/contas'
+import { Route as DemoConversasRouteImport } from './routes/demo/conversas'
+import { Route as DemoDashboardRouteImport } from './routes/demo/dashboard'
+import { Route as DemoEquipeRouteImport } from './routes/demo/equipe'
+import { Route as DemoIaRouteImport } from './routes/demo/ia'
+import { Route as DemoIntegracoesRouteImport } from './routes/demo/integracoes'
+import { Route as DemoMarciaRouteImport } from './routes/demo/marcia'
+import { Route as DemoMetasRouteImport } from './routes/demo/metas'
+import { Route as DemoMovimentacoesRouteImport } from './routes/demo/movimentacoes'
+import { Route as DemoNotificacoesRouteImport } from './routes/demo/notificacoes'
+import { Route as DemoOrcamentosRouteImport } from './routes/demo/orcamentos'
+import { Route as DemoOrdensRouteImport } from './routes/demo/ordens'
+import { Route as DemoPlanejamentoRouteImport } from './routes/demo/planejamento'
+import { Route as DemoRecorrenciasRouteImport } from './routes/demo/recorrencias'
+import { Route as DemoRelatoriosRouteImport } from './routes/demo/relatorios'
+import { Route as DemoServicosRouteImport } from './routes/demo/servicos'
+import { Route as DemoWhatsappRouteImport } from './routes/demo/whatsapp'
+import { Route as MasterIndexRouteImport } from './routes/master/index'
+import { Route as MasterAssinantesRouteImport } from './routes/master/assinantes'
+import { Route as MasterAssinaturasRouteImport } from './routes/master/assinaturas'
+import { Route as MasterChecklistRouteImport } from './routes/master/checklist'
+import { Route as MasterConfiguracoesRouteImport } from './routes/master/configuracoes'
+import { Route as MasterConversasRouteImport } from './routes/master/conversas'
+import { Route as MasterEmpresasRouteImport } from './routes/master/empresas'
+import { Route as MasterIaCreditosRouteImport } from './routes/master/ia-creditos'
+import { Route as MasterImplantacaoRouteImport } from './routes/master/implantacao'
+import { Route as MasterIntegracoesRouteImport } from './routes/master/integracoes'
+import { Route as MasterNovaEmpresaRouteImport } from './routes/master/nova-empresa'
+import { Route as MasterNovoAssinanteRouteImport } from './routes/master/novo-assinante'
+import { Route as MasterOnboardingRouteImport } from './routes/master/onboarding'
+import { Route as MasterPagamentosRouteImport } from './routes/master/pagamentos'
+import { Route as MasterPainelRouteImport } from './routes/master/painel'
+import { Route as MasterPlanosRouteImport } from './routes/master/planos'
+import { Route as MasterWhatsappRouteImport } from './routes/master/whatsapp'
+import { Route as MasterWhatsappMetaRouteImport } from './routes/master/whatsapp-meta'
+import { Route as MasterWhatsappQrRouteImport } from './routes/master/whatsapp-qr'
 import { Route as ApiPublicBrandAssetRouteImport } from './routes/api/public/brand-asset'
+import { Route as ApiPublicGoogleCallbackRouteImport } from './routes/api/public/google-callback'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as ApiPublicSupportWhatsappWebhookRouteImport } from './routes/api/public/support-whatsapp-webhook'
+import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp-webhook'
+import { Route as AppOrdensOrderIdRouteImport } from './routes/app/ordens.$orderId'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
 
-const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
-  id: '/trocar-senha',
-  path: '/trocar-senha',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermosRoute = TermosRouteImport.update({
-  id: '/termos',
-  path: '/termos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SuperadminRoute = SuperadminRouteImport.update({
-  id: '/superadmin',
-  path: '/superadmin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetSenhaRoute = ResetSenhaRouteImport.update({
-  id: '/reset-senha',
-  path: '/reset-senha',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReembolsoRoute = ReembolsoRouteImport.update({
-  id: '/reembolso',
-  path: '/reembolso',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacidadeRoute = PrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MasterRoute = MasterRouteImport.update({
-  id: '/master',
-  path: '/master',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
-  id: '/esqueci-senha',
-  path: '/esqueci-senha',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EntrarRoute = EntrarRouteImport.update({
-  id: '/entrar',
-  path: '/entrar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -156,365 +111,55 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MasterIndexRoute = MasterIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => MasterRoute,
-} as any)
-const DemoIndexRoute = DemoIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DemoRoute,
-} as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
-const MasterWhatsappQrRoute = MasterWhatsappQrRouteImport.update({
-  id: '/whatsapp-qr',
-  path: '/whatsapp-qr',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterWhatsappMetaRoute = MasterWhatsappMetaRouteImport.update({
-  id: '/whatsapp-meta',
-  path: '/whatsapp-meta',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterWhatsappRoute = MasterWhatsappRouteImport.update({
-  id: '/whatsapp',
-  path: '/whatsapp',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterPlanosRoute = MasterPlanosRouteImport.update({
-  id: '/planos',
-  path: '/planos',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterPainelRoute = MasterPainelRouteImport.update({
-  id: '/painel',
-  path: '/painel',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterPagamentosRoute = MasterPagamentosRouteImport.update({
-  id: '/pagamentos',
-  path: '/pagamentos',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterOnboardingRoute = MasterOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterNovoAssinanteRoute = MasterNovoAssinanteRouteImport.update({
-  id: '/novo-assinante',
-  path: '/novo-assinante',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterNovaEmpresaRoute = MasterNovaEmpresaRouteImport.update({
-  id: '/nova-empresa',
-  path: '/nova-empresa',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterIntegracoesRoute = MasterIntegracoesRouteImport.update({
-  id: '/integracoes',
-  path: '/integracoes',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterImplantacaoRoute = MasterImplantacaoRouteImport.update({
-  id: '/implantacao',
-  path: '/implantacao',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterIaCreditosRoute = MasterIaCreditosRouteImport.update({
-  id: '/ia-creditos',
-  path: '/ia-creditos',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterEmpresasRoute = MasterEmpresasRouteImport.update({
-  id: '/empresas',
-  path: '/empresas',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterConversasRoute = MasterConversasRouteImport.update({
-  id: '/conversas',
-  path: '/conversas',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterConfiguracoesRoute = MasterConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterChecklistRoute = MasterChecklistRouteImport.update({
-  id: '/checklist',
-  path: '/checklist',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterAssinaturasRoute = MasterAssinaturasRouteImport.update({
-  id: '/assinaturas',
-  path: '/assinaturas',
-  getParentRoute: () => MasterRoute,
-} as any)
-const MasterAssinantesRoute = MasterAssinantesRouteImport.update({
-  id: '/assinantes',
-  path: '/assinantes',
-  getParentRoute: () => MasterRoute,
-} as any)
-const DemoWhatsappRoute = DemoWhatsappRouteImport.update({
-  id: '/whatsapp',
-  path: '/whatsapp',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoServicosRoute = DemoServicosRouteImport.update({
-  id: '/servicos',
-  path: '/servicos',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoRelatoriosRoute = DemoRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoRecorrenciasRoute = DemoRecorrenciasRouteImport.update({
-  id: '/recorrencias',
-  path: '/recorrencias',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoPlanejamentoRoute = DemoPlanejamentoRouteImport.update({
-  id: '/planejamento',
-  path: '/planejamento',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoOrdensRoute = DemoOrdensRouteImport.update({
-  id: '/ordens',
-  path: '/ordens',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoOrcamentosRoute = DemoOrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoNotificacoesRoute = DemoNotificacoesRouteImport.update({
-  id: '/notificacoes',
-  path: '/notificacoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMovimentacoesRoute = DemoMovimentacoesRouteImport.update({
-  id: '/movimentacoes',
-  path: '/movimentacoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMetasRoute = DemoMetasRouteImport.update({
-  id: '/metas',
-  path: '/metas',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMarciaRoute = DemoMarciaRouteImport.update({
-  id: '/marcia',
-  path: '/marcia',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoIntegracoesRoute = DemoIntegracoesRouteImport.update({
-  id: '/integracoes',
-  path: '/integracoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoIaRoute = DemoIaRouteImport.update({
-  id: '/ia',
-  path: '/ia',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoEquipeRoute = DemoEquipeRouteImport.update({
-  id: '/equipe',
-  path: '/equipe',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoDashboardRoute = DemoDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoConversasRoute = DemoConversasRouteImport.update({
-  id: '/conversas',
-  path: '/conversas',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoContasRoute = DemoContasRouteImport.update({
-  id: '/contas',
-  path: '/contas',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoConfiguracoesRoute = DemoConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoConexoesRoute = DemoConexoesRouteImport.update({
-  id: '/conexoes',
-  path: '/conexoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoClientesRoute = DemoClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoCartoesRoute = DemoCartoesRouteImport.update({
-  id: '/cartoes',
-  path: '/cartoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoCalendarioRoute = DemoCalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoAgendaRoute = DemoAgendaRouteImport.update({
-  id: '/agenda',
-  path: '/agenda',
-  getParentRoute: () => DemoRoute,
-} as any)
-const CsatTokenRoute = CsatTokenRouteImport.update({
-  id: '/csat/$token',
-  path: '/csat/$token',
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => AppRoute,
+const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
+  id: '/esqueci-senha',
+  path: '/esqueci-senha',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppRecorrenciasRoute = AppRecorrenciasRouteImport.update({
-  id: '/recorrencias',
-  path: '/recorrencias',
-  getParentRoute: () => AppRoute,
+const MasterRoute = MasterRouteImport.update({
+  id: '/master',
+  path: '/master',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppPlanejamentoRoute = AppPlanejamentoRouteImport.update({
-  id: '/planejamento',
-  path: '/planejamento',
-  getParentRoute: () => AppRoute,
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppOrdensRoute = AppOrdensRouteImport.update({
-  id: '/ordens',
-  path: '/ordens',
-  getParentRoute: () => AppRoute,
+const ReembolsoRoute = ReembolsoRouteImport.update({
+  id: '/reembolso',
+  path: '/reembolso',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppOrcamentosRoute = AppOrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => AppRoute,
+const ResetSenhaRoute = ResetSenhaRouteImport.update({
+  id: '/reset-senha',
+  path: '/reset-senha',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppOperacaoRoute = AppOperacaoRouteImport.update({
-  id: '/operacao',
-  path: '/operacao',
-  getParentRoute: () => AppRoute,
+const SuperadminRoute = SuperadminRouteImport.update({
+  id: '/superadmin',
+  path: '/superadmin',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppOnboardingRoute = AppOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AppRoute,
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppNotificacoesRoute = AppNotificacoesRouteImport.update({
-  id: '/notificacoes',
-  path: '/notificacoes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMovimentacoesRoute = AppMovimentacoesRouteImport.update({
-  id: '/movimentacoes',
-  path: '/movimentacoes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMarciaRoute = AppMarciaRouteImport.update({
-  id: '/marcia',
-  path: '/marcia',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppIntegracoesRoute = AppIntegracoesRouteImport.update({
-  id: '/integracoes',
-  path: '/integracoes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInicioRoute = AppInicioRouteImport.update({
-  id: '/inicio',
-  path: '/inicio',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppHojeRoute = AppHojeRouteImport.update({
-  id: '/hoje',
-  path: '/hoje',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGuiaRoute = AppGuiaRouteImport.update({
-  id: '/guia',
-  path: '/guia',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppFinanceiroRoute = AppFinanceiroRouteImport.update({
-  id: '/financeiro',
-  path: '/financeiro',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDashboardRoute = AppDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppConversasRoute = AppConversasRouteImport.update({
-  id: '/conversas',
-  path: '/conversas',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppContasRoute = AppContasRouteImport.update({
-  id: '/contas',
-  path: '/contas',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppConexaoRoute = AppConexaoRouteImport.update({
-  id: '/conexao',
-  path: '/conexao',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppClientesRoute = AppClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCheckoutRoute = AppCheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCartoesRoute = AppCartoesRouteImport.update({
-  id: '/cartoes',
-  path: '/cartoes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCalendarioRoute = AppCalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAgenteRoute = AppAgenteRouteImport.update({
-  id: '/agente',
-  path: '/agente',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAgendaRoute = AppAgendaRouteImport.update({
-  id: '/agenda',
-  path: '/agenda',
-  getParentRoute: () => AppRoute,
+const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
+  id: '/trocar-senha',
+  path: '/trocar-senha',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiManifestDotwebmanifestRoute =
   ApiManifestDotwebmanifestRouteImport.update({
@@ -522,26 +167,364 @@ const ApiManifestDotwebmanifestRoute =
     path: '/api/manifest.webmanifest',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AppOrdensOrderIdRoute = AppOrdensOrderIdRouteImport.update({
-  id: '/$orderId',
-  path: '/$orderId',
-  getParentRoute: () => AppOrdensRoute,
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
 } as any)
-const ApiPublicWhatsappWebhookRoute =
-  ApiPublicWhatsappWebhookRouteImport.update({
-    id: '/api/public/whatsapp-webhook',
-    path: '/api/public/whatsapp-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicSupportWhatsappWebhookRoute =
-  ApiPublicSupportWhatsappWebhookRouteImport.update({
-    id: '/api/public/support-whatsapp-webhook',
-    path: '/api/public/support-whatsapp-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
-  id: '/api/public/stripe-webhook',
-  path: '/api/public/stripe-webhook',
+const AppAgendaRoute = AppAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAgenteRoute = AppAgenteRouteImport.update({
+  id: '/agente',
+  path: '/agente',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCalendarioRoute = AppCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCartoesRoute = AppCartoesRouteImport.update({
+  id: '/cartoes',
+  path: '/cartoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCheckoutRoute = AppCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientesRoute = AppClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConexaoRoute = AppConexaoRouteImport.update({
+  id: '/conexao',
+  path: '/conexao',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppContasRoute = AppContasRouteImport.update({
+  id: '/contas',
+  path: '/contas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConversasRoute = AppConversasRouteImport.update({
+  id: '/conversas',
+  path: '/conversas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFinanceiroRoute = AppFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGuiaRoute = AppGuiaRouteImport.update({
+  id: '/guia',
+  path: '/guia',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHojeRoute = AppHojeRouteImport.update({
+  id: '/hoje',
+  path: '/hoje',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInicioRoute = AppInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIntegracoesRoute = AppIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMarciaRoute = AppMarciaRouteImport.update({
+  id: '/marcia',
+  path: '/marcia',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMovimentacoesRoute = AppMovimentacoesRouteImport.update({
+  id: '/movimentacoes',
+  path: '/movimentacoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificacoesRoute = AppNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOperacaoRoute = AppOperacaoRouteImport.update({
+  id: '/operacao',
+  path: '/operacao',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrcamentosRoute = AppOrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrdensRoute = AppOrdensRouteImport.update({
+  id: '/ordens',
+  path: '/ordens',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlanejamentoRoute = AppPlanejamentoRouteImport.update({
+  id: '/planejamento',
+  path: '/planejamento',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRecorrenciasRoute = AppRecorrenciasRouteImport.update({
+  id: '/recorrencias',
+  path: '/recorrencias',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AppRoute,
+} as any)
+const CsatTokenRoute = CsatTokenRouteImport.update({
+  id: '/csat/$token',
+  path: '/csat/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoAgendaRoute = DemoAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoCalendarioRoute = DemoCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoCartoesRoute = DemoCartoesRouteImport.update({
+  id: '/cartoes',
+  path: '/cartoes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoClientesRoute = DemoClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoConexoesRoute = DemoConexoesRouteImport.update({
+  id: '/conexoes',
+  path: '/conexoes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoConfiguracoesRoute = DemoConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoContasRoute = DemoContasRouteImport.update({
+  id: '/contas',
+  path: '/contas',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoConversasRoute = DemoConversasRouteImport.update({
+  id: '/conversas',
+  path: '/conversas',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoDashboardRoute = DemoDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoEquipeRoute = DemoEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoIaRoute = DemoIaRouteImport.update({
+  id: '/ia',
+  path: '/ia',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoIntegracoesRoute = DemoIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoMarciaRoute = DemoMarciaRouteImport.update({
+  id: '/marcia',
+  path: '/marcia',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoMetasRoute = DemoMetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoMovimentacoesRoute = DemoMovimentacoesRouteImport.update({
+  id: '/movimentacoes',
+  path: '/movimentacoes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoNotificacoesRoute = DemoNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoOrcamentosRoute = DemoOrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoOrdensRoute = DemoOrdensRouteImport.update({
+  id: '/ordens',
+  path: '/ordens',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoPlanejamentoRoute = DemoPlanejamentoRouteImport.update({
+  id: '/planejamento',
+  path: '/planejamento',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoRecorrenciasRoute = DemoRecorrenciasRouteImport.update({
+  id: '/recorrencias',
+  path: '/recorrencias',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoRelatoriosRoute = DemoRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoServicosRoute = DemoServicosRouteImport.update({
+  id: '/servicos',
+  path: '/servicos',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoWhatsappRoute = DemoWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => DemoRoute,
+} as any)
+const MasterIndexRoute = MasterIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterAssinantesRoute = MasterAssinantesRouteImport.update({
+  id: '/assinantes',
+  path: '/assinantes',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterAssinaturasRoute = MasterAssinaturasRouteImport.update({
+  id: '/assinaturas',
+  path: '/assinaturas',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterChecklistRoute = MasterChecklistRouteImport.update({
+  id: '/checklist',
+  path: '/checklist',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterConfiguracoesRoute = MasterConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterConversasRoute = MasterConversasRouteImport.update({
+  id: '/conversas',
+  path: '/conversas',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterEmpresasRoute = MasterEmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterIaCreditosRoute = MasterIaCreditosRouteImport.update({
+  id: '/ia-creditos',
+  path: '/ia-creditos',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterImplantacaoRoute = MasterImplantacaoRouteImport.update({
+  id: '/implantacao',
+  path: '/implantacao',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterIntegracoesRoute = MasterIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterNovaEmpresaRoute = MasterNovaEmpresaRouteImport.update({
+  id: '/nova-empresa',
+  path: '/nova-empresa',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterNovoAssinanteRoute = MasterNovoAssinanteRouteImport.update({
+  id: '/novo-assinante',
+  path: '/novo-assinante',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterOnboardingRoute = MasterOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterPagamentosRoute = MasterPagamentosRouteImport.update({
+  id: '/pagamentos',
+  path: '/pagamentos',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterPainelRoute = MasterPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterPlanosRoute = MasterPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterWhatsappRoute = MasterWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterWhatsappMetaRoute = MasterWhatsappMetaRouteImport.update({
+  id: '/whatsapp-meta',
+  path: '/whatsapp-meta',
+  getParentRoute: () => MasterRoute,
+} as any)
+const MasterWhatsappQrRoute = MasterWhatsappQrRouteImport.update({
+  id: '/whatsapp-qr',
+  path: '/whatsapp-qr',
+  getParentRoute: () => MasterRoute,
+} as any)
+const ApiPublicBrandAssetRoute = ApiPublicBrandAssetRouteImport.update({
+  id: '/api/public/brand-asset',
+  path: '/api/public/brand-asset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicGoogleCallbackRoute = ApiPublicGoogleCallbackRouteImport.update({
@@ -549,10 +532,27 @@ const ApiPublicGoogleCallbackRoute = ApiPublicGoogleCallbackRouteImport.update({
   path: '/api/public/google-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicBrandAssetRoute = ApiPublicBrandAssetRouteImport.update({
-  id: '/api/public/brand-asset',
-  path: '/api/public/brand-asset',
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSupportWhatsappWebhookRoute =
+  ApiPublicSupportWhatsappWebhookRouteImport.update({
+    id: '/api/public/support-whatsapp-webhook',
+    path: '/api/public/support-whatsapp-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWhatsappWebhookRoute =
+  ApiPublicWhatsappWebhookRouteImport.update({
+    id: '/api/public/whatsapp-webhook',
+    path: '/api/public/whatsapp-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AppOrdensOrderIdRoute = AppOrdensOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => AppOrdensRoute,
 } as any)
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing/webhook',
@@ -1141,74 +1141,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trocar-senha': {
-      id: '/trocar-senha'
-      path: '/trocar-senha'
-      fullPath: '/trocar-senha'
-      preLoaderRoute: typeof TrocarSenhaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/termos': {
-      id: '/termos'
-      path: '/termos'
-      fullPath: '/termos'
-      preLoaderRoute: typeof TermosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/superadmin': {
-      id: '/superadmin'
-      path: '/superadmin'
-      fullPath: '/superadmin'
-      preLoaderRoute: typeof SuperadminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-senha': {
-      id: '/reset-senha'
-      path: '/reset-senha'
-      fullPath: '/reset-senha'
-      preLoaderRoute: typeof ResetSenhaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reembolso': {
-      id: '/reembolso'
-      path: '/reembolso'
-      fullPath: '/reembolso'
-      preLoaderRoute: typeof ReembolsoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacidade': {
-      id: '/privacidade'
-      path: '/privacidade'
-      fullPath: '/privacidade'
-      preLoaderRoute: typeof PrivacidadeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/master': {
-      id: '/master'
-      path: '/master'
-      fullPath: '/master'
-      preLoaderRoute: typeof MasterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/esqueci-senha': {
-      id: '/esqueci-senha'
-      path: '/esqueci-senha'
-      fullPath: '/esqueci-senha'
-      preLoaderRoute: typeof EsqueciSenhaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/entrar': {
-      id: '/entrar'
-      path: '/entrar'
-      fullPath: '/entrar'
-      preLoaderRoute: typeof EntrarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -1218,501 +1155,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/master/': {
-      id: '/master/'
-      path: '/'
-      fullPath: '/master/'
-      preLoaderRoute: typeof MasterIndexRouteImport
-      parentRoute: typeof MasterRoute
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/demo/': {
-      id: '/demo/'
-      path: '/'
-      fullPath: '/demo/'
-      preLoaderRoute: typeof DemoIndexRouteImport
-      parentRoute: typeof DemoRoute
+    '/esqueci-senha': {
+      id: '/esqueci-senha'
+      path: '/esqueci-senha'
+      fullPath: '/esqueci-senha'
+      preLoaderRoute: typeof EsqueciSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/master': {
+      id: '/master'
+      path: '/master'
+      fullPath: '/master'
+      preLoaderRoute: typeof MasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reembolso': {
+      id: '/reembolso'
+      path: '/reembolso'
+      fullPath: '/reembolso'
+      preLoaderRoute: typeof ReembolsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-senha': {
+      id: '/reset-senha'
+      path: '/reset-senha'
+      fullPath: '/reset-senha'
+      preLoaderRoute: typeof ResetSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/superadmin': {
+      id: '/superadmin'
+      path: '/superadmin'
+      fullPath: '/superadmin'
+      preLoaderRoute: typeof SuperadminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trocar-senha': {
+      id: '/trocar-senha'
+      path: '/trocar-senha'
+      fullPath: '/trocar-senha'
+      preLoaderRoute: typeof TrocarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/manifest.webmanifest': {
+      id: '/api/manifest.webmanifest'
+      path: '/api/manifest.webmanifest'
+      fullPath: '/api/manifest.webmanifest'
+      preLoaderRoute: typeof ApiManifestDotwebmanifestRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/': {
       id: '/app/'
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/master/whatsapp-qr': {
-      id: '/master/whatsapp-qr'
-      path: '/whatsapp-qr'
-      fullPath: '/master/whatsapp-qr'
-      preLoaderRoute: typeof MasterWhatsappQrRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/whatsapp-meta': {
-      id: '/master/whatsapp-meta'
-      path: '/whatsapp-meta'
-      fullPath: '/master/whatsapp-meta'
-      preLoaderRoute: typeof MasterWhatsappMetaRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/whatsapp': {
-      id: '/master/whatsapp'
-      path: '/whatsapp'
-      fullPath: '/master/whatsapp'
-      preLoaderRoute: typeof MasterWhatsappRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/planos': {
-      id: '/master/planos'
-      path: '/planos'
-      fullPath: '/master/planos'
-      preLoaderRoute: typeof MasterPlanosRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/painel': {
-      id: '/master/painel'
-      path: '/painel'
-      fullPath: '/master/painel'
-      preLoaderRoute: typeof MasterPainelRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/pagamentos': {
-      id: '/master/pagamentos'
-      path: '/pagamentos'
-      fullPath: '/master/pagamentos'
-      preLoaderRoute: typeof MasterPagamentosRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/onboarding': {
-      id: '/master/onboarding'
-      path: '/onboarding'
-      fullPath: '/master/onboarding'
-      preLoaderRoute: typeof MasterOnboardingRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/novo-assinante': {
-      id: '/master/novo-assinante'
-      path: '/novo-assinante'
-      fullPath: '/master/novo-assinante'
-      preLoaderRoute: typeof MasterNovoAssinanteRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/nova-empresa': {
-      id: '/master/nova-empresa'
-      path: '/nova-empresa'
-      fullPath: '/master/nova-empresa'
-      preLoaderRoute: typeof MasterNovaEmpresaRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/integracoes': {
-      id: '/master/integracoes'
-      path: '/integracoes'
-      fullPath: '/master/integracoes'
-      preLoaderRoute: typeof MasterIntegracoesRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/implantacao': {
-      id: '/master/implantacao'
-      path: '/implantacao'
-      fullPath: '/master/implantacao'
-      preLoaderRoute: typeof MasterImplantacaoRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/ia-creditos': {
-      id: '/master/ia-creditos'
-      path: '/ia-creditos'
-      fullPath: '/master/ia-creditos'
-      preLoaderRoute: typeof MasterIaCreditosRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/empresas': {
-      id: '/master/empresas'
-      path: '/empresas'
-      fullPath: '/master/empresas'
-      preLoaderRoute: typeof MasterEmpresasRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/conversas': {
-      id: '/master/conversas'
-      path: '/conversas'
-      fullPath: '/master/conversas'
-      preLoaderRoute: typeof MasterConversasRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/configuracoes': {
-      id: '/master/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/master/configuracoes'
-      preLoaderRoute: typeof MasterConfiguracoesRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/checklist': {
-      id: '/master/checklist'
-      path: '/checklist'
-      fullPath: '/master/checklist'
-      preLoaderRoute: typeof MasterChecklistRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/assinaturas': {
-      id: '/master/assinaturas'
-      path: '/assinaturas'
-      fullPath: '/master/assinaturas'
-      preLoaderRoute: typeof MasterAssinaturasRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/master/assinantes': {
-      id: '/master/assinantes'
-      path: '/assinantes'
-      fullPath: '/master/assinantes'
-      preLoaderRoute: typeof MasterAssinantesRouteImport
-      parentRoute: typeof MasterRoute
-    }
-    '/demo/whatsapp': {
-      id: '/demo/whatsapp'
-      path: '/whatsapp'
-      fullPath: '/demo/whatsapp'
-      preLoaderRoute: typeof DemoWhatsappRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/servicos': {
-      id: '/demo/servicos'
-      path: '/servicos'
-      fullPath: '/demo/servicos'
-      preLoaderRoute: typeof DemoServicosRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/relatorios': {
-      id: '/demo/relatorios'
-      path: '/relatorios'
-      fullPath: '/demo/relatorios'
-      preLoaderRoute: typeof DemoRelatoriosRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/recorrencias': {
-      id: '/demo/recorrencias'
-      path: '/recorrencias'
-      fullPath: '/demo/recorrencias'
-      preLoaderRoute: typeof DemoRecorrenciasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/planejamento': {
-      id: '/demo/planejamento'
-      path: '/planejamento'
-      fullPath: '/demo/planejamento'
-      preLoaderRoute: typeof DemoPlanejamentoRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/ordens': {
-      id: '/demo/ordens'
-      path: '/ordens'
-      fullPath: '/demo/ordens'
-      preLoaderRoute: typeof DemoOrdensRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/orcamentos': {
-      id: '/demo/orcamentos'
-      path: '/orcamentos'
-      fullPath: '/demo/orcamentos'
-      preLoaderRoute: typeof DemoOrcamentosRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/notificacoes': {
-      id: '/demo/notificacoes'
-      path: '/notificacoes'
-      fullPath: '/demo/notificacoes'
-      preLoaderRoute: typeof DemoNotificacoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/movimentacoes': {
-      id: '/demo/movimentacoes'
-      path: '/movimentacoes'
-      fullPath: '/demo/movimentacoes'
-      preLoaderRoute: typeof DemoMovimentacoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/metas': {
-      id: '/demo/metas'
-      path: '/metas'
-      fullPath: '/demo/metas'
-      preLoaderRoute: typeof DemoMetasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/marcia': {
-      id: '/demo/marcia'
-      path: '/marcia'
-      fullPath: '/demo/marcia'
-      preLoaderRoute: typeof DemoMarciaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/integracoes': {
-      id: '/demo/integracoes'
-      path: '/integracoes'
-      fullPath: '/demo/integracoes'
-      preLoaderRoute: typeof DemoIntegracoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/ia': {
-      id: '/demo/ia'
-      path: '/ia'
-      fullPath: '/demo/ia'
-      preLoaderRoute: typeof DemoIaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/equipe': {
-      id: '/demo/equipe'
-      path: '/equipe'
-      fullPath: '/demo/equipe'
-      preLoaderRoute: typeof DemoEquipeRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/dashboard': {
-      id: '/demo/dashboard'
-      path: '/dashboard'
-      fullPath: '/demo/dashboard'
-      preLoaderRoute: typeof DemoDashboardRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/conversas': {
-      id: '/demo/conversas'
-      path: '/conversas'
-      fullPath: '/demo/conversas'
-      preLoaderRoute: typeof DemoConversasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/contas': {
-      id: '/demo/contas'
-      path: '/contas'
-      fullPath: '/demo/contas'
-      preLoaderRoute: typeof DemoContasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/configuracoes': {
-      id: '/demo/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/demo/configuracoes'
-      preLoaderRoute: typeof DemoConfiguracoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/conexoes': {
-      id: '/demo/conexoes'
-      path: '/conexoes'
-      fullPath: '/demo/conexoes'
-      preLoaderRoute: typeof DemoConexoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/clientes': {
-      id: '/demo/clientes'
-      path: '/clientes'
-      fullPath: '/demo/clientes'
-      preLoaderRoute: typeof DemoClientesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/cartoes': {
-      id: '/demo/cartoes'
-      path: '/cartoes'
-      fullPath: '/demo/cartoes'
-      preLoaderRoute: typeof DemoCartoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/calendario': {
-      id: '/demo/calendario'
-      path: '/calendario'
-      fullPath: '/demo/calendario'
-      preLoaderRoute: typeof DemoCalendarioRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/agenda': {
-      id: '/demo/agenda'
-      path: '/agenda'
-      fullPath: '/demo/agenda'
-      preLoaderRoute: typeof DemoAgendaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/csat/$token': {
-      id: '/csat/$token'
-      path: '/csat/$token'
-      fullPath: '/csat/$token'
-      preLoaderRoute: typeof CsatTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/relatorios': {
-      id: '/app/relatorios'
-      path: '/relatorios'
-      fullPath: '/app/relatorios'
-      preLoaderRoute: typeof AppRelatoriosRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/recorrencias': {
-      id: '/app/recorrencias'
-      path: '/recorrencias'
-      fullPath: '/app/recorrencias'
-      preLoaderRoute: typeof AppRecorrenciasRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/planejamento': {
-      id: '/app/planejamento'
-      path: '/planejamento'
-      fullPath: '/app/planejamento'
-      preLoaderRoute: typeof AppPlanejamentoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/ordens': {
-      id: '/app/ordens'
-      path: '/ordens'
-      fullPath: '/app/ordens'
-      preLoaderRoute: typeof AppOrdensRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/orcamentos': {
-      id: '/app/orcamentos'
-      path: '/orcamentos'
-      fullPath: '/app/orcamentos'
-      preLoaderRoute: typeof AppOrcamentosRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/operacao': {
-      id: '/app/operacao'
-      path: '/operacao'
-      fullPath: '/app/operacao'
-      preLoaderRoute: typeof AppOperacaoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/onboarding': {
-      id: '/app/onboarding'
-      path: '/onboarding'
-      fullPath: '/app/onboarding'
-      preLoaderRoute: typeof AppOnboardingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/notificacoes': {
-      id: '/app/notificacoes'
-      path: '/notificacoes'
-      fullPath: '/app/notificacoes'
-      preLoaderRoute: typeof AppNotificacoesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/movimentacoes': {
-      id: '/app/movimentacoes'
-      path: '/movimentacoes'
-      fullPath: '/app/movimentacoes'
-      preLoaderRoute: typeof AppMovimentacoesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/marcia': {
-      id: '/app/marcia'
-      path: '/marcia'
-      fullPath: '/app/marcia'
-      preLoaderRoute: typeof AppMarciaRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/integracoes': {
-      id: '/app/integracoes'
-      path: '/integracoes'
-      fullPath: '/app/integracoes'
-      preLoaderRoute: typeof AppIntegracoesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/inicio': {
-      id: '/app/inicio'
-      path: '/inicio'
-      fullPath: '/app/inicio'
-      preLoaderRoute: typeof AppInicioRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/hoje': {
-      id: '/app/hoje'
-      path: '/hoje'
-      fullPath: '/app/hoje'
-      preLoaderRoute: typeof AppHojeRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/guia': {
-      id: '/app/guia'
-      path: '/guia'
-      fullPath: '/app/guia'
-      preLoaderRoute: typeof AppGuiaRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/financeiro': {
-      id: '/app/financeiro'
-      path: '/financeiro'
-      fullPath: '/app/financeiro'
-      preLoaderRoute: typeof AppFinanceiroRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/dashboard': {
-      id: '/app/dashboard'
-      path: '/dashboard'
-      fullPath: '/app/dashboard'
-      preLoaderRoute: typeof AppDashboardRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/conversas': {
-      id: '/app/conversas'
-      path: '/conversas'
-      fullPath: '/app/conversas'
-      preLoaderRoute: typeof AppConversasRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/contas': {
-      id: '/app/contas'
-      path: '/contas'
-      fullPath: '/app/contas'
-      preLoaderRoute: typeof AppContasRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/configuracoes': {
-      id: '/app/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/app/configuracoes'
-      preLoaderRoute: typeof AppConfiguracoesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/conexao': {
-      id: '/app/conexao'
-      path: '/conexao'
-      fullPath: '/app/conexao'
-      preLoaderRoute: typeof AppConexaoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/clientes': {
-      id: '/app/clientes'
-      path: '/clientes'
-      fullPath: '/app/clientes'
-      preLoaderRoute: typeof AppClientesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/checkout': {
-      id: '/app/checkout'
-      path: '/checkout'
-      fullPath: '/app/checkout'
-      preLoaderRoute: typeof AppCheckoutRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/cartoes': {
-      id: '/app/cartoes'
-      path: '/cartoes'
-      fullPath: '/app/cartoes'
-      preLoaderRoute: typeof AppCartoesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/calendario': {
-      id: '/app/calendario'
-      path: '/calendario'
-      fullPath: '/app/calendario'
-      preLoaderRoute: typeof AppCalendarioRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/agente': {
-      id: '/app/agente'
-      path: '/agente'
-      fullPath: '/app/agente'
-      preLoaderRoute: typeof AppAgenteRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/agenda': {
@@ -1722,39 +1246,494 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAgendaRouteImport
       parentRoute: typeof AppRoute
     }
-    '/api/manifest.webmanifest': {
-      id: '/api/manifest.webmanifest'
-      path: '/api/manifest.webmanifest'
-      fullPath: '/api/manifest.webmanifest'
-      preLoaderRoute: typeof ApiManifestDotwebmanifestRouteImport
+    '/app/agente': {
+      id: '/app/agente'
+      path: '/agente'
+      fullPath: '/app/agente'
+      preLoaderRoute: typeof AppAgenteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/calendario': {
+      id: '/app/calendario'
+      path: '/calendario'
+      fullPath: '/app/calendario'
+      preLoaderRoute: typeof AppCalendarioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/cartoes': {
+      id: '/app/cartoes'
+      path: '/cartoes'
+      fullPath: '/app/cartoes'
+      preLoaderRoute: typeof AppCartoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/checkout': {
+      id: '/app/checkout'
+      path: '/checkout'
+      fullPath: '/app/checkout'
+      preLoaderRoute: typeof AppCheckoutRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/clientes': {
+      id: '/app/clientes'
+      path: '/clientes'
+      fullPath: '/app/clientes'
+      preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/conexao': {
+      id: '/app/conexao'
+      path: '/conexao'
+      fullPath: '/app/conexao'
+      preLoaderRoute: typeof AppConexaoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/configuracoes': {
+      id: '/app/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/app/configuracoes'
+      preLoaderRoute: typeof AppConfiguracoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/contas': {
+      id: '/app/contas'
+      path: '/contas'
+      fullPath: '/app/contas'
+      preLoaderRoute: typeof AppContasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/conversas': {
+      id: '/app/conversas'
+      path: '/conversas'
+      fullPath: '/app/conversas'
+      preLoaderRoute: typeof AppConversasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/financeiro': {
+      id: '/app/financeiro'
+      path: '/financeiro'
+      fullPath: '/app/financeiro'
+      preLoaderRoute: typeof AppFinanceiroRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/guia': {
+      id: '/app/guia'
+      path: '/guia'
+      fullPath: '/app/guia'
+      preLoaderRoute: typeof AppGuiaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/hoje': {
+      id: '/app/hoje'
+      path: '/hoje'
+      fullPath: '/app/hoje'
+      preLoaderRoute: typeof AppHojeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inicio': {
+      id: '/app/inicio'
+      path: '/inicio'
+      fullPath: '/app/inicio'
+      preLoaderRoute: typeof AppInicioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/integracoes': {
+      id: '/app/integracoes'
+      path: '/integracoes'
+      fullPath: '/app/integracoes'
+      preLoaderRoute: typeof AppIntegracoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/marcia': {
+      id: '/app/marcia'
+      path: '/marcia'
+      fullPath: '/app/marcia'
+      preLoaderRoute: typeof AppMarciaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/movimentacoes': {
+      id: '/app/movimentacoes'
+      path: '/movimentacoes'
+      fullPath: '/app/movimentacoes'
+      preLoaderRoute: typeof AppMovimentacoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/notificacoes': {
+      id: '/app/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/app/notificacoes'
+      preLoaderRoute: typeof AppNotificacoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/operacao': {
+      id: '/app/operacao'
+      path: '/operacao'
+      fullPath: '/app/operacao'
+      preLoaderRoute: typeof AppOperacaoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/orcamentos': {
+      id: '/app/orcamentos'
+      path: '/orcamentos'
+      fullPath: '/app/orcamentos'
+      preLoaderRoute: typeof AppOrcamentosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ordens': {
+      id: '/app/ordens'
+      path: '/ordens'
+      fullPath: '/app/ordens'
+      preLoaderRoute: typeof AppOrdensRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/planejamento': {
+      id: '/app/planejamento'
+      path: '/planejamento'
+      fullPath: '/app/planejamento'
+      preLoaderRoute: typeof AppPlanejamentoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/recorrencias': {
+      id: '/app/recorrencias'
+      path: '/recorrencias'
+      fullPath: '/app/recorrencias'
+      preLoaderRoute: typeof AppRecorrenciasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/relatorios': {
+      id: '/app/relatorios'
+      path: '/relatorios'
+      fullPath: '/app/relatorios'
+      preLoaderRoute: typeof AppRelatoriosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/csat/$token': {
+      id: '/csat/$token'
+      path: '/csat/$token'
+      fullPath: '/csat/$token'
+      preLoaderRoute: typeof CsatTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/ordens/$orderId': {
-      id: '/app/ordens/$orderId'
-      path: '/$orderId'
-      fullPath: '/app/ordens/$orderId'
-      preLoaderRoute: typeof AppOrdensOrderIdRouteImport
-      parentRoute: typeof AppOrdensRoute
+    '/demo/': {
+      id: '/demo/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof DemoRoute
     }
-    '/api/public/whatsapp-webhook': {
-      id: '/api/public/whatsapp-webhook'
-      path: '/api/public/whatsapp-webhook'
-      fullPath: '/api/public/whatsapp-webhook'
-      preLoaderRoute: typeof ApiPublicWhatsappWebhookRouteImport
-      parentRoute: typeof rootRouteImport
+    '/demo/agenda': {
+      id: '/demo/agenda'
+      path: '/agenda'
+      fullPath: '/demo/agenda'
+      preLoaderRoute: typeof DemoAgendaRouteImport
+      parentRoute: typeof DemoRoute
     }
-    '/api/public/support-whatsapp-webhook': {
-      id: '/api/public/support-whatsapp-webhook'
-      path: '/api/public/support-whatsapp-webhook'
-      fullPath: '/api/public/support-whatsapp-webhook'
-      preLoaderRoute: typeof ApiPublicSupportWhatsappWebhookRouteImport
-      parentRoute: typeof rootRouteImport
+    '/demo/calendario': {
+      id: '/demo/calendario'
+      path: '/calendario'
+      fullPath: '/demo/calendario'
+      preLoaderRoute: typeof DemoCalendarioRouteImport
+      parentRoute: typeof DemoRoute
     }
-    '/api/public/stripe-webhook': {
-      id: '/api/public/stripe-webhook'
-      path: '/api/public/stripe-webhook'
-      fullPath: '/api/public/stripe-webhook'
-      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+    '/demo/cartoes': {
+      id: '/demo/cartoes'
+      path: '/cartoes'
+      fullPath: '/demo/cartoes'
+      preLoaderRoute: typeof DemoCartoesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/clientes': {
+      id: '/demo/clientes'
+      path: '/clientes'
+      fullPath: '/demo/clientes'
+      preLoaderRoute: typeof DemoClientesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/conexoes': {
+      id: '/demo/conexoes'
+      path: '/conexoes'
+      fullPath: '/demo/conexoes'
+      preLoaderRoute: typeof DemoConexoesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/configuracoes': {
+      id: '/demo/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/demo/configuracoes'
+      preLoaderRoute: typeof DemoConfiguracoesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/contas': {
+      id: '/demo/contas'
+      path: '/contas'
+      fullPath: '/demo/contas'
+      preLoaderRoute: typeof DemoContasRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/conversas': {
+      id: '/demo/conversas'
+      path: '/conversas'
+      fullPath: '/demo/conversas'
+      preLoaderRoute: typeof DemoConversasRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/dashboard': {
+      id: '/demo/dashboard'
+      path: '/dashboard'
+      fullPath: '/demo/dashboard'
+      preLoaderRoute: typeof DemoDashboardRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/equipe': {
+      id: '/demo/equipe'
+      path: '/equipe'
+      fullPath: '/demo/equipe'
+      preLoaderRoute: typeof DemoEquipeRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/ia': {
+      id: '/demo/ia'
+      path: '/ia'
+      fullPath: '/demo/ia'
+      preLoaderRoute: typeof DemoIaRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/integracoes': {
+      id: '/demo/integracoes'
+      path: '/integracoes'
+      fullPath: '/demo/integracoes'
+      preLoaderRoute: typeof DemoIntegracoesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/marcia': {
+      id: '/demo/marcia'
+      path: '/marcia'
+      fullPath: '/demo/marcia'
+      preLoaderRoute: typeof DemoMarciaRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/metas': {
+      id: '/demo/metas'
+      path: '/metas'
+      fullPath: '/demo/metas'
+      preLoaderRoute: typeof DemoMetasRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/movimentacoes': {
+      id: '/demo/movimentacoes'
+      path: '/movimentacoes'
+      fullPath: '/demo/movimentacoes'
+      preLoaderRoute: typeof DemoMovimentacoesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/notificacoes': {
+      id: '/demo/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/demo/notificacoes'
+      preLoaderRoute: typeof DemoNotificacoesRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/orcamentos': {
+      id: '/demo/orcamentos'
+      path: '/orcamentos'
+      fullPath: '/demo/orcamentos'
+      preLoaderRoute: typeof DemoOrcamentosRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/ordens': {
+      id: '/demo/ordens'
+      path: '/ordens'
+      fullPath: '/demo/ordens'
+      preLoaderRoute: typeof DemoOrdensRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/planejamento': {
+      id: '/demo/planejamento'
+      path: '/planejamento'
+      fullPath: '/demo/planejamento'
+      preLoaderRoute: typeof DemoPlanejamentoRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/recorrencias': {
+      id: '/demo/recorrencias'
+      path: '/recorrencias'
+      fullPath: '/demo/recorrencias'
+      preLoaderRoute: typeof DemoRecorrenciasRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/relatorios': {
+      id: '/demo/relatorios'
+      path: '/relatorios'
+      fullPath: '/demo/relatorios'
+      preLoaderRoute: typeof DemoRelatoriosRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/servicos': {
+      id: '/demo/servicos'
+      path: '/servicos'
+      fullPath: '/demo/servicos'
+      preLoaderRoute: typeof DemoServicosRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/whatsapp': {
+      id: '/demo/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/demo/whatsapp'
+      preLoaderRoute: typeof DemoWhatsappRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/master/': {
+      id: '/master/'
+      path: '/'
+      fullPath: '/master/'
+      preLoaderRoute: typeof MasterIndexRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/assinantes': {
+      id: '/master/assinantes'
+      path: '/assinantes'
+      fullPath: '/master/assinantes'
+      preLoaderRoute: typeof MasterAssinantesRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/assinaturas': {
+      id: '/master/assinaturas'
+      path: '/assinaturas'
+      fullPath: '/master/assinaturas'
+      preLoaderRoute: typeof MasterAssinaturasRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/checklist': {
+      id: '/master/checklist'
+      path: '/checklist'
+      fullPath: '/master/checklist'
+      preLoaderRoute: typeof MasterChecklistRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/configuracoes': {
+      id: '/master/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/master/configuracoes'
+      preLoaderRoute: typeof MasterConfiguracoesRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/conversas': {
+      id: '/master/conversas'
+      path: '/conversas'
+      fullPath: '/master/conversas'
+      preLoaderRoute: typeof MasterConversasRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/empresas': {
+      id: '/master/empresas'
+      path: '/empresas'
+      fullPath: '/master/empresas'
+      preLoaderRoute: typeof MasterEmpresasRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/ia-creditos': {
+      id: '/master/ia-creditos'
+      path: '/ia-creditos'
+      fullPath: '/master/ia-creditos'
+      preLoaderRoute: typeof MasterIaCreditosRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/implantacao': {
+      id: '/master/implantacao'
+      path: '/implantacao'
+      fullPath: '/master/implantacao'
+      preLoaderRoute: typeof MasterImplantacaoRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/integracoes': {
+      id: '/master/integracoes'
+      path: '/integracoes'
+      fullPath: '/master/integracoes'
+      preLoaderRoute: typeof MasterIntegracoesRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/nova-empresa': {
+      id: '/master/nova-empresa'
+      path: '/nova-empresa'
+      fullPath: '/master/nova-empresa'
+      preLoaderRoute: typeof MasterNovaEmpresaRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/novo-assinante': {
+      id: '/master/novo-assinante'
+      path: '/novo-assinante'
+      fullPath: '/master/novo-assinante'
+      preLoaderRoute: typeof MasterNovoAssinanteRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/onboarding': {
+      id: '/master/onboarding'
+      path: '/onboarding'
+      fullPath: '/master/onboarding'
+      preLoaderRoute: typeof MasterOnboardingRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/pagamentos': {
+      id: '/master/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/master/pagamentos'
+      preLoaderRoute: typeof MasterPagamentosRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/painel': {
+      id: '/master/painel'
+      path: '/painel'
+      fullPath: '/master/painel'
+      preLoaderRoute: typeof MasterPainelRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/planos': {
+      id: '/master/planos'
+      path: '/planos'
+      fullPath: '/master/planos'
+      preLoaderRoute: typeof MasterPlanosRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/whatsapp': {
+      id: '/master/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/master/whatsapp'
+      preLoaderRoute: typeof MasterWhatsappRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/whatsapp-meta': {
+      id: '/master/whatsapp-meta'
+      path: '/whatsapp-meta'
+      fullPath: '/master/whatsapp-meta'
+      preLoaderRoute: typeof MasterWhatsappMetaRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/master/whatsapp-qr': {
+      id: '/master/whatsapp-qr'
+      path: '/whatsapp-qr'
+      fullPath: '/master/whatsapp-qr'
+      preLoaderRoute: typeof MasterWhatsappQrRouteImport
+      parentRoute: typeof MasterRoute
+    }
+    '/api/public/brand-asset': {
+      id: '/api/public/brand-asset'
+      path: '/api/public/brand-asset'
+      fullPath: '/api/public/brand-asset'
+      preLoaderRoute: typeof ApiPublicBrandAssetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/google-callback': {
@@ -1764,12 +1743,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/brand-asset': {
-      id: '/api/public/brand-asset'
-      path: '/api/public/brand-asset'
-      fullPath: '/api/public/brand-asset'
-      preLoaderRoute: typeof ApiPublicBrandAssetRouteImport
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/support-whatsapp-webhook': {
+      id: '/api/public/support-whatsapp-webhook'
+      path: '/api/public/support-whatsapp-webhook'
+      fullPath: '/api/public/support-whatsapp-webhook'
+      preLoaderRoute: typeof ApiPublicSupportWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/whatsapp-webhook': {
+      id: '/api/public/whatsapp-webhook'
+      path: '/api/public/whatsapp-webhook'
+      fullPath: '/api/public/whatsapp-webhook'
+      preLoaderRoute: typeof ApiPublicWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/ordens/$orderId': {
+      id: '/app/ordens/$orderId'
+      path: '/$orderId'
+      fullPath: '/app/ordens/$orderId'
+      preLoaderRoute: typeof AppOrdensOrderIdRouteImport
+      parentRoute: typeof AppOrdensRoute
     }
     '/api/public/billing/webhook': {
       id: '/api/public/billing/webhook'

@@ -12,6 +12,11 @@
 ## Concluído anteriormente
 - Reestruturação MárcIA financeiro (Superadmin, assinante, demo) — concluída.
 
+## Remix setup
+- [x] Verify copied migrations are cleared and the PostgreSQL migration journal has no entries; database schema left unchanged.
+- [ ] Replace the eight requested secrets — blocked because the secure replacement form was declined.
+- [x] Verify CLONE_ACTIVATION_CODE is not referenced by the current application; ownership is automatic.
+
 ## Pendências operacionais (exigem WhatsApp/contas reais)
 - Escanear o QR (ou testar Meta) e ativar o canal central no Master
 - Aprovação do template na Meta (até 48h) e teste do botão Começar
