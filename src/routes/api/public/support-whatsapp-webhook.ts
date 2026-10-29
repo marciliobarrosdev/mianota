@@ -62,8 +62,19 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
                 for (const message of metaActive ? (value.messages ?? []) : []) {
                   const phone = digits(message?.from);
                   const type = String(message?.type || "text");
-                  const body = metaBody(message, type);
+                  let body = metaBody(message, type);
                   if (!phone || !body) continue;
+                  if ((type === "audio" || type === "voice") && (message?.audio?.id || message?.voice?.id)) {
+                    try {
+                      const url = await getMetaMediaDataUrl(String(message?.audio?.id || message?.voice?.id));
+                      const { transcribeAudioBase64, dataUrlParts } = await import("@/lib/audio-transcribe.server");
+                      const parts = url ? dataUrlParts(url) : null;
+                      const text = parts ? await transcribeAudioBase64(parts.base64, parts.mime) : "";
+                      if (text) body = text;
+                    } catch (error) {
+                      console.error("[support-whatsapp.audio]", error instanceof Error ? error.message : error);
+                    }
+                  }
                   const imageDataUrl =
                     type === "image" && message?.image?.id
                       ? await getMetaMediaDataUrl(String(message.image.id)).catch(() => null)
@@ -151,7 +162,18 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           const phone = digits(remoteJid.split("@")[0]);
           const message = data?.message ?? {};
           const type = evolutionType(message);
-          const body = evolutionBody(message, type);
+          let body = evolutionBody(message, type);
+          if (type === "audio" && channel.instance_name && phone) {
+            try {
+              const { evoGetMediaBase64 } = await import("@/lib/evolution.server");
+              const media = await evoGetMediaBase64(String(channel.instance_name), data);
+              const { transcribeAudioBase64 } = await import("@/lib/audio-transcribe.server");
+              const text = await transcribeAudioBase64(media.base64, media.mimetype || message?.audioMessage?.mimetype || null);
+              if (text) body = text;
+            } catch (error) {
+              console.error("[support-whatsapp.audio]", error instanceof Error ? error.message : error);
+            }
+          }
           if (phone && body) {
             let imageDataUrl: string | null = null;
             if (type === "image" && channel.instance_name) {
