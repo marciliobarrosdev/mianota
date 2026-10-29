@@ -7,6 +7,8 @@ import { LoadingBlocks, PageHeader } from "@/components/marcia/page-kit";
 import { FinanceOverview } from "@/components/finance/finance-overview";
 import { TransactionsView } from "@/components/finance/transactions-view";
 import { PlannerView } from "@/components/finance/planner-view";
+import type { PlannerActions } from "@/components/finance/planner-actions";
+import { toast } from "sonner";
 import { MarciaChat } from "@/components/finance/marcia-chat";
 import { MarciaChatShell } from "@/components/finance/marcia-chat-shell";
 import { financeLinks } from "@/components/finance/finance-links";
@@ -125,6 +127,26 @@ function DemoPlanner() {
     const last = toIsoDate(new Date(month.getFullYear(), month.getMonth() + 1, 7));
     return buildDemoPlanner(transactions, first, last);
   }, [transactions, month]);
+  // Demonstração: as ações mudam só a tela, nada é salvo.
+  const [overrides, setOverrides] = useState<Record<string, Partial<(typeof items)[number]> & { deleted?: boolean }>>({});
+  const shown = useMemo(
+    () => items.filter((i) => !overrides[i.id]?.deleted).map((i) => ({ ...i, ...overrides[i.id] })),
+    [items, overrides],
+  );
+  const demoActions: PlannerActions = {
+    run: async (item, req) => {
+      const patch =
+        req.action === "pay" ? { status: "pago" } :
+        req.action === "move" ? { date: req.newDate! } :
+        req.action === "edit" ? { title: req.title || item.title, amountCents: req.amountCents || item.amountCents, date: req.newDate || item.date } :
+        { deleted: true };
+      const prev = overrides[item.id];
+      setOverrides((o) => ({ ...o, [item.id]: { ...o[item.id], ...patch } }));
+      toast.success("Feito (demonstração — nada foi salvo).", {
+        action: { label: "Desfazer", onClick: () => setOverrides((o) => ({ ...o, [item.id]: prev || {} })) },
+      });
+    },
+  };
   return (
     <div className="space-y-4">
       <PageHeader
@@ -140,9 +162,10 @@ function DemoPlanner() {
         }
       />
       <PlannerView
-        items={items}
+        items={shown}
         month={month}
         onMonthChange={setMonth}
+        actions={demoActions}
         renderDayComposer={(date) => <DemoDayComposer key={date} date={date} />}
       />
     </div>

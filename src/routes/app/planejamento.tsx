@@ -206,11 +206,16 @@ function PlannerPage() {
             ) : null
           }
           renderAskMia={(label) => (
-            <Button asChild variant="outline" size="sm" className="w-full rounded-xl">
-              <Link to="/app/marcia" search={{ pergunta: `Como ficam minhas finanças no dia ${label}? O que vence e o que posso planejar?` }}>
-                <MessageCircle /> Perguntar à {branding.assistantName} sobre este dia
-              </Link>
-            </Button>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button asChild variant="outline" size="sm" className="rounded-xl">
+                <Link to="/app/marcia" search={{ pergunta: `Como ficam minhas finanças no dia ${label}? O que vence e o que posso planejar?` }}>
+                  <MessageCircle /> Perguntar à {branding.assistantName}
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="rounded-xl">
+                <Link to="/app/movimentacoes">Ver em Movimentações</Link>
+              </Button>
+            </div>
           )}
           renderDayComposer={(date) => (
             <DayComposer
