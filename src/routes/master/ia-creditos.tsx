@@ -162,7 +162,11 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
               type="button"
               onClick={() => {
                 setMode(item);
-                setModel(data.models[item][0].id);
+                setModel(
+                  item === data.config.mode && data.config.model
+                    ? data.config.model
+                    : data.models[item][0].id,
+                );
               }}
               className={`rounded-xl border p-3 text-left text-sm ${mode === item ? "border-primary bg-primary/5" : "border-border"}`}
             >
@@ -172,7 +176,7 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
                   ? "Pronto automaticamente em cada clone. Sem chave para configurar."
                   : byok?.configured
                     ? `Chave salva (…${byok.last4}) · ${byok.testOk ? "validada" : "validação automática pendente"}`
-                    : "Opção futura: nenhuma chave salva"}
+                    : "Nenhuma chave salva — insira a API Key abaixo"}
               </p>
             </button>
           );
@@ -196,7 +200,7 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
           </select>
         </div>
         <label className="flex items-center gap-2 text-sm">
-          <Switch checked={optimized} onCheckedChange={setOptimized} /> Modo otimizado
+          <Switch checked={optimized} onCheckedChange={setOptimized} /> Modo otimizado (usa o modelo econômico)
         </label>
       </div>
 
@@ -214,6 +218,12 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
             : "A disponibilidade é validada automaticamente ao salvar e ativar."}
         </span>
       </div>
+
+      {data.config.lastError && data.config.mode !== "lovable" && (
+        <p className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-xs text-destructive">
+          Último erro do provedor (a IA respondeu pela Lovable AI): {data.config.lastError}
+        </p>
+      )}
 
       {mode !== "lovable" && <ByokForm provider={mode} data={data} onChanged={onChanged} />}
 
