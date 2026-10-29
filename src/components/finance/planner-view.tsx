@@ -81,25 +81,71 @@ export function PlannerView({
 }) {
   const today = toIsoDate(new Date());
   const [selected, setSelected] = useState<string | null>(null);
+  const [filter, setFilter] = useState<PlannerFilter>("todos");
+  const [view, setView] = useState<"mes" | "lista">("mes");
   const grid = useMemo(() => monthGrid(month), [month]);
+  const visible = useMemo(() => filterPlannerItems(items, filter, today), [items, filter, today]);
   const byDay = useMemo(() => {
     const map = new Map<string, FinancePlannerItem[]>();
-    for (const item of items) map.set(item.date, [...(map.get(item.date) || []), item]);
+    for (const item of visible) map.set(item.date, [...(map.get(item.date) || []), item]);
     return map;
-  }, [items]);
+  }, [visible]);
   const monthKey = toIsoDate(month).slice(0, 7);
-  const monthItems = items.filter((i) => i.date.startsWith(monthKey));
+  const allMonthItems = items.filter((i) => i.date.startsWith(monthKey));
+  const monthItems = visible.filter((i) => i.date.startsWith(monthKey));
   const monthSummary = summarizeFinanceDay(monthItems);
+  const totals = plannerTotals(allMonthItems, today);
+  const lowest = dailyProjection(allMonthItems).find((p) => p.balanceCents < 0);
   const overdue = monthItems.filter((i) => financeDayStatus(i, today) === "vencido");
   const upcoming = monthItems.filter((i) => i.status !== "pago" && i.date >= today).slice(0, 6);
 
   const shift = (delta: number) =>
     onMonthChange(new Date(month.getFullYear(), month.getMonth() + delta, 1));
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (selected || (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) || t?.isContentEditable) return;
+      if (e.key === "ArrowLeft") shift(-1);
+      if (e.key === "ArrowRight") shift(1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  const exportIcs = () => {
+    const blob = new Blob([toIcs(allMonthItems)], { type: "text/calendar;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `planejamento-${monthKey}.ics`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const FILTERS: { key: PlannerFilter; label: string }[] = [
+    { key: "todos", label: "Tudo" },
+    { key: "receita", label: "Entradas" },
+    { key: "despesa", label: "Saídas" },
+    { key: "pendente", label: "Pendentes" },
+    { key: "vencido", label: "Vencidos" },
+  ];
+
   return (
+    <div className="space-y-3">
+    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <SummaryCard icon={<ArrowDownLeft className="size-4" />} label="A receber" value={money(totals.toReceiveCents)} tone="text-emerald-700 dark:text-emerald-400" />
+      <SummaryCard icon={<ArrowUpRight className="size-4" />} label="A pagar" value={money(totals.toPayCents)} tone="text-rose-700 dark:text-rose-400" />
+      <SummaryCard icon={<AlertTriangle className="size-4" />} label="Atrasadas" value={`${totals.overdueCount} · ${money(totals.overdueCents)}`} tone={totals.overdueCount ? "text-rose-700 dark:text-rose-400" : ""} onClick={totals.overdueCount ? () => setFilter("vencido") : undefined} />
+      <SummaryCard icon={<Wallet className="size-4" />} label="Saldo projetado no fim do mês" value={money(totals.projectedCents)} tone={totals.projectedCents >= 0 ? "text-[color:var(--brand-text)]" : "text-rose-700 dark:text-rose-400"} />
+    </div>
+    {lowest && (
+      <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+        Atenção: pelo planejado, o saldo do mês fica negativo a partir de {lowest.date.slice(8, 10)}/{lowest.date.slice(5, 7)} ({money(lowest.balanceCents)}).
+      </p>
+    )}
     <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
       <section
-        className={`rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)] sm:p-4 ${loading ? "opacity-60" : ""}`}
+        className={`rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)] transition-opacity sm:p-4 ${loading ? "opacity-60" : ""}`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1">
@@ -135,8 +181,54 @@ export function PlannerView({
               Hoje
             </Button>
           </div>
+          <div className="flex items-center gap-1">
+            <div className="flex rounded-lg border border-border p-0.5">
+              {(["mes", "lista"] as const).map((v) => (
+                <button key={v} type="button" onClick={() => setView(v)} className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold ${view === v ? "bg-[color:var(--brand-soft)] text-[color:var(--brand-text)]" : "text-muted-foreground"}`}>
+                  {v === "mes" ? <CalendarDays className="size-3.5" /> : <List className="size-3.5" />}
+                  {v === "mes" ? "Mês" : "Lista"}
+                </button>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs" onClick={exportIcs} title="Adicionar contas pendentes à sua agenda (Google, Apple, Outlook)">
+              <Download className="size-3.5" /> Agenda
+            </Button>
+          </div>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-1">
+            {FILTERS.map((f) => (
+              <button key={f.key} type="button" onClick={() => setFilter(f.key)} className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold transition ${filter === f.key ? "border-[color:var(--brand)] bg-[color:var(--brand-soft)] text-[color:var(--brand-text)]" : "border-border text-muted-foreground hover:bg-muted"}`}>
+                {f.label}
+              </button>
+            ))}
+          </div>
           <Legend />
         </div>
+
+        {view === "lista" ? (
+          <div className="mt-3 divide-y divide-border">
+            {[...monthItems].sort((a, b) => a.date.localeCompare(b.date)).map((item) => {
+              const st = financeDayStatus(item, today);
+              return (
+                <button key={item.id} type="button" onClick={() => setSelected(item.date)} className="flex w-full items-center gap-3 px-1 py-2 text-left hover:bg-muted/50">
+                  <span className="w-11 shrink-0 text-center text-xs font-black text-muted-foreground">{item.date.slice(8, 10)}/{item.date.slice(5, 7)}</span>
+                  <i className={`size-2 shrink-0 rounded-full ${STATUS_META[st].dot}`} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold">{item.title}</span>
+                    <span className="text-[11px] text-muted-foreground">{item.category || "Sem categoria"} · {STATUS_META[st].label}</span>
+                  </span>
+                  <span className={`text-sm font-black tabular-nums ${item.type === "receita" ? "text-emerald-700 dark:text-emerald-400" : ""}`}>
+                    {item.type === "receita" ? "+" : "−"}{money(item.amountCents)}
+                  </span>
+                </button>
+              );
+            })}
+            {!monthItems.length && <p className="py-8 text-center text-sm text-muted-foreground">Nada neste mês com esse filtro.</p>}
+          </div>
+        ) : (
+        <>
+
 
         <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] font-extrabold uppercase tracking-[.1em] text-muted-foreground">
           {WEEK.map((d) => (
