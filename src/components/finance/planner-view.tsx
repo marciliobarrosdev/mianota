@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type DragEvent, type ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowDownLeft,
@@ -123,13 +123,13 @@ export function PlannerView({
   const dropProps = (iso: string) =>
     actions
       ? {
-          onDragOver: (e: React.DragEvent) => {
+          onDragOver: (e: DragEvent) => {
             if (!dragId) return;
             e.preventDefault();
             setDropOn(iso);
           },
           onDragLeave: () => setDropOn((d) => (d === iso ? null : d)),
-          onDrop: (e: React.DragEvent) => {
+          onDrop: (e: DragEvent) => {
             e.preventDefault();
             const item = items.find((i) => i.id === dragId);
             setDragId(null);
@@ -142,7 +142,7 @@ export function PlannerView({
     actions && canMoveItem(item)
       ? {
           draggable: true,
-          onDragStart: (e: React.DragEvent) => {
+          onDragStart: (e: DragEvent) => {
             e.stopPropagation();
             e.dataTransfer.effectAllowed = "move";
             setDragId(item.id);
