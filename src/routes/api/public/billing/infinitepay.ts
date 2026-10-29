@@ -52,9 +52,14 @@ export const Route = createFileRoute("/api/public/billing/infinitepay")({
           const admin: any = await getAdmin();
           const paidCents = Number(check.paid_amount ?? check.amount ?? body.paid_amount ?? body.amount);
           // Link gerado traz empresa+plano; link fixo: plano pelo valor e empresa pelo e-mail.
-          const planSlug = order?.planSlug ?? planSlugForAmount(paidCents);
+          const { data: planRows } = await admin
+            .from("plan")
+            .select("slug,preco_cents,ativo")
+            .eq("ativo", true);
+          const plans = (planRows ?? []) as { slug: string; preco_cents: number; ativo: boolean }[];
+          const planSlug = order?.planSlug ?? planSlugForAmount(paidCents, plans);
           if (!planSlug) return Response.json({ ok: true, ignored: "valor sem plano" });
-          const expected = INFINITEPAY_PLAN_PRICES_CENTS[planSlug];
+          const expected = plans.find((p) => p.slug === planSlug)?.preco_cents ?? 0;
           if (!expected || !isPaymentAcceptable(check, expected)) {
             return Response.json({ ok: true, ignored: "pagamento não confirmado" });
           }
