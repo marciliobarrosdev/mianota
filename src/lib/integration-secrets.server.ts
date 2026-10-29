@@ -9,7 +9,8 @@ export type IntegrationProvider =
   | "stripe"
   | "whatsapp_meta"
   | "ai_openai"
-  | "ai_anthropic";
+  | "ai_anthropic"
+  | "infinitepay";
 
 export const INTEGRATION_FIELDS: Record<
   IntegrationProvider,
@@ -38,6 +39,11 @@ export const INTEGRATION_FIELDS: Record<
   // BYOK opcional (um único provedor ativo por vez em ai_provider_config).
   ai_openai: [{ field: "api_key", env: "MARCIA_BYOK_OPENAI_API_KEY", secret: true }],
   ai_anthropic: [{ field: "api_key", env: "MARCIA_BYOK_ANTHROPIC_API_KEY", secret: true }],
+  infinitepay: [
+    { field: "handle", env: "INFINITEPAY_TAG", secret: false },
+    { field: "api_key", env: "INFINITEPAY_API_KEY", secret: true },
+    { field: "checkout_link", env: "INFINITEPAY_CHECKOUT_LINK", secret: false },
+  ],
 };
 
 const PLACEHOLDER_VALUE =

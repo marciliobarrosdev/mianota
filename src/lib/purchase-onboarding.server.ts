@@ -96,7 +96,7 @@ async function ownerUserId(client: any, companyId: string) {
 }
 
 export type EnqueueInput = {
-  source: "stripe" | "kiwify" | "cakto" | "perfectpay" | "manual";
+  source: "stripe" | "kiwify" | "cakto" | "perfectpay" | "infinitepay" | "manual";
   eventKey: string;
   kind?: "purchase" | "renewal";
   companyId: string | null;
