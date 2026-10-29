@@ -120,7 +120,88 @@ export function MarciaChat({
     }
   }
 
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+
+  async function startRecording() {
+    if (busy || transcribing) return;
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      toast.error("Seu navegador não permite gravar áudio aqui.");
+      return;
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      toast.error("Permita o uso do microfone para gravar.");
+      return;
+    }
+    const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"].find((t) =>
+      MediaRecorder.isTypeSupported?.(t),
+    );
+    const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    const chunks: Blob[] = [];
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      setSeconds(elapsed);
+      if (elapsed >= 120 && recorder.state === "recording") recorder.stop();
+    }, 250);
+    recorder.ondataavailable = (event) => event.data.size && chunks.push(event.data);
+    recorder.onstop = async () => {
+      window.clearInterval(timer);
+      stream.getTracks().forEach((t) => t.stop());
+      recorderRef.current = null;
+      setRecording(false);
+      controller.setListening(false);
+      const cancelled = (recorder as any)._cancelled;
+      const blob = new Blob(chunks, { type: (recorder.mimeType || "audio/webm").split(";")[0] });
+      if (cancelled || blob.size < 1500) {
+        if (!cancelled) toast.error("Áudio muito curto. Segure e fale um pouco mais.");
+        return;
+      }
+      setTranscribing(true);
+      try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Não consegui ler o áudio."));
+          reader.readAsDataURL(blob);
+        });
+        const text = (await controller.transcribe!(dataUrl)).trim();
+        if (!text) {
+          toast.error("Não ouvi nada no áudio. Tente de novo.");
+          return;
+        }
+        await controller.send(composeText ? composeText(text) : text, null);
+      } catch (error: any) {
+        toast.error(error?.message || "Não consegui transcrever o áudio.");
+      } finally {
+        setTranscribing(false);
+      }
+    };
+    recorderRef.current = recorder;
+    setSeconds(0);
+    setRecording(true);
+    controller.setListening(true);
+    recorder.start();
+  }
+
+  function stopRecording(cancel = false) {
+    const recorder = recorderRef.current;
+    if (!recorder) return;
+    (recorder as any)._cancelled = cancel;
+    recorder.stop();
+  }
+
   function toggleMic() {
+    if (controller.transcribe) {
+      if (recording) stopRecording();
+      else void startRecording();
+      return;
+    }
     if (listening) {
       recognitionRef.current?.stop?.();
       return;
@@ -358,7 +439,11 @@ export function MarciaChat({
             rows={1}
             aria-label={`Mensagem para ${assistantName}`}
             placeholder={
-              listening
+              transcribing
+                ? "Transcrevendo seu áudio…"
+                : recording
+                  ? `Gravando… ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} — toque em parar para enviar`
+                  : listening
                 ? "Estou ouvindo…"
                 : pending?.mode === "question"
                   ? `Responda ${assistantName}…`
@@ -366,15 +451,28 @@ export function MarciaChat({
             }
             className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-1.5 py-2 text-sm outline-none placeholder:text-muted-foreground"
           />
+          {recording && (
+            <button
+              type="button"
+              onClick={() => stopRecording(true)}
+              className="grid size-9 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Descartar gravação"
+              title="Descartar"
+            >
+              <X className="size-4" />
+            </button>
+          )}
           <button
             type="button"
             onClick={toggleMic}
-            disabled={busy}
-            className={`grid size-9 shrink-0 place-items-center rounded-xl transition disabled:opacity-50 ${listening ? "animate-pulse bg-rose-600 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-            aria-label={listening ? "Parar de ouvir" : "Falar"}
-            title={listening ? "Parar" : "Falar"}
+            disabled={busy || transcribing}
+            className={`grid size-9 shrink-0 place-items-center rounded-xl transition disabled:opacity-50 ${listening ? "animate-pulse bg-destructive text-destructive-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            aria-label={listening ? "Parar e enviar áudio" : "Gravar áudio"}
+            title={listening ? "Parar e enviar" : "Gravar áudio"}
           >
-            {listening ? (
+            {transcribing ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : listening ? (
               <Square className="size-3.5 fill-current" />
             ) : (
               <Mic className="size-[18px]" />

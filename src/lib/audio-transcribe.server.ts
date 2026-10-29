@@ -10,7 +10,7 @@ export async function transcribeAudioBase64(base64: string, mime: string | null)
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   const type = (mime || "audio/ogg").split(";")[0].trim() || "audio/ogg";
-  const ext = type.includes("mpeg") ? "mp3" : type.includes("mp4") ? "m4a" : type.includes("wav") ? "wav" : "ogg";
+  const ext = type.includes("webm") ? "webm" : type.includes("mpeg") ? "mp3" : type.includes("mp4") ? "m4a" : type.includes("wav") ? "wav" : "ogg";
   const form = new FormData();
   form.append("model", "openai/gpt-transcribe");
   form.append("file", new File([bytes], `audio.${ext}`, { type }));

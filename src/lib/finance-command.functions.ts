@@ -935,3 +935,31 @@ export const undoFinanceCommand = createServerFn({ method: "POST" })
       .eq("id", data.commandId);
     return { ok: true };
   });
+
+/** Transcreve um áudio gravado no chat do app. Só devolve o texto; nada é registrado aqui. */
+export const transcribeChatAudio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { companyId: string; audioDataUrl: string }) => {
+    const companyId = String(input?.companyId || "").trim();
+    const audioDataUrl = String(input?.audioDataUrl || "");
+    if (!companyId) throw new Error("Conta não informada.");
+    if (!audioDataUrl.startsWith("data:audio/")) throw new Error("Áudio inválido.");
+    if (audioDataUrl.length > 14_000_000) throw new Error("Áudio longo demais. Grave até 2 minutos.");
+    return { companyId, audioDataUrl };
+  })
+  .handler(async ({ context, data }) => {
+    await authorize(context, data.companyId);
+    const { transcribeAudioBase64, dataUrlParts } = await import("./audio-transcribe.server");
+    const parts = dataUrlParts(data.audioDataUrl);
+    if (!parts) throw new Error("Áudio inválido.");
+    try {
+      const text = await transcribeAudioBase64(parts.base64, parts.mime);
+      return { text };
+    } catch (error: any) {
+      console.error("transcribeChatAudio", error?.message);
+      const status = /\[(\d{3})\]/.exec(String(error?.message))?.[1];
+      if (status === "402") throw new Error("Os créditos de IA acabaram. Tente novamente mais tarde.");
+      if (status === "429") throw new Error("Muitos pedidos agora. Aguarde um pouco e grave de novo.");
+      throw new Error("Não consegui entender o áudio. Tente gravar de novo.");
+    }
+  });

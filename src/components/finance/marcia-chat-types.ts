@@ -44,6 +44,8 @@ export type MarciaChatController = {
   setListening: (listening: boolean) => void;
   /** Desfaz um lançamento recém-confirmado (opcional). */
   undo?: (messageId: string) => Promise<void>;
+  /** Transcreve áudio gravado (data URL); quando ausente, usa o ditado do navegador. */
+  transcribe?: (audioDataUrl: string) => Promise<string>;
   /** Limpa a conversa da tela (não apaga registros). */
   clear?: () => void;
   /** Texto usado quando o navegador não oferece ditado (demonstração). */
