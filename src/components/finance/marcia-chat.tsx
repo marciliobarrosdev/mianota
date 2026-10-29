@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import {
+  ArrowDown,
   Camera,
   Check,
   FileText,
@@ -10,6 +12,7 @@ import {
   Send,
   Sparkles,
   Square,
+  Undo2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -506,7 +509,7 @@ function Bubble({
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {message.link && (
               <Link
-                to={message.link.to}
+                to={message.link.to as any}
                 className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-bold text-foreground hover:border-[color:var(--brand-soft-strong)]"
               >
                 {message.link.label}
