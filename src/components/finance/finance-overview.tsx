@@ -234,7 +234,7 @@ export function FinanceOverview({
           </div>
           <div className="text-sm font-black">Dicas da {assistantName}</div>
         </div>
-        <div className="mt-2.5 grid gap-2 md:grid-cols-3">
+        <div className={`mt-2.5 grid gap-2 ${insights.length >= 3 ? "md:grid-cols-3" : insights.length === 2 ? "md:grid-cols-2" : ""}`}>
           {(insights.length
             ? insights
             : [{ title: data.insight.title, body: data.insight.body, question: data.insight.title }]
@@ -605,7 +605,7 @@ function Categories({
             >
               <span className="size-2 shrink-0 rounded-full" style={{ background: item.color }} />
               <span className="min-w-0 flex-1 truncate font-semibold">{item.name}</span>
-              {previous && (() => {
+              {previous?.categories.length ? (() => {
                 const d = pctChange(item.amountCents, prev.get(item.id) || 0);
                 return d == null ? (
                   <span className="text-[10px] font-bold text-muted-foreground">novo</span>
@@ -614,7 +614,7 @@ function Categories({
                     {d > 0 ? "▲" : "▼"}{Math.abs(d)}%
                   </span>
                 );
-              })()}
+              })() : null}
               <span className="text-muted-foreground">{item.share}%</span>
               <strong className="tabular-nums">{money(item.amountCents)}</strong>
             </Link>
