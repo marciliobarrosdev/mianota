@@ -102,6 +102,7 @@ import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/publi
 import { Route as AppOrdensOrderIdRouteImport } from './routes/app/ordens.$orderId'
 import { Route as ApiPublicBillingInfinitepayRouteImport } from './routes/api/public/billing/infinitepay'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
+import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push/dispatch'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -572,6 +573,11 @@ const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   path: '/api/public/billing/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
+  id: '/api/public/push/dispatch',
+  path: '/api/public/push/dispatch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -667,6 +673,7 @@ export interface FileRoutesByFullPath {
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
   '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -759,6 +766,7 @@ export interface FileRoutesByTo {
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
   '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -855,6 +863,7 @@ export interface FileRoutesById {
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
   '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -952,6 +961,7 @@ export interface FileRouteTypes {
     | '/app/ordens/$orderId'
     | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
+    | '/api/public/push/dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1044,6 +1054,7 @@ export interface FileRouteTypes {
     | '/app/ordens/$orderId'
     | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
+    | '/api/public/push/dispatch'
   id:
     | '__root__'
     | '/'
@@ -1139,6 +1150,7 @@ export interface FileRouteTypes {
     | '/app/ordens/$orderId'
     | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
+    | '/api/public/push/dispatch'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1163,6 +1175,7 @@ export interface RootRouteChildren {
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   ApiPublicBillingInfinitepayRoute: typeof ApiPublicBillingInfinitepayRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
+  ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1818,6 +1831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBillingWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push/dispatch': {
+      id: '/api/public/push/dispatch'
+      path: '/api/public/push/dispatch'
+      fullPath: '/api/public/push/dispatch'
+      preLoaderRoute: typeof ApiPublicPushDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2022,6 +2042,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   ApiPublicBillingInfinitepayRoute: ApiPublicBillingInfinitepayRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
+  ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

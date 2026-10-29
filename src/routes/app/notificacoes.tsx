@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { brandedRouteHead } from "@/config/brand";
 import { useMarciaNotifications } from "@/hooks/use-marcia-notifications";
 import { supabase } from "@/lib/auth/realm-supabase";
+import { useServerFn } from "@tanstack/react-start";
+import { sendTestPush } from "@/lib/push.functions";
 
 type MarciaNotification = {
   id: string;
@@ -48,6 +50,7 @@ function NotificationsPage() {
   const [loadError, setLoadError] = useState("");
   const [markingAll, setMarkingAll] = useState(false);
   const push = useMarciaNotifications({ companyId, userId });
+  const testPush = useServerFn(sendTestPush);
 
   const loadNotifications = useCallback(async () => {
     if (!companyId || !userId) {
@@ -177,7 +180,7 @@ function NotificationsPage() {
     const result = await push.activate();
     if (result.ok) {
       toast.success(
-        "Aparelho cadastrado. O push depende do serviço de envio configurado no servidor.",
+        "Aparelho cadastrado! Você vai receber os avisos aqui.",
       );
     } else {
       toast.error(result.error);
@@ -205,7 +208,21 @@ function NotificationsPage() {
         }
       />
 
-      <PushActivationCard push={push} onActivate={activatePush} />
+      <PushActivationCard
+        push={push}
+        onActivate={activatePush}
+        onTest={async () => {
+          if (!companyId) return;
+          const r = await testPush({ data: { companyId } });
+          if (r.ok) toast.success("Notificação de teste enviada.");
+          else toast.error(r.error);
+        }}
+        onDeactivate={async () => {
+          const r = await push.deactivate();
+          if (r.ok) toast.success("Notificações desativadas neste aparelho.");
+          else toast.error(r.error);
+        }}
+      />
 
       <section className="overflow-hidden rounded-[24px] border border-border bg-card shadow-[var(--shadow-card)]">
         <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-4 sm:px-6">
@@ -282,9 +299,13 @@ function NotificationsPage() {
 function PushActivationCard({
   push,
   onActivate,
+  onTest,
+  onDeactivate,
 }: {
   push: ReturnType<typeof useMarciaNotifications>;
   onActivate: () => void;
+  onTest: () => Promise<void>;
+  onDeactivate: () => Promise<void>;
 }) {
   const active = push.isSubscribed && push.permission === "granted";
 
@@ -312,8 +333,8 @@ function PushActivationCard({
             </div>
             <p className="mt-1 max-w-xl text-sm leading-relaxed text-violet-100">
               {active
-                ? "A assinatura deste navegador está pronta. O recebimento depende do serviço de envio configurado no servidor."
-                : "Cadastre este navegador para push. A permissão só será solicitada quando você tocar no botão, e a entrega depende do serviço de envio no servidor."}
+                ? "Este aparelho vai receber os avisos da MárcIA: contas a vencer, lembretes e agendamentos."
+                : "Toque em Cadastrar aparelho e permita as notificações. No iPhone, instale o app na tela inicial antes."}
             </p>
             {push.error && (
               <p className="mt-2 text-xs font-semibold text-amber-200">{push.error}</p>
@@ -325,6 +346,17 @@ function PushActivationCard({
             )}
           </div>
         </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+        {active && (
+          <>
+            <Button onClick={() => void onTest()} variant="outline" className="h-11 rounded-xl border-white/40 bg-white/10 font-bold text-white hover:bg-white/20">
+              <Bell /> Enviar teste
+            </Button>
+            <Button onClick={() => void onDeactivate()} variant="ghost" className="h-11 rounded-xl font-bold text-violet-100 hover:bg-white/10">
+              Desativar
+            </Button>
+          </>
+        )}
         <Button
           onClick={onActivate}
           disabled={!push.supported || push.isActivating}
@@ -333,6 +365,7 @@ function PushActivationCard({
           {push.isActivating ? <Loader2 className="animate-spin" /> : <BellRing />}
           {push.isActivating ? "Ativando..." : active ? "Atualizar cadastro" : "Cadastrar aparelho"}
         </Button>
+        </div>
       </div>
     </section>
   );

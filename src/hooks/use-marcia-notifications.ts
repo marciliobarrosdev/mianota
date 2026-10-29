@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/auth/realm-supabase";
+import { getPushPublicKey } from "@/lib/push.functions";
 
 type PushState = "idle" | "checking" | "activating" | "active" | "error";
 
@@ -105,7 +106,7 @@ export function useMarciaNotifications({ companyId, userId }: UseMarciaNotificat
       return { ok: false as const, error: nextError };
     }
 
-    const vapidPublicKey = String(import.meta.env.VITE_VAPID_PUBLIC_KEY || "").trim();
+    const vapidPublicKey = String((await getPushPublicKey()).publicKey || "").trim();
     if (!vapidPublicKey) {
       const nextError = "A chave pública de notificações ainda não foi configurada neste clone.";
       setError(nextError);
@@ -181,8 +182,28 @@ export function useMarciaNotifications({ companyId, userId }: UseMarciaNotificat
     }
   }, [companyId, isSubscribed, supported, userId]);
 
+  const deactivate = useCallback(async () => {
+    try {
+      const registration = await navigator.serviceWorker.getRegistration("/");
+      const subscription = await registration?.pushManager.getSubscription();
+      if (subscription) {
+        await (supabase as any)
+          .from("marcia_push_subscription")
+          .update({ active: false })
+          .eq("endpoint", subscription.endpoint);
+        await subscription.unsubscribe();
+      }
+      setIsSubscribed(false);
+      setState("idle");
+      return { ok: true as const };
+    } catch (e) {
+      return { ok: false as const, error: messageFrom(e) };
+    }
+  }, []);
+
   return {
     activate,
+    deactivate,
     error,
     isActivating: state === "activating",
     isSubscribed,
