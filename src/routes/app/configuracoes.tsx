@@ -472,7 +472,7 @@ function AccountTab({ companyId }: { companyId: string }) {
         <SectionTitle icon={Wallet} title="Histórico de pagamentos" />
         {!ov ? null : ov.payments.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum pagamento registrado ainda.</p> : (
           <div className="divide-y divide-border rounded-2xl border border-border">
-            {ov.payments.map((p) => (
+            {ov.payments.map((p: any) => (
               <div key={p.id} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div><p className="font-semibold">{p.provider === "infinitepay" ? "InfinitePay" : p.provider || "Pagamento"}</p><p className="text-xs text-muted-foreground">{new Date(p.createdAt).toLocaleString("pt-BR")}</p></div>
                 <div className="flex items-center gap-3">{p.amountCents > 0 && <b>{money(p.amountCents)}</b>}<Badge variant={p.ok ? "default" : "secondary"} className="rounded-full">{p.ok ? "Confirmado" : "Em análise"}</Badge></div>
