@@ -15,6 +15,13 @@
       "when": 1793274734123,
       "tag": "0001_free_plan_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793275138093,
+      "tag": "0002_seed_categories_allow_service",
+      "breakpoints": true
     }
   ]
 }
