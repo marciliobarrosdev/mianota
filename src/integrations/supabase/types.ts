@@ -2358,6 +2358,8 @@ export type Database = {
           recipient_user_id: string
           title: string
           type: string
+          whatsapp_sent_at: string | null
+          whatsapp_status: string | null
         }
         Insert: {
           archived_at?: string | null
@@ -2373,6 +2375,8 @@ export type Database = {
           recipient_user_id: string
           title: string
           type: string
+          whatsapp_sent_at?: string | null
+          whatsapp_status?: string | null
         }
         Update: {
           archived_at?: string | null
@@ -2388,6 +2392,8 @@ export type Database = {
           recipient_user_id?: string
           title?: string
           type?: string
+          whatsapp_sent_at?: string | null
+          whatsapp_status?: string | null
         }
         Relationships: [
           {
@@ -3266,30 +3272,39 @@ export type Database = {
       notification_preference: {
         Row: {
           daily_summary: boolean
+          monthly_report: boolean
           push_categories: string[]
           quiet_end: number | null
           quiet_start: number | null
           reminder_lead_days: number
           updated_at: string
           user_id: string
+          whatsapp_categories: string[]
+          whatsapp_enabled: boolean
         }
         Insert: {
           daily_summary?: boolean
+          monthly_report?: boolean
           push_categories?: string[]
           quiet_end?: number | null
           quiet_start?: number | null
           reminder_lead_days?: number
           updated_at?: string
           user_id: string
+          whatsapp_categories?: string[]
+          whatsapp_enabled?: boolean
         }
         Update: {
           daily_summary?: boolean
+          monthly_report?: boolean
           push_categories?: string[]
           quiet_end?: number | null
           quiet_start?: number | null
           reminder_lead_days?: number
           updated_at?: string
           user_id?: string
+          whatsapp_categories?: string[]
+          whatsapp_enabled?: boolean
         }
         Relationships: []
       }
