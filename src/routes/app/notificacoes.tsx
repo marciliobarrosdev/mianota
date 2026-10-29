@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Archive,
+  Sparkles,
   Bell,
   BellRing,
   CalendarClock,
@@ -574,6 +575,15 @@ function Row({
                 <Clock /> Adiar 1 dia
               </Button>
             </>
+          )}
+          {(isBill || n.type.startsWith("finance.") || n.type.startsWith("budget")) && (
+            <Link
+              to="/app/marcia"
+              search={{ pergunta: `Sobre o aviso "${n.title}": o que devo fazer?` }}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-extrabold text-primary hover:bg-primary/5"
+            >
+              <Sparkles className="size-3.5" /> Perguntar à MIA
+            </Link>
           )}
           {unread && !isBill && (
             <button type="button" onClick={onRead} className="inline-flex items-center gap-1.5 text-xs font-extrabold text-primary">
