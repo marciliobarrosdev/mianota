@@ -27,6 +27,8 @@ import {
   RefreshCw,
   CreditCard,
   Sparkles,
+  Plus,
+  Gift,
 } from "lucide-react";
 import {
   createStripePlanPrice,
@@ -78,6 +80,8 @@ type Plan = {
   checkout_mode: "external" | "stripe";
   stripe_price_id: string | null;
   stripe_product_id: string | null;
+  is_free: boolean;
+  free_days: number | null;
 };
 
 function PlanosPage() {
@@ -114,6 +118,34 @@ function PlanosPage() {
   useEffect(() => {
     load();
   }, []);
+
+  function openNew() {
+    const nextOrder = plans.reduce((m, p) => Math.max(m, Number(p.ordem ?? 0)), 0) + 1;
+    setEditing({
+      nome: "",
+      slug: "",
+      descricao: "",
+      preco_cents: undefined,
+      moeda: "BRL",
+      intervalo: "month",
+      trial_days: 0,
+      creditos_mensais: 0,
+      creditos_trial: 0,
+      limite_mensagens: 0,
+      limite_instancias: 1,
+      limite_usuarios: 1,
+      limite_contatos: 0,
+      destaque: false,
+      ativo: true,
+      ordem: nextOrder,
+      checkout_mode: "external",
+      checkout_url: "",
+      is_free: false,
+      free_days: null,
+    });
+    setFeaturesText("");
+    resetStripeCatalog();
+  }
 
   function openEdit(p: Plan) {
     setEditing({ ...p });
@@ -193,8 +225,17 @@ function PlanosPage() {
     if (!editing) return;
     if (!editing.nome?.trim() || !editing.slug?.trim())
       return toast.error("Nome e slug são obrigatórios");
-    if (!isValidPlanPrice(editing.preco_cents))
+    const isFree = !!editing.is_free;
+    const freeDays = Number(editing.free_days ?? 0);
+    if (isFree && (!Number.isInteger(freeDays) || freeDays < 1 || freeDays > 365))
+      return toast.error("Informe o Limite de Dias do plano gratuito (de 1 a 365).");
+    if (!isFree && !isValidPlanPrice(editing.preco_cents))
       return toast.error("Informe um preço válido, por exemplo R$ 49,00.");
+    const slugCheck = editing.slug!.toLowerCase().trim();
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slugCheck))
+      return toast.error("Slug inválido. Use letras minúsculas, números e hífens (ex.: gratis).");
+    if (plans.some((p) => p.slug === slugCheck && p.id !== (editing as any).id))
+      return toast.error("Já existe um plano com esse slug.");
     const checkoutUrl = (editing.checkout_url ?? "").trim();
     if (editing.checkout_mode !== "stripe" && checkoutUrl && !isValidHttpUrl(checkoutUrl))
       return toast.error(
@@ -205,7 +246,7 @@ function PlanosPage() {
       ...plans.filter((p) => p.slug !== slugNow && (editing as any).id !== p.id),
       { slug: slugNow, preco_cents: Number(editing.preco_cents), ativo: !!editing.ativo },
     ]);
-    if (editing.ativo && dup.includes(slugNow))
+    if (!isFree && editing.ativo && dup.includes(slugNow))
       return toast.error(
         "Outro plano ativo já tem esse preço. Use valores diferentes para a InfinitePay reconhecer o plano pago.",
       );
@@ -215,13 +256,17 @@ function PlanosPage() {
       nome: editing.nome!.trim(),
       descricao: editing.descricao ?? null,
       // A tela edita reais; aqui o valor já é centavos inteiros validados.
-      preco_cents: editing.preco_cents as number,
+      preco_cents: isFree ? 0 : (editing.preco_cents as number),
       moeda: editing.moeda ?? "BRL",
       intervalo: editing.intervalo ?? "month",
-      trial_days: Number(editing.trial_days ?? 0),
+      trial_days: isFree ? freeDays : Number(editing.trial_days ?? 0),
+      is_free: isFree,
+      free_days: isFree ? freeDays : null,
       creditos_mensais: Math.max(0, Number(editing.creditos_mensais ?? 0)),
       creditos_trial:
-        Number(editing.trial_days ?? 0) > 0 ? Math.max(0, Number(editing.creditos_trial ?? 0)) : 0,
+        isFree || Number(editing.trial_days ?? 0) > 0
+          ? Math.max(0, Number(editing.creditos_trial ?? 0))
+          : 0,
       limite_mensagens: Number(editing.limite_mensagens ?? 0),
       limite_instancias: Math.max(1, Number(editing.limite_instancias ?? 1)),
       limite_usuarios: Number(editing.limite_usuarios ?? 0),
@@ -235,8 +280,8 @@ function PlanosPage() {
       ordem: Number(editing.ordem ?? 0),
       paddle_product_id: editing.paddle_product_id ?? null,
       paddle_price_id: editing.paddle_price_id ?? null,
-      checkout_url: checkoutUrl || null,
-      checkout_mode: editing.checkout_mode === "stripe" ? "stripe" : "external",
+      checkout_url: isFree ? null : checkoutUrl || null,
+      checkout_mode: !isFree && editing.checkout_mode === "stripe" ? "stripe" : "external",
       stripe_price_id: (editing.stripe_price_id ?? "").trim() || null,
       stripe_product_id: (editing.stripe_product_id ?? "").trim() || null,
     };
@@ -270,10 +315,12 @@ function PlanosPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Planos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Sua oferta tem dois planos. Edite preço, trial, limites e pagamento sem criar opções
-            extras.
+            Cadastre e edite planos pagos ou gratuitos: preço, limite de dias, recursos e pagamento.
           </p>
         </div>
+        <Button onClick={openNew}>
+          <Plus className="size-4" /> Adicionar Novo Plano
+        </Button>
       </div>
 
       {loading ? (
@@ -304,17 +351,29 @@ function PlanosPage() {
                   <div className="text-lg font-bold truncate">{p.nome}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold">
-                    {formatBRL(p.preco_cents, p.moeda)}
-                    <span className="text-xs text-muted-foreground font-normal">
-                      /{p.intervalo === "month" ? "mês" : "ano"}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-muted-foreground">
-                    {p.trial_days > 0
-                      ? `${p.trial_days}d trial · ${p.creditos_trial.toLocaleString("pt-BR")} créditos`
-                      : "Sem trial"}
-                  </div>
+                  {p.is_free ? (
+                    <>
+                      <div className="text-2xl font-bold">Grátis</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {p.free_days ?? p.trial_days} dias ·{" "}
+                        {p.creditos_trial.toLocaleString("pt-BR")} créditos
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold">
+                        {formatBRL(p.preco_cents, p.moeda)}
+                        <span className="text-xs text-muted-foreground font-normal">
+                          /{p.intervalo === "month" ? "mês" : "ano"}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {p.trial_days > 0
+                          ? `${p.trial_days}d trial · ${p.creditos_trial.toLocaleString("pt-BR")} créditos`
+                          : "Sem trial"}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               {p.descricao && (
@@ -354,7 +413,7 @@ function PlanosPage() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar plano</DialogTitle>
+            <DialogTitle>{(editing as any)?.id ? "Editar plano" : "Novo plano"}</DialogTitle>
           </DialogHeader>
           {editing && (
             <div className="grid grid-cols-2 gap-4">
@@ -378,18 +437,77 @@ function PlanosPage() {
                   onChange={(e) => setEditing({ ...editing, descricao: e.target.value })}
                 />
               </Field>
-              <Field label="Preço">
-                <MoneyInput
-                  aria-label="Preço"
-                  required
-                  cents={editing.preco_cents ?? null}
-                  onChange={(cents) =>
-                    setEditing((current) =>
-                      current ? { ...current, preco_cents: cents ?? undefined } : current,
-                    )
-                  }
-                />
+              <Field label="Plano Gratuito" full>
+                <div className="rounded-xl border bg-muted/20 p-4 space-y-3">
+                  <label className="flex items-start justify-between gap-4">
+                    <span>
+                      <span className="flex items-center gap-1.5 text-sm font-semibold">
+                        <Gift className="size-4" /> Plano Gratuito
+                      </span>
+                      <span className="block text-[11px] text-muted-foreground">
+                        Sem pagamento. O acesso dura o Limite de Dias e depois o assinante precisa
+                        escolher um plano pago. Use os limites abaixo para restringir os recursos.
+                      </span>
+                    </span>
+                    <Switch
+                      aria-label="Plano Gratuito"
+                      checked={!!editing.is_free}
+                      onCheckedChange={(checked) =>
+                        setEditing({
+                          ...editing,
+                          is_free: checked,
+                          free_days: checked ? Math.max(1, Number(editing.free_days || 7)) : null,
+                          preco_cents: checked ? 0 : editing.preco_cents,
+                          creditos_trial: checked
+                            ? Math.max(1, Number(editing.creditos_trial || 50))
+                            : editing.creditos_trial,
+                        })
+                      }
+                    />
+                  </label>
+                  {editing.is_free && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Limite de Dias</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={365}
+                          value={editing.free_days ?? 7}
+                          onChange={(e) =>
+                            setEditing({ ...editing, free_days: Number(e.target.value) })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Créditos de IA no período</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={editing.creditos_trial ?? 50}
+                          onChange={(e) =>
+                            setEditing({ ...editing, creditos_trial: Number(e.target.value) })
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </Field>
+              {!editing.is_free && (
+                <Field label="Preço">
+                  <MoneyInput
+                    aria-label="Preço"
+                    required
+                    cents={editing.preco_cents ?? null}
+                    onChange={(cents) =>
+                      setEditing((current) =>
+                        current ? { ...current, preco_cents: cents ?? undefined } : current,
+                      )
+                    }
+                  />
+                </Field>
+              )}
               <Field label="Intervalo">
                 <select
                   className="w-full h-10 px-3 rounded-md border bg-background text-sm"
@@ -420,64 +538,66 @@ function PlanosPage() {
                   Cada resposta enviada pela IA consome 1 crédito.
                 </p>
               </Field>
-              <Field label="Período de teste" full>
-                <div className="rounded-xl border bg-muted/20 p-4 space-y-4">
-                  <label className="flex items-start justify-between gap-4">
-                    <span>
-                      <span className="block text-sm font-semibold">
-                        Oferecer trial neste plano
+              {!editing.is_free && (
+                <Field label="Período de teste" full>
+                  <div className="rounded-xl border bg-muted/20 p-4 space-y-4">
+                    <label className="flex items-start justify-between gap-4">
+                      <span>
+                        <span className="block text-sm font-semibold">
+                          Oferecer trial neste plano
+                        </span>
+                        <span className="block text-[11px] text-muted-foreground">
+                          O cliente testa por alguns dias com uma quantidade controlada de respostas
+                          da IA.
+                        </span>
                       </span>
-                      <span className="block text-[11px] text-muted-foreground">
-                        O cliente testa por alguns dias com uma quantidade controlada de respostas
-                        da IA.
-                      </span>
-                    </span>
-                    <Switch
-                      checked={Number(editing.trial_days ?? 0) > 0}
-                      onCheckedChange={(checked) =>
-                        setEditing({
-                          ...editing,
-                          trial_days: checked ? Math.max(1, Number(editing.trial_days || 3)) : 0,
-                          creditos_trial: checked
-                            ? Math.max(1, Number(editing.creditos_trial || 100))
-                            : 0,
-                        })
-                      }
-                    />
-                  </label>
-                  {Number(editing.trial_days ?? 0) > 0 && (
-                    <div className="grid gap-3 border-t pt-4 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label className="text-[11px]">Dias liberados</Label>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={365}
-                          value={editing.trial_days ?? 3}
-                          onChange={(e) =>
-                            setEditing({ ...editing, trial_days: Number(e.target.value) })
-                          }
-                        />
+                      <Switch
+                        checked={Number(editing.trial_days ?? 0) > 0}
+                        onCheckedChange={(checked) =>
+                          setEditing({
+                            ...editing,
+                            trial_days: checked ? Math.max(1, Number(editing.trial_days || 3)) : 0,
+                            creditos_trial: checked
+                              ? Math.max(1, Number(editing.creditos_trial || 100))
+                              : 0,
+                          })
+                        }
+                      />
+                    </label>
+                    {Number(editing.trial_days ?? 0) > 0 && (
+                      <div className="grid gap-3 border-t pt-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px]">Dias liberados</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={365}
+                            value={editing.trial_days ?? 3}
+                            onChange={(e) =>
+                              setEditing({ ...editing, trial_days: Number(e.target.value) })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px]">Créditos liberados no trial</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={editing.creditos_trial ?? 100}
+                            onChange={(e) =>
+                              setEditing({ ...editing, creditos_trial: Number(e.target.value) })
+                            }
+                          />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground sm:col-span-2">
+                          1 crédito = 1 resposta enviada pela IA no WhatsApp. Se o envio falhar, o
+                          crédito é devolvido automaticamente.
+                        </p>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-[11px]">Créditos liberados no trial</Label>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={editing.creditos_trial ?? 100}
-                          onChange={(e) =>
-                            setEditing({ ...editing, creditos_trial: Number(e.target.value) })
-                          }
-                        />
-                      </div>
-                      <p className="text-[11px] text-muted-foreground sm:col-span-2">
-                        1 crédito = 1 resposta enviada pela IA no WhatsApp. Se o envio falhar, o
-                        crédito é devolvido automaticamente.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </Field>
+                    )}
+                  </div>
+                </Field>
+              )}
               <Field label="Créditos de IA/mês">
                 <Input
                   type="number"
@@ -523,180 +643,193 @@ function PlanosPage() {
                   placeholder="Comandos por voz e texto&#10;Foto de comprovantes&#10;Dashboard financeiro&#10;1 número de WhatsApp"
                 />
               </Field>
-              <Field label="Como o cliente paga este plano?" full>
-                <div className="grid grid-cols-2 gap-2">
-                  {(
-                    [
-                      [
-                        "stripe",
-                        "Stripe integrado",
-                        "Cartão direto no sistema, liberação automática.",
-                      ],
-                      ["external", "Link externo", "Kiwify, Cakto, Perfectpay ou outro link."],
-                    ] as const
-                  ).map(([value, title, hint]) => (
-                    <button
-                      type="button"
-                      key={value}
-                      onClick={() => {
-                        setEditing({ ...editing, checkout_mode: value });
-                        if (value === "stripe" && stripePrices.length === 0 && !stripeBusy) {
-                          void loadStripeCatalog();
-                        }
-                      }}
-                      className={`rounded-xl border p-3 text-left text-sm transition ${
-                        (editing.checkout_mode ?? "external") === value
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:bg-muted"
-                      }`}
-                    >
-                      <div className="font-semibold">{title}</div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>
-                    </button>
-                  ))}
-                </div>
-              </Field>
-              {editing.checkout_mode === "stripe" && (
-                <Field label="Catálogo conectado ao Stripe" full>
-                  <div className="rounded-xl border bg-muted/20 p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2.5">
-                        <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                          <CreditCard className="size-4" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold">
-                            Escolha ou crie sem copiar códigos
-                          </div>
-                          <p className="text-[11px] text-muted-foreground">
-                            O sistema consulta produtos e preços diretamente da conta configurada.
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={loadStripeCatalog}
-                        disabled={stripeBusy !== null}
-                      >
-                        {stripeBusy === "list" ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : (
-                          <RefreshCw className="size-3.5" />
-                        )}
-                        Atualizar
-                      </Button>
-                    </div>
-
-                    {stripePrices.length > 0 && (
-                      <div className="space-y-1.5">
-                        <Label className="text-[11px]">Produto e preço recorrente</Label>
-                        <select
-                          className="h-11 w-full rounded-md border bg-background px-3 text-sm"
-                          value={editing.stripe_price_id ?? ""}
-                          onChange={(event) => {
-                            const selected = stripePrices.find(
-                              (price) => price.id === event.target.value,
-                            );
-                            setEditing({
-                              ...editing,
-                              stripe_price_id: event.target.value || null,
-                              stripe_product_id: selected?.productId || null,
-                            });
+              {!editing.is_free && (
+                <>
+                  <Field label="Como o cliente paga este plano?" full>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(
+                        [
+                          [
+                            "stripe",
+                            "Stripe integrado",
+                            "Cartão direto no sistema, liberação automática.",
+                          ],
+                          ["external", "Link externo", "Kiwify, Cakto, Perfectpay ou outro link."],
+                        ] as const
+                      ).map(([value, title, hint]) => (
+                        <button
+                          type="button"
+                          key={value}
+                          onClick={() => {
+                            setEditing({ ...editing, checkout_mode: value });
+                            if (value === "stripe" && stripePrices.length === 0 && !stripeBusy) {
+                              void loadStripeCatalog();
+                            }
                           }}
+                          className={`rounded-xl border p-3 text-left text-sm transition ${
+                            (editing.checkout_mode ?? "external") === value
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:bg-muted"
+                          }`}
                         >
-                          <option value="">Selecione um preço do Stripe</option>
-                          {editing.stripe_price_id &&
-                            !stripePrices.some((price) => price.id === editing.stripe_price_id) && (
-                              <option value={editing.stripe_price_id}>Preço já vinculado</option>
-                            )}
-                          {stripePrices.map((price) => (
-                            <option key={price.id} value={price.id}>
-                              {price.productName} · {formatBRL(price.amountCents, price.currency)} /
-                              {price.interval === "month" ? "mês" : "ano"} ·{" "}
-                              {price.livemode ? "produção" : "teste"}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {stripeError && (
-                      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-300">
-                        <div className="flex items-start gap-2">
-                          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                          <span>{stripeError}</span>
-                        </div>
-                        <Link
-                          to="/master/pagamentos"
-                          className="mt-1.5 inline-flex font-semibold underline underline-offset-2"
-                        >
-                          Abrir Integrações
-                        </Link>
-                      </div>
-                    )}
-
-                    <div className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="max-w-sm text-[11px] text-muted-foreground">
-                        Cria no Stripe usando o nome,{" "}
-                        {formatBRL(Number(editing.preco_cents || 0), editing.moeda || "BRL")} e o
-                        intervalo deste plano.
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={createPriceFromPlan}
-                        disabled={stripeBusy !== null}
-                      >
-                        {stripeBusy === "create" ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="size-4" />
-                        )}
-                        Criar automaticamente no Stripe
-                      </Button>
+                          <div className="font-semibold">{title}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>
+                        </button>
+                      ))}
                     </div>
+                  </Field>
+                  {editing.checkout_mode === "stripe" && (
+                    <Field label="Catálogo conectado ao Stripe" full>
+                      <div className="rounded-xl border bg-muted/20 p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-2.5">
+                            <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                              <CreditCard className="size-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold">
+                                Escolha ou crie sem copiar códigos
+                              </div>
+                              <p className="text-[11px] text-muted-foreground">
+                                O sistema consulta produtos e preços diretamente da conta
+                                configurada.
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={loadStripeCatalog}
+                            disabled={stripeBusy !== null}
+                          >
+                            {stripeBusy === "list" ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <RefreshCw className="size-3.5" />
+                            )}
+                            Atualizar
+                          </Button>
+                        </div>
 
-                    {editing.stripe_price_id && (
-                      <div className="flex items-center gap-2 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                        <CheckCircle2 className="size-3.5" />
-                        Preço selecionado e pronto para salvar neste plano.
+                        {stripePrices.length > 0 && (
+                          <div className="space-y-1.5">
+                            <Label className="text-[11px]">Produto e preço recorrente</Label>
+                            <select
+                              className="h-11 w-full rounded-md border bg-background px-3 text-sm"
+                              value={editing.stripe_price_id ?? ""}
+                              onChange={(event) => {
+                                const selected = stripePrices.find(
+                                  (price) => price.id === event.target.value,
+                                );
+                                setEditing({
+                                  ...editing,
+                                  stripe_price_id: event.target.value || null,
+                                  stripe_product_id: selected?.productId || null,
+                                });
+                              }}
+                            >
+                              <option value="">Selecione um preço do Stripe</option>
+                              {editing.stripe_price_id &&
+                                !stripePrices.some(
+                                  (price) => price.id === editing.stripe_price_id,
+                                ) && (
+                                  <option value={editing.stripe_price_id}>
+                                    Preço já vinculado
+                                  </option>
+                                )}
+                              {stripePrices.map((price) => (
+                                <option key={price.id} value={price.id}>
+                                  {price.productName} ·{" "}
+                                  {formatBRL(price.amountCents, price.currency)} /
+                                  {price.interval === "month" ? "mês" : "ano"} ·{" "}
+                                  {price.livemode ? "produção" : "teste"}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {stripeError && (
+                          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-300">
+                            <div className="flex items-start gap-2">
+                              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                              <span>{stripeError}</span>
+                            </div>
+                            <Link
+                              to="/master/pagamentos"
+                              className="mt-1.5 inline-flex font-semibold underline underline-offset-2"
+                            >
+                              Abrir Integrações
+                            </Link>
+                          </div>
+                        )}
+
+                        <div className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="max-w-sm text-[11px] text-muted-foreground">
+                            Cria no Stripe usando o nome,{" "}
+                            {formatBRL(Number(editing.preco_cents || 0), editing.moeda || "BRL")} e
+                            o intervalo deste plano.
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={createPriceFromPlan}
+                            disabled={stripeBusy !== null}
+                          >
+                            {stripeBusy === "create" ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="size-4" />
+                            )}
+                            Criar automaticamente no Stripe
+                          </Button>
+                        </div>
+
+                        {editing.stripe_price_id && (
+                          <div className="flex items-center gap-2 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                            <CheckCircle2 className="size-3.5" />
+                            Preço selecionado e pronto para salvar neste plano.
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </Field>
-              )}
-              {editing.checkout_mode !== "stripe" && (
-                <Field label="Link de Checkout InfinitePay" full>
-                  <Input
-                    type="url"
-                    inputMode="url"
-                    autoComplete="url"
-                    spellCheck={false}
-                    value={editing.checkout_url ?? ""}
-                    onChange={(e) => setEditing({ ...editing, checkout_url: e.target.value })}
-                    placeholder="https://checkout.infinitepay.io/sua-tag/abc123"
-                  />
-                  <div className="flex items-center justify-between gap-2 mt-1">
-                    <p className="text-[11px] text-muted-foreground">
-                      Plano Basic → Link 1 · Plano Pro → Link 2. Crie na InfinitePay um link com o
-                      mesmo valor deste plano. O cliente deve pagar com o mesmo e-mail da conta.
-                    </p>
-                    {isInfinitePayLink(editing.checkout_url) && (
-                      <Button asChild type="button" variant="outline" size="sm">
-                        <a href={editing.checkout_url!.trim()} target="_blank" rel="noreferrer">
-                          Testar link
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                  {(editing.checkout_url ?? "").trim() && !isInfinitePayLink(editing.checkout_url) && (
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
-                      Este não parece um link da InfinitePay (https://checkout.infinitepay.io/…).
-                    </p>
+                    </Field>
                   )}
-                </Field>
+                  {editing.checkout_mode !== "stripe" && (
+                    <Field label="Link de Checkout InfinitePay" full>
+                      <Input
+                        type="url"
+                        inputMode="url"
+                        autoComplete="url"
+                        spellCheck={false}
+                        value={editing.checkout_url ?? ""}
+                        onChange={(e) => setEditing({ ...editing, checkout_url: e.target.value })}
+                        placeholder="https://checkout.infinitepay.io/sua-tag/abc123"
+                      />
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <p className="text-[11px] text-muted-foreground">
+                          Plano Basic → Link 1 · Plano Pro → Link 2. Crie na InfinitePay um link com
+                          o mesmo valor deste plano. O cliente deve pagar com o mesmo e-mail da
+                          conta.
+                        </p>
+                        {isInfinitePayLink(editing.checkout_url) && (
+                          <Button asChild type="button" variant="outline" size="sm">
+                            <a href={editing.checkout_url!.trim()} target="_blank" rel="noreferrer">
+                              Testar link
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                      {(editing.checkout_url ?? "").trim() &&
+                        !isInfinitePayLink(editing.checkout_url) && (
+                          <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                            Este não parece um link da InfinitePay
+                            (https://checkout.infinitepay.io/…).
+                          </p>
+                        )}
+                    </Field>
+                  )}
+                </>
               )}
               <div className="col-span-2 flex items-center gap-6 pt-1">
                 <label className="flex items-center gap-2 text-sm">
@@ -759,6 +892,16 @@ function CheckoutStatus({ plan }: { plan: Plan }) {
   const priceId = (plan.stripe_price_id ?? "").trim();
   const url = (plan.checkout_url ?? "").trim();
 
+  if (plan.is_free) {
+    return (
+      <div className="flex items-center gap-1.5 -mt-1">
+        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+          <Gift className="size-3" /> Gratuito · {plan.free_days ?? plan.trial_days} dias
+        </span>
+      </div>
+    );
+  }
+
   if (plan.checkout_mode === "stripe") {
     if (priceId) {
       return (
@@ -786,7 +929,12 @@ function CheckoutStatus({ plan }: { plan: Plan }) {
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
           <CheckCircle2 className="size-3" /> InfinitePay configurado
         </span>
-        <a href={url} target="_blank" rel="noreferrer" className="truncate text-[10px] text-muted-foreground hover:underline">
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="truncate text-[10px] text-muted-foreground hover:underline"
+        >
           {url}
         </a>
       </div>

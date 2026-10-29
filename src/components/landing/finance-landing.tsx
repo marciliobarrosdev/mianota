@@ -48,6 +48,7 @@ export type FinancePlan = {
   features: string[];
   trialDays?: number;
   featured?: boolean;
+  free?: boolean;
   badge?: string;
 };
 
@@ -797,17 +798,23 @@ export function FinanceLanding({
                   >
                     {plan.name}
                   </div>
-                  <div className="mt-4 flex items-end gap-1">
-                    <span className="mb-2 text-sm font-black">R$</span>
-                    <span className="font-display text-5xl font-black tracking-[-.06em]">
-                      {plan.price}
-                    </span>
-                    <span
-                      className={`mb-2 text-xs font-bold ${plan.featured ? "text-white/55" : "text-[#7b6c84]"}`}
-                    >
-                      /mês
-                    </span>
-                  </div>
+                  {plan.free ? (
+                    <div className="mt-4 font-display text-5xl font-black tracking-[-.06em]">
+                      Grátis
+                    </div>
+                  ) : (
+                    <div className="mt-4 flex items-end gap-1">
+                      <span className="mb-2 text-sm font-black">R$</span>
+                      <span className="font-display text-5xl font-black tracking-[-.06em]">
+                        {plan.price}
+                      </span>
+                      <span
+                        className={`mb-2 text-xs font-bold ${plan.featured ? "text-white/55" : "text-[#7b6c84]"}`}
+                      >
+                        /mês
+                      </span>
+                    </div>
+                  )}
                   <p
                     className={`mt-4 text-sm font-medium leading-6 ${plan.featured ? "text-white/65" : "text-[#6b5b75]"}`}
                   >
@@ -817,7 +824,9 @@ export function FinanceLanding({
                     <div
                       className={`mt-4 rounded-xl px-3 py-2 text-xs font-black ${plan.featured ? "bg-emerald-400/13 text-emerald-300" : "bg-emerald-50 text-emerald-700"}`}
                     >
-                      {plan.trialDays} dias para testar · condições no checkout
+                      {plan.free
+                        ? `${plan.trialDays} dias grátis · sem cartão`
+                        : `${plan.trialDays} dias para testar · condições no checkout`}
                     </div>
                   )}
                   <div className="my-6 h-px bg-current opacity-10" />
