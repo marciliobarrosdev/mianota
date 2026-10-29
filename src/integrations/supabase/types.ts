@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_request: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string
+          id: string
+          reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agendamento: {
         Row: {
           card_id: string | null

@@ -43,6 +43,7 @@ import { brandedRouteHead } from "@/config/brand";
 import { masterKpis } from "@/lib/master.functions";
 import { getMasterSetupProgress } from "@/lib/master-setup.functions";
 import { BroadcastCard } from "@/components/master/broadcast-card";
+import { DeletionRequestsCard } from "@/components/master/deletion-requests-card";
 
 type CompanySummary = {
   id: string;
@@ -458,6 +459,7 @@ function OverviewPage() {
         </Card>
       </section>
       <BroadcastCard />
+      <DeletionRequestsCard />
     </div>
   );
 }
