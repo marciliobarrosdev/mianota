@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { MiaAvatar } from "./mia-avatar";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -10,7 +11,6 @@ import {
   Mic,
   Paperclip,
   Send,
-  Sparkles,
   Square,
   Undo2,
   X,
@@ -524,9 +524,7 @@ function Bubble({
   return (
     <div className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
       {!mine && !compact && (
-        <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-[color:var(--brand)] text-primary-foreground">
-          <Sparkles className="size-3.5" />
-        </div>
+        <MiaAvatar className="mt-0.5 size-7" />
       )}
       <div
         className={`max-w-[85%] sm:max-w-[72%] ${mine ? "items-end" : "items-start"} flex flex-col`}
@@ -641,9 +639,7 @@ function Bubble({
 function Thinking({ assistantName, executing }: { assistantName: string; executing: boolean }) {
   return (
     <div className="flex items-center gap-2" role="status">
-      <div className="grid size-7 place-items-center rounded-full bg-[color:var(--brand)] text-primary-foreground">
-        <Sparkles className="size-3.5 animate-pulse" />
-      </div>
+      <MiaAvatar className="size-7 animate-pulse" />
       <div className="flex items-center gap-2 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 text-xs text-muted-foreground">
         <span className="flex gap-1" aria-hidden>
           <span className="size-1.5 animate-bounce rounded-full bg-[color:var(--brand)] [animation-delay:-0.3s]" />
