@@ -50,6 +50,13 @@
       "when": 1793295731028,
       "tag": "0006_notification_whatsapp",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793298262398,
+      "tag": "0007_account_deletion_request",
+      "breakpoints": true
     }
   ]
 }
