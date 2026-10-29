@@ -12,7 +12,7 @@ import {
   type IntegrationProvider,
 } from "./integration-secrets.server";
 
-const PROVIDERS: IntegrationProvider[] = ["evolution", "google", "stripe"];
+const PROVIDERS: IntegrationProvider[] = ["evolution", "google", "stripe", "infinitepay"];
 
 async function assertSuperAdmin(supabase: any) {
   const { data, error } = await supabase.rpc("is_super_admin");
@@ -57,6 +57,8 @@ export const getIntegrationsOverview = createServerFn({ method: "GET" })
       origin,
       googleCallbackUrl: `${origin}/api/public/google-callback`,
       stripeWebhookUrl: `${origin}/api/public/stripe-webhook`,
+      infinitepayWebhookUrl: `${origin}/api/public/billing/infinitepay`,
+      infinitepaySuccessUrl: `${origin}/app/sucesso`,
       googleConnected,
       items,
     };
@@ -81,6 +83,14 @@ export const saveIntegration = createServerFn({ method: "POST" })
         throw new Error("A chave secreta do Stripe começa com sk_ ou rk_.");
       if (values.webhook_secret && !values.webhook_secret.startsWith("whsec_"))
         throw new Error("O segredo do webhook do Stripe começa com whsec_.");
+    }
+    if (provider === "infinitepay") {
+      values.handle = values.handle.replace(/^\$/, "");
+      if (values.handle && !/^[a-z0-9._-]{2,80}$/i.test(values.handle))
+        throw new Error("A InfiniteTag deve ter só letras, números, ponto, hífen ou _ (sem o $).");
+      for (const f of ["checkout_link", "checkout_link_2"])
+        if (values[f] && !/^https:\/\/checkout\.infinitepay\.io\/\S+$/.test(values[f]))
+          throw new Error("Os links devem começar com https://checkout.infinitepay.io/");
     }
     return { provider, values };
   })
@@ -172,6 +182,18 @@ export const testIntegration = createServerFn({ method: "POST" })
           throw new Error("O Google recusou o Client ID ou o Client Secret.");
         ok = true;
         message = "Credenciais reconhecidas pelo Google.";
+      } else if (data.provider === "infinitepay") {
+        if (!v.handle) throw new Error("Preencha a InfiniteTag.");
+        if (!v.checkout_link && !v.checkout_link_2)
+          throw new Error("Preencha ao menos um link de checkout.");
+        for (const link of [v.checkout_link, v.checkout_link_2].filter(Boolean)) {
+          const res = await fetch(link, { redirect: "follow", signal: AbortSignal.timeout(10_000) });
+          if (res.status === 404) throw new Error(`A InfinitePay não encontrou o link ${link}`);
+          if (!res.ok && res.status >= 500)
+            throw new Error(`A InfinitePay respondeu com erro (${res.status}).`);
+        }
+        ok = true;
+        message = "InfiniteTag salva e links de checkout respondendo.";
       } else {
         if (!v.secret_key) throw new Error("Preencha a Secret Key.");
         const res = await fetch("https://api.stripe.com/v1/account", {

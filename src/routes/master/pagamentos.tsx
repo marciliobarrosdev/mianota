@@ -120,7 +120,7 @@ function PaymentsPage() {
         <JourneyStep
           number="1"
           title="Escolha o caminho"
-          text="Stripe integrado ou link externo por plano."
+          text="InfinitePay, Stripe integrado ou link externo por plano."
         />
         <JourneyStep
           number="2"
@@ -133,6 +133,8 @@ function PaymentsPage() {
           text="Cada oferta precisa de um preço ou link válido."
         />
       </section>
+
+      <InfinitePayCard integrations={integrations} onChanged={load} />
 
       <section className="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
         <Card className="p-5 sm:p-6">
@@ -323,6 +325,159 @@ function PaymentsPage() {
         credencial somente no servidor.
       </div>
     </div>
+  );
+}
+
+function CopyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <Label className="text-xs font-bold">{label}</Label>
+      <div className="mt-1.5 flex gap-2">
+        <Input readOnly value={value} className="font-mono text-xs" />
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() => {
+            navigator.clipboard.writeText(value);
+            toast.success("Copiado");
+          }}
+        >
+          <Copy className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function InfinitePayCard({
+  integrations,
+  onChanged,
+}: {
+  integrations: Integrations | null;
+  onChanged: () => Promise<void>;
+}) {
+  const save = useServerFn(saveIntegration);
+  const test = useServerFn(testIntegration);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<null | "save" | "test">(null);
+  const ip = integrations?.items.find((item) => item.provider === "infinitepay");
+  const saved = (field: string) => ip?.fields.find((f) => f.field === field)?.configured;
+  const set = (field: string) => (value: string) => setValues((c) => ({ ...c, [field]: value }));
+
+  async function onSave() {
+    if (!Object.values(values).some((v) => v.trim()))
+      return toast.error("Preencha ao menos um campo.");
+    setBusy("save");
+    try {
+      await save({ data: { provider: "infinitepay", values } });
+      setValues({});
+      toast.success("InfinitePay salva. Agora faça o teste.");
+      await onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível salvar.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onTest() {
+    setBusy("test");
+    try {
+      const r = await test({ data: { provider: "infinitepay" } });
+      if (r.ok) toast.success(r.message);
+      else toast.error(r.message);
+      await onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha no teste.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex gap-3">
+        <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+          <CreditCard className="size-5" />
+        </div>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display text-xl font-black">InfinitePay</h2>
+            <Badge variant={ip?.testOk ? "default" : ip?.configured ? "outline" : "secondary"}>
+              {ip?.testOk ? "Testado" : ip?.configured ? "Salvo, falta testar" : "Não configurado"}
+            </Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pix e cartão pelo checkout da InfinitePay. Link 1 = Plano Basic, Link 2 = Plano Pro. Os
+            links salvos em cada plano (Planos) têm prioridade.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <CredentialField
+          id="ip_handle"
+          label="1. InfiniteTag"
+          placeholder="sua-tag (sem o $)"
+          help="Sua InfiniteTag no app InfinitePay."
+          saved={saved("handle")}
+          value={values.handle ?? ""}
+          onChange={set("handle")}
+        />
+        <CredentialField
+          id="ip_api_key"
+          label="2. API Key"
+          placeholder="Chave da API InfinitePay"
+          help="Fica criptografada e nunca aparece no navegador."
+          secret
+          saved={saved("api_key")}
+          value={values.api_key ?? ""}
+          onChange={set("api_key")}
+        />
+        <CredentialField
+          id="ip_link1"
+          label="3. Link 1 de Checkout (Plano Basic)"
+          placeholder="https://checkout.infinitepay.io/…"
+          help="Link criado na InfinitePay com o valor do Plano Basic."
+          saved={saved("checkout_link")}
+          value={values.checkout_link ?? ""}
+          onChange={set("checkout_link")}
+        />
+        <CredentialField
+          id="ip_link2"
+          label="4. Link 2 de Checkout (Plano Pro)"
+          placeholder="https://checkout.infinitepay.io/…"
+          help="Link criado na InfinitePay com o valor do Plano Pro."
+          saved={saved("checkout_link_2")}
+          value={values.checkout_link_2 ?? ""}
+          onChange={set("checkout_link_2")}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 rounded-2xl border bg-muted/30 p-4 md:grid-cols-2">
+        <CopyRow label="Link de redirecionamento de sucesso" value={integrations?.infinitepaySuccessUrl ?? ""} />
+        <CopyRow label="URL do Webhook" value={integrations?.infinitepayWebhookUrl ?? ""} />
+      </div>
+
+      {ip?.lastError && ip.testOk === false && (
+        <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          Último teste: {ip.lastError}
+        </div>
+      )}
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Button onClick={onSave} disabled={busy !== null}>
+          {busy === "save" && <Loader2 className="size-4 animate-spin" />} Salvar InfinitePay
+        </Button>
+        <Button variant="outline" onClick={onTest} disabled={busy !== null || !ip?.configured}>
+          {busy === "test" && <Loader2 className="size-4 animate-spin" />} Testar conexão
+        </Button>
+        <Button asChild variant="ghost" className="sm:ml-auto">
+          <a href="https://app.infinitepay.io/external-checkout" target="_blank" rel="noreferrer">
+            Abrir InfinitePay <ExternalLink className="size-4" />
+          </a>
+        </Button>
+      </div>
+    </Card>
   );
 }
 
