@@ -10,13 +10,20 @@ import {
   Download,
   List,
   Repeat,
+  Rows3,
+  Target,
   Wallet,
 } from "lucide-react";
+import { PlannerItemActions, BudgetsGoalsPanel, type PlannerActions } from "./planner-actions";
+import type { PlannerExtras } from "@/lib/finance-planner.functions";
 import {
   dailyProjection,
   filterPlannerItems,
   plannerTotals,
   toIcs,
+  canMoveItem,
+  shiftDate,
+  weekDays,
   type PlannerFilter,
 } from "@/lib/planner-rules";
 import { Button } from "@/components/ui/button";
@@ -82,6 +89,10 @@ export function PlannerView({
   loading,
   renderDayComposer,
   aside,
+  actions,
+  extras,
+  toolbar,
+  renderAskMia,
 }: {
   items: FinancePlannerItem[];
   month: Date;
@@ -90,11 +101,59 @@ export function PlannerView({
   /** Área para adicionar lembrete/conta no dia escolhido (chat com a MIA). */
   renderDayComposer?: (date: string) => ReactNode;
   aside?: ReactNode;
+  /** Ações do dia (pagar, adiar, editar, excluir, arrastar). Sem isso o calendário é só leitura. */
+  actions?: PlannerActions;
+  extras?: PlannerExtras | null;
+  toolbar?: ReactNode;
+  renderAskMia?: (label: string) => ReactNode;
 }) {
   const today = toIsoDate(new Date());
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<PlannerFilter>("todos");
-  const [view, setView] = useState<"mes" | "lista">("mes");
+  const [view, setView] = useState<"mes" | "semana" | "lista">("mes");
+  const [weekRef, setWeekRef] = useState(today);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropOn, setDropOn] = useState<string | null>(null);
+  const week = useMemo(() => weekDays(weekRef), [weekRef]);
+  const goalsByDay = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const g of extras?.goals || []) if (g.deadline) map.set(g.deadline, [...(map.get(g.deadline) || []), g.name]);
+    return map;
+  }, [extras]);
+  const dropProps = (iso: string) =>
+    actions
+      ? {
+          onDragOver: (e: React.DragEvent) => {
+            if (!dragId) return;
+            e.preventDefault();
+            setDropOn(iso);
+          },
+          onDragLeave: () => setDropOn((d) => (d === iso ? null : d)),
+          onDrop: (e: React.DragEvent) => {
+            e.preventDefault();
+            const item = items.find((i) => i.id === dragId);
+            setDragId(null);
+            setDropOn(null);
+            if (item && canMoveItem(item, iso)) void actions.run(item, { action: "move", scope: "one", newDate: iso });
+          },
+        }
+      : {};
+  const dragProps = (item: FinancePlannerItem) =>
+    actions && canMoveItem(item)
+      ? {
+          draggable: true,
+          onDragStart: (e: React.DragEvent) => {
+            e.stopPropagation();
+            e.dataTransfer.effectAllowed = "move";
+            setDragId(item.id);
+          },
+          onDragEnd: () => {
+            setDragId(null);
+            setDropOn(null);
+          },
+          title: "Arraste para outro dia",
+        }
+      : {};
   const grid = useMemo(() => monthGrid(month), [month]);
   const visible = useMemo(() => filterPlannerItems(items, filter, today), [items, filter, today]);
   const byDay = useMemo(() => {
@@ -111,8 +170,16 @@ export function PlannerView({
   const overdue = monthItems.filter((i) => financeDayStatus(i, today) === "vencido");
   const upcoming = monthItems.filter((i) => i.status !== "pago" && i.date >= today).slice(0, 6);
 
-  const shift = (delta: number) =>
+  const shift = (delta: number) => {
+    if (view === "semana") {
+      const next = shiftDate(weekRef, delta * 7);
+      setWeekRef(next);
+      const ref = next.slice(0, 7);
+      if (ref !== toIsoDate(month).slice(0, 7)) onMonthChange(new Date(Number(ref.slice(0, 4)), Number(ref.slice(5, 7)) - 1, 1));
+      return;
+    }
     onMonthChange(new Date(month.getFullYear(), month.getMonth() + delta, 1));
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -166,19 +233,21 @@ export function PlannerView({
               size="icon"
               className="size-8 rounded-lg"
               onClick={() => shift(-1)}
-              aria-label="Mês anterior"
+              aria-label={view === "semana" ? "Semana anterior" : "Mês anterior"}
             >
               <ChevronLeft />
             </Button>
             <h2 className="min-w-[150px] text-center font-display text-base font-black capitalize">
-              {month.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+              {view === "semana"
+                ? `${week[0].slice(8, 10)}/${week[0].slice(5, 7)} – ${week[6].slice(8, 10)}/${week[6].slice(5, 7)}`
+                : month.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
             </h2>
             <Button
               variant="ghost"
               size="icon"
               className="size-8 rounded-lg"
               onClick={() => shift(1)}
-              aria-label="Próximo mês"
+              aria-label={view === "semana" ? "Próxima semana" : "Próximo mês"}
             >
               <ChevronRight />
             </Button>
@@ -186,25 +255,30 @@ export function PlannerView({
               variant="outline"
               size="sm"
               className="ml-1 h-8 rounded-lg text-xs"
-              onClick={() =>
-                onMonthChange(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
-              }
+              onClick={() => {
+                setWeekRef(today);
+                onMonthChange(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+              }}
             >
               Hoje
             </Button>
           </div>
           <div className="flex items-center gap-1">
             <div className="flex rounded-lg border border-border p-0.5">
-              {(["mes", "lista"] as const).map((v) => (
-                <button key={v} type="button" onClick={() => setView(v)} className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold ${view === v ? "bg-[color:var(--brand-soft)] text-[color:var(--brand-text)]" : "text-muted-foreground"}`}>
-                  {v === "mes" ? <CalendarDays className="size-3.5" /> : <List className="size-3.5" />}
-                  {v === "mes" ? "Mês" : "Lista"}
+              {(["mes", "semana", "lista"] as const).map((v) => (
+                <button key={v} type="button" onClick={() => {
+                  if (v === "semana" && !weekRef.startsWith(monthKey)) setWeekRef(today.startsWith(monthKey) ? today : `${monthKey}-01`);
+                  setView(v);
+                }} className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold ${view === v ? "bg-[color:var(--brand-soft)] text-[color:var(--brand-text)]" : "text-muted-foreground"}`}>
+                  {v === "mes" ? <CalendarDays className="size-3.5" /> : v === "semana" ? <Rows3 className="size-3.5" /> : <List className="size-3.5" />}
+                  {v === "mes" ? "Mês" : v === "semana" ? "Semana" : "Lista"}
                 </button>
               ))}
             </div>
             <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs" onClick={exportIcs} title="Adicionar contas pendentes à sua agenda (Google, Apple, Outlook)">
               <Download className="size-3.5" /> Agenda
             </Button>
+            {toolbar}
           </div>
         </div>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -218,7 +292,42 @@ export function PlannerView({
           <Legend />
         </div>
 
-        {view === "lista" ? (
+        {view === "semana" ? (
+          <div className="mt-3 grid gap-1.5 sm:grid-cols-7">
+            {week.map((iso) => {
+              const dayItems = byDay.get(iso) || [];
+              const s = summarizeFinanceDay(dayItems);
+              const goals = goalsByDay.get(iso) || [];
+              return (
+                <div key={iso} {...dropProps(iso)} className={`flex min-h-[90px] flex-col rounded-xl border p-1.5 sm:min-h-[260px] ${iso === today ? "border-[color:var(--brand)]" : "border-border"} ${dropOn === iso ? "bg-[color:var(--brand-soft)]" : "bg-background"}`}>
+                  <button type="button" onClick={() => setSelected(iso)} className="text-left">
+                    <span className="block text-[10px] font-extrabold uppercase text-muted-foreground">{WEEK[new Date(`${iso}T12:00:00`).getDay()]}</span>
+                    <span className="font-display text-base font-black">{iso.slice(8, 10)}/{iso.slice(5, 7)}</span>
+                  </button>
+                  <div className="mt-1 flex-1 space-y-1">
+                    {goals.map((g) => (
+                      <div key={g} className="flex items-center gap-1 rounded-md bg-[color:var(--brand-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[color:var(--brand-text)]"><Target className="size-3" /> {g}</div>
+                    ))}
+                    {dayItems.map((item) => {
+                      const st = financeDayStatus(item, today);
+                      return (
+                        <button key={item.id} type="button" {...dragProps(item)} onClick={() => setSelected(iso)} className={`block w-full rounded-md border border-border px-1.5 py-1 text-left text-[11px] hover:bg-muted ${dragId === item.id ? "opacity-50" : ""}`}>
+                          <span className="flex items-center gap-1"><i className={`size-1.5 shrink-0 rounded-full ${STATUS_META[st].dot}`} /><span className="truncate font-bold">{item.title}</span>{item.recurring && <Repeat className="size-2.5 shrink-0" />}</span>
+                          <span className="font-black tabular-nums">{item.type === "receita" ? "+" : "−"}{money(item.amountCents)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {(s.incomeCents > 0 || s.expenseCents > 0) && (
+                    <div className={`mt-1 border-t border-border pt-1 text-[10px] font-black tabular-nums ${s.netCents >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
+                      Saldo {s.netCents >= 0 ? "+" : "−"}{money(Math.abs(s.netCents))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : view === "lista" ? (
           <div className="mt-3 divide-y divide-border">
             {[...monthItems].sort((a, b) => a.date.localeCompare(b.date)).map((item) => {
               const st = financeDayStatus(item, today);
@@ -259,14 +368,16 @@ export function PlannerView({
               <button
                 key={cell.iso}
                 type="button"
+                {...dropProps(cell.iso)}
                 onClick={() => setSelected(cell.iso)}
                 aria-label={`${new Date(`${cell.iso}T12:00:00`).toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}: ${dayItems.length} item(ns)`}
-                className={`group flex min-h-[54px] flex-col rounded-xl border p-1 text-left transition hover:border-[color:var(--brand-soft-strong)] hover:bg-[color:var(--brand-soft)] sm:min-h-[84px] sm:p-1.5 ${cell.inMonth ? "border-border bg-background" : "border-transparent bg-muted/30 text-muted-foreground"} ${isToday ? "ring-2 ring-[color:var(--brand)]" : ""}`}
+                className={`group flex min-h-[54px] flex-col rounded-xl border p-1 text-left transition hover:border-[color:var(--brand-soft-strong)] hover:bg-[color:var(--brand-soft)] sm:min-h-[84px] sm:p-1.5 ${cell.inMonth ? "border-border bg-background" : "border-transparent bg-muted/30 text-muted-foreground"} ${isToday ? "ring-2 ring-[color:var(--brand)]" : ""} ${dropOn === cell.iso ? "!bg-[color:var(--brand-soft)]" : ""}`}
               >
                 <span
                   className={`text-[11px] font-black ${isToday ? "text-[color:var(--brand-text)]" : ""}`}
                 >
                   {cell.day}
+                  {goalsByDay.has(cell.iso) && <Target className="ml-0.5 inline size-3 text-[color:var(--brand-text)]" aria-label="Prazo de meta" />}
                 </span>
                 {dayItems.length > 0 && (
                   <>
@@ -281,7 +392,8 @@ export function PlannerView({
                         return (
                           <div
                             key={item.id}
-                            className="flex items-center gap-1 truncate text-[10px] leading-tight"
+                            {...dragProps(item)}
+                            className={`flex items-center gap-1 truncate rounded text-[10px] leading-tight ${canMoveItem(item) && actions ? "cursor-grab hover:bg-muted" : ""} ${dragId === item.id ? "opacity-50" : ""}`}
                           >
                             <i
                               className={`size-1.5 shrink-0 rounded-full ${STATUS_META[st].dot}`}
@@ -368,6 +480,7 @@ export function PlannerView({
             )}
           </div>
         </div>
+        {extras && <BudgetsGoalsPanel extras={extras} monthKey={monthKey} />}
         {aside}
       </aside>
 
@@ -377,6 +490,8 @@ export function PlannerView({
         today={today}
         onClose={() => setSelected(null)}
         composer={selected && renderDayComposer ? renderDayComposer(selected) : null}
+        actions={actions}
+        askMia={selected && renderAskMia ? renderAskMia(new Date(`${selected}T12:00:00`).toLocaleDateString("pt-BR")) : null}
       />
     </div>
     </div>
@@ -427,12 +542,16 @@ function DayDialog({
   today,
   onClose,
   composer,
+  actions,
+  askMia,
 }: {
   date: string | null;
   items: FinancePlannerItem[];
   today: string;
   onClose: () => void;
   composer: ReactNode;
+  actions?: PlannerActions;
+  askMia?: ReactNode;
 }) {
   const s = summarizeFinanceDay(items);
   const sorted = [...items].sort((a, b) =>
@@ -524,6 +643,7 @@ function DayDialog({
                       {item.note && (
                         <p className="mt-1 text-[11px] italic text-muted-foreground">{item.note}</p>
                       )}
+                      {actions && <PlannerItemActions item={item} actions={actions} />}
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-black tabular-nums">
@@ -545,6 +665,7 @@ function DayDialog({
             </p>
           )}
         </div>
+        {askMia}
         {composer && (
           <div>
             <h4 className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[.14em] text-muted-foreground">
