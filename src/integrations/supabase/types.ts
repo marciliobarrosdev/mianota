@@ -1471,6 +1471,7 @@ export type Database = {
           provider_transaction_id: string | null
           recorrencia_id: string | null
           status: Database["public"]["Enums"]["fin_status"]
+          tags: string[]
           tipo: Database["public"]["Enums"]["fin_tipo"]
           updated_at: string
           valor_cents: number
@@ -1506,6 +1507,7 @@ export type Database = {
           provider_transaction_id?: string | null
           recorrencia_id?: string | null
           status?: Database["public"]["Enums"]["fin_status"]
+          tags?: string[]
           tipo: Database["public"]["Enums"]["fin_tipo"]
           updated_at?: string
           valor_cents: number
@@ -1541,6 +1543,7 @@ export type Database = {
           provider_transaction_id?: string | null
           recorrencia_id?: string | null
           status?: Database["public"]["Enums"]["fin_status"]
+          tags?: string[]
           tipo?: Database["public"]["Enums"]["fin_tipo"]
           updated_at?: string
           valor_cents?: number
@@ -1603,6 +1606,55 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marcia_work_order"
             referencedColumns: ["company_id", "id"]
+          },
+        ]
+      }
+      fin_lancamento_split: {
+        Row: {
+          categoria_id: string | null
+          company_id: string
+          created_at: string
+          id: string
+          lancamento_id: string
+          valor_cents: number
+        }
+        Insert: {
+          categoria_id?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          lancamento_id: string
+          valor_cents: number
+        }
+        Update: {
+          categoria_id?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          lancamento_id?: string
+          valor_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_lancamento_split_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "fin_categoria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamento_split_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamento_split_lancamento_id_fkey"
+            columns: ["lancamento_id"]
+            isOneToOne: false
+            referencedRelation: "fin_lancamento"
+            referencedColumns: ["id"]
           },
         ]
       }
