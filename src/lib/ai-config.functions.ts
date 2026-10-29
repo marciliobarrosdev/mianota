@@ -15,7 +15,7 @@ async function adminDb() {
 
 type Mode = "lovable" | "openai" | "anthropic";
 
-async function probeAiProvider(provider: Mode, providedKey?: string) {
+async function probeAiProvider(provider: Mode, providedKey?: string, chosenModel?: string) {
   const probe = [{ role: "user" as const, content: "Responda apenas: ok" }];
   if (provider === "lovable") {
     const key = process.env.LOVABLE_API_KEY;
@@ -42,7 +42,10 @@ async function probeAiProvider(provider: Mode, providedKey?: string) {
   }
   if (!key) throw new Error("Nenhuma chave salva para este provedor.");
   const { openAiChat, anthropicChat, AI_MODEL_OPTIONS } = await import("./ai-provider.server");
-  const model = AI_MODEL_OPTIONS[provider][0].id;
+  const model =
+    chosenModel && AI_MODEL_OPTIONS[provider].some((m) => m.id === chosenModel)
+      ? chosenModel
+      : AI_MODEL_OPTIONS[provider][0].id;
   if (provider === "openai") await openAiChat(key, model, probe);
   else await anthropicChat(key, model, probe);
 }
@@ -157,10 +160,10 @@ export const saveAiMode = createServerFn({ method: "POST" })
         await import("./integration-secrets.server");
       const item = await describeIntegration(data.mode === "openai" ? "ai_openai" : "ai_anthropic");
       if (!item.configured) throw new Error("Salve a chave deste provedor antes de ativá-lo.");
-      if (item.testOk !== true) {
+      {
         const integration = data.mode === "openai" ? "ai_openai" : "ai_anthropic";
         try {
-          await probeAiProvider(data.mode);
+          await probeAiProvider(data.mode, undefined, data.model || undefined);
           await recordIntegrationTest(integration, true, null);
         } catch (error) {
           const message = error instanceof Error ? error.message : "Provedor indisponível.";
@@ -178,6 +181,7 @@ export const saveAiMode = createServerFn({ method: "POST" })
       model: data.model,
       optimized: data.optimized,
       test_ok: testOk,
+      last_error: null,
       updated_by: context.userId,
       updated_at: new Date().toISOString(),
     });

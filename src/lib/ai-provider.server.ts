@@ -2,35 +2,11 @@
 // Seleção do provedor de IA: Lovable AI (padrão) ou BYOK OpenAI/Anthropic,
 // um único ativo por vez. A chave nunca sai do servidor.
 import type { ChatMsg } from "./lovable-ai.server";
-import { LOVABLE_AI_MODEL } from "./lovable-ai-config";
 import { fetchAiProvider } from "./ai-request.server";
+import { AI_MODEL_OPTIONS, resolveModel, type AiMode } from "./ai-model-rules";
 
-export type AiMode = "lovable" | "openai" | "anthropic";
-
-export const AI_MODEL_OPTIONS: Record<AiMode, { id: string; label: string; hint: string }[]> = {
-  lovable: [
-    {
-      id: LOVABLE_AI_MODEL,
-      label: "Padrão do app (Flash)",
-      hint: "Rápido e econômico (recomendado)",
-    },
-    {
-      id: "google/gemini-2.5-flash",
-      label: "Gemini 2.5 Flash",
-      hint: "Equilíbrio custo/qualidade",
-    },
-    { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", hint: "Mais qualidade, mais custo" },
-    { id: "openai/gpt-5-mini", label: "GPT-5 Mini", hint: "Bom raciocínio, custo médio" },
-  ],
-  openai: [
-    { id: "gpt-5-mini", label: "GPT-5 Mini", hint: "Custo médio" },
-    { id: "gpt-5", label: "GPT-5", hint: "Mais qualidade, mais custo" },
-  ],
-  anthropic: [
-    { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", hint: "Rápido e econômico" },
-    { id: "claude-sonnet-4-5", label: "Claude Sonnet 4.5", hint: "Mais qualidade, mais custo" },
-  ],
-};
+export { AI_MODEL_OPTIONS };
+export type { AiMode };
 
 let cache: { at: number; value: any } | null = null;
 
