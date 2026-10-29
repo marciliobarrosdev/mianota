@@ -29,9 +29,14 @@ import {
 } from "@/components/ui/select";
 import { FinanceEmpty, FinanceError, FinanceLoading } from "@/components/finance/finance-states";
 import { TransactionsView, type TransactionsActions } from "@/components/finance/transactions-view";
+import { ImportStatementDialog } from "@/components/finance/transactions-extras";
 import {
   bulkTransactionAction,
   getTransactionBudgets,
+  importStatement,
+  previewStatementImport,
+  setTransactionSplits,
+  undoStatementImport,
   transactionAction,
   undoTransactionAction,
   type TxBudget,
@@ -76,6 +81,11 @@ function TransactionsPage() {
   const undoFn = useServerFn(undoTransactionAction);
   const budgetsFn = useServerFn(getTransactionBudgets);
   const pdf = useServerFn(downloadPeriodReport);
+  const splitFn = useServerFn(setTransactionSplits);
+  const previewFn = useServerFn(previewStatementImport);
+  const importFn = useServerFn(importStatement);
+  const undoImportFn = useServerFn(undoStatementImport);
+  const [importOpen, setImportOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!companyId) return;
@@ -140,7 +150,18 @@ function TransactionsPage() {
                 },
               }),
             ),
-          onBulk: (ids, action, categoryId) => withUndo(bulk({ data: { companyId, ids, action, categoryId } })),
+          onBulk: (ids, action, categoryId, tags) => withUndo(bulk({ data: { companyId, ids, action, categoryId, tags } })),
+          onSplit: async (item, parts) => {
+            try {
+              const r = await splitFn({ data: { companyId, id: item.id, parts } });
+              await notifyChanged();
+              toast.success(r.message);
+            } catch (e: any) {
+              toast.error(e?.message || "Não foi possível dividir.");
+              throw e;
+            }
+          },
+          onImport: () => setImportOpen(true),
           onExportPdf: async () => {
             try {
               const r = await pdf({ data: { companyId, from: period.from, to: period.to, label: "Movimentações" } });
@@ -203,6 +224,34 @@ function TransactionsPage() {
           }
         />
       ) : null}
+      {companyId && data && (
+        <ImportStatementDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          categories={data.categories}
+          accounts={data.accounts}
+          preview={(rows) => previewFn({ data: { companyId, rows } })}
+          onImport={async ({ fileName, accountId, rows }) => {
+            try {
+              const r = await importFn({ data: { companyId, accountId, fileName, rows } });
+              await notifyChanged();
+              toast.success(`${r.count} lançamento(s) importado(s).`, {
+                action: {
+                  label: "Desfazer",
+                  onClick: () =>
+                    void undoImportFn({ data: { companyId, batch: r.batch } })
+                      .then(() => notifyChanged())
+                      .then(() => toast.success("Importação desfeita."))
+                      .catch((e: any) => toast.error(e?.message || "Não foi possível desfazer.")),
+                },
+              });
+            } catch (e: any) {
+              toast.error(e?.message || "Não foi possível importar.");
+              throw e;
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
