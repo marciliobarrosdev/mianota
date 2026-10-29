@@ -120,8 +120,16 @@ async function insertOnce(db: any, row: any, key: string) {
 }
 
 /** Orçamentos do mês que passaram do percentual de alerta ou estouraram. */
+async function loadProfile(db: any, companyId: string) {
+  const { normalizeAssistantProfile } = await import("./assistant-profile-rules");
+  const { data } = await db.from("company").select("finance_profile").eq("id", companyId).maybeSingle();
+  return normalizeAssistantProfile(data?.finance_profile);
+}
+
 export async function syncBudgetAlerts(db: any, companyId: string, userId: string) {
   const today = saoPauloDate();
+  const profile = await loadProfile(db, companyId);
+  const { effectiveBudgetAlertPercent } = await import("./assistant-profile-rules");
   const month = `${today.slice(0, 7)}-01`;
   const { data: budgets } = await db
     .from("fin_orcamento")
@@ -146,7 +154,7 @@ export async function syncBudgetAlerts(db: any, companyId: string, userId: strin
   let created = 0;
   for (const b of budgets) {
     const used = totals.get(b.categoria_id) || 0;
-    const level = budgetAlertLevel(used, Number(b.limite_cents || 0), Number(b.alerta_percentual || 80));
+    const level = budgetAlertLevel(used, Number(b.limite_cents || 0), effectiveBudgetAlertPercent(b.alerta_percentual, profile));
     if (!level) continue;
     const name = catName.get(b.categoria_id) || "uma categoria";
     const pct = Math.round((used / Number(b.limite_cents)) * 100);
@@ -214,11 +222,88 @@ export async function syncAccountAlerts(db: any, companyId: string, userId: stri
   return created;
 }
 
+/** Gastos únicos acima do limite escolhido em "Personalidade e regras" (últimos 2 dias). */
+export async function syncLargeExpenses(db: any, companyId: string, userId: string) {
+  const profile = await loadProfile(db, companyId);
+  const { isLargeExpense } = await import("./assistant-profile-rules");
+  if (!isLargeExpense(Number.MAX_SAFE_INTEGER, profile)) return 0;
+  const since = addDays(saoPauloDate(), -2);
+  const { data } = await db
+    .from("fin_lancamento")
+    .select("id,descricao,valor_cents,competencia")
+    .eq("company_id", companyId)
+    .eq("tipo", "despesa")
+    .neq("status", "cancelado")
+    .gte("valor_cents", profile.large_expense_cents)
+    .gte("competencia", since)
+    .limit(20);
+  let created = 0;
+  for (const l of data || []) {
+    if (!isLargeExpense(Number(l.valor_cents || 0), profile)) continue;
+    created += await insertOnce(
+      db,
+      {
+        company_id: companyId,
+        recipient_user_id: userId,
+        type: "finance.large_expense",
+        title: `Gasto alto: ${money(Number(l.valor_cents))}`,
+        body: `${l.descricao || "Um lançamento"} passou do seu limite de ${money(profile.large_expense_cents)} por gasto.`,
+        entity_type: "fin_lancamento",
+        entity_id: l.id,
+        data: { route: "/app/movimentacoes" },
+      },
+      `large:${l.id}`,
+    );
+  }
+  return created;
+}
+
+/** Segunda-feira: resumo da semana anterior (se ligado no perfil da MIA). Uma vez por semana. */
+export async function sendWeeklySummary(db: any, companyId: string, userId: string) {
+  const today = saoPauloDate();
+  if (new Date(`${today}T12:00:00Z`).getUTCDay() !== 1) return 0;
+  const profile = await loadProfile(db, companyId);
+  if (!profile.weekly_summary) return 0;
+  const from = addDays(today, -7);
+  const [{ data: spent }, { data: bills }, { data: cats }] = await Promise.all([
+    db.from("fin_lancamento").select("categoria_id,valor_cents").eq("company_id", companyId).eq("tipo", "despesa").neq("status", "cancelado").gte("competencia", from).lt("competencia", today),
+    db.from("fin_lancamento").select("valor_cents").eq("company_id", companyId).eq("tipo", "despesa").in("status", ["pendente", "atrasado"]).gte("vencimento", today).lte("vencimento", addDays(today, 7)),
+    db.from("fin_categoria").select("id,nome").eq("company_id", companyId),
+  ]);
+  const names = new Map((cats || []).map((c: any) => [c.id, c.nome]));
+  const byCat = new Map<string, number>();
+  let total = 0;
+  for (const r of spent || []) {
+    const v = Number(r.valor_cents || 0);
+    total += v;
+    byCat.set(r.categoria_id, (byCat.get(r.categoria_id) || 0) + v);
+  }
+  const top = [...byCat.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([id, v]) => `${names.get(id) || "Outros"} (${money(v)})`);
+  const upTotal = (bills || []).reduce((s: number, r: any) => s + Number(r.valor_cents || 0), 0);
+  return insertOnce(
+    db,
+    {
+      company_id: companyId,
+      recipient_user_id: userId,
+      type: "system.weekly_summary",
+      title: "Seu resumo da semana",
+      body:
+        `Na última semana você gastou ${money(total)}.` +
+        (top.length ? ` Mais pesou: ${top.join(", ")}.` : "") +
+        ((bills || []).length ? ` Próximos 7 dias: ${(bills || []).length} conta(s), ${money(upTotal)}.` : " Nenhuma conta nos próximos 7 dias."),
+      data: { route: "/app/relatorios" },
+    },
+    `weekly:${today}`,
+  );
+}
+
 export async function runAllForUser(db: any, companyId: string, userId: string) {
   const a = await syncDueReminders(db, companyId, userId);
   const b = await syncBudgetAlerts(db, companyId, userId).catch(() => 0);
   const c = await syncAccountAlerts(db, companyId, userId).catch(() => 0);
-  return a + b + c;
+  const d = await syncLargeExpenses(db, companyId, userId).catch(() => 0);
+  const e = await sendWeeklySummary(db, companyId, userId).catch(() => 0);
+  return a + b + c + d + e;
 }
 
 /** Aviso de pagamento confirmado para os donos/admins ativos da empresa. Nunca lança erro. */

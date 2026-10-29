@@ -285,6 +285,7 @@ async function interpret(
   previous: Draft | null,
   context: FinanceContext,
   imageDataUrl?: string | null,
+  extraSystem = "",
 ) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
   const system = `Você é o cérebro financeiro da MIA. Transforme a mensagem ou o comprovante em UMA ação financeira estruturada.
@@ -304,7 +305,7 @@ REGRAS:
 - Responda SOMENTE JSON válido.
 
 INTENTS: record_expense, record_income, create_bill, create_budget, create_goal, create_recurring, query_summary, unknown.
-FORMATO: {"intent":"...","type":null,"summary":null,"amountCents":null,"categoryId":null,"categoryName":null,"accountId":null,"accountName":null,"paymentMethod":null,"paymentStatus":null,"date":null,"frequency":null,"targetCents":null,"deadline":null,"queryPeriod":null}`;
+FORMATO: {"intent":"...","type":null,"summary":null,"amountCents":null,"categoryId":null,"categoryName":null,"accountId":null,"accountName":null,"paymentMethod":null,"paymentStatus":null,"date":null,"frequency":null,"targetCents":null,"deadline":null,"queryPeriod":null}`+extraSystem;
   const { lovableAiChat } = await import("./lovable-ai.server");
   const prompt = `CONTEXTO REAL:\n${JSON.stringify(context)}\n\nRASCUNHO ANTERIOR:\n${JSON.stringify(previous)}\n\nNOVA MENSAGEM:\n${message}`;
   const content = imageDataUrl
@@ -602,7 +603,12 @@ export async function handleFinanceWhatsapp(input: {
       return {
         authorized: true,
         userId,
-        reply: await execute(input.db, input.companyId, userId, active.data),
+        reply: await (async () => {
+          const done = await execute(input.db, input.companyId, userId, active.data);
+          const rules = await import("./assistant-profile-rules");
+          const { data: comp } = await input.db.from("company").select("finance_profile").eq("id", input.companyId).maybeSingle();
+          return rules.personalizeReply(done, rules.normalizeAssistantProfile(comp?.finance_profile), { tail: true });
+        })(),
       };
     } catch (error: any) {
       await input.db
@@ -631,13 +637,22 @@ export async function handleFinanceWhatsapp(input: {
         "Seus créditos de IA terminaram. Ative ou renove seu plano no aplicativo para continuar.",
     };
   let draft: Draft;
+  let profile: import("./assistant-profile-rules").AssistantProfile | null = null;
+  const personal = async (t: string, tail = false) => {
+    const { personalizeReply } = await import("./assistant-profile-rules");
+    return profile ? personalizeReply(t, profile, { tail }) : t;
+  };
   try {
     const context = await loadContext(input.db, input.companyId);
     const previous = active.data ? normalize(active.data.draft) : null;
-    draft = resolve(
-      merge(previous, await interpret(input.message, previous, context, input.imageDataUrl)),
-      context,
-    );
+    const rules = await import("./assistant-profile-rules");
+    const { data: comp } = await input.db.from("company").select("finance_profile").eq("id", input.companyId).maybeSingle();
+    profile = rules.normalizeAssistantProfile(comp?.finance_profile);
+    const names = new Map(context.categories.map((c: any) => [c.id, c.name]));
+    const interpreted = await interpret(input.message, previous, context, input.imageDataUrl, rules.assistantProfilePrompt(profile, names));
+    const forced = rules.matchCategoryRule(input.message, profile.category_rules);
+    if (forced && names.has(forced)) { interpreted.categoryId = forced; interpreted.categoryName = names.get(forced) || null; }
+    draft = resolve(merge(previous, interpreted), context);
     if (!draft.date && ["record_expense", "record_income"].includes(draft.intent))
       draft.date = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
     if (!draft.type && draft.intent === "record_expense") draft.type = "despesa";
@@ -656,7 +671,7 @@ export async function handleFinanceWhatsapp(input: {
       },
     ];
     if (draft.intent === "query_summary") {
-      const answer = await summary(input.db, input.companyId, draft.queryPeriod || "month");
+      const answer = await personal(await summary(input.db, input.companyId, draft.queryPeriod || "month"));
       messages.push({ role: "assistant", content: answer, at: new Date().toISOString() });
       const saved = await input.db.from("marcia_ai_command").upsert({
         id: commandId,
@@ -673,9 +688,9 @@ export async function handleFinanceWhatsapp(input: {
       return { authorized: true, userId, reply: answer, creditRef };
     }
     const field = draft.missing[0];
-    const reply = field
+    const reply = await personal(field
       ? question(field, context)
-      : `Entendi. Confira antes de eu registrar:\n\n${preview(draft)}\n\nResponda *CONFIRMAR* para salvar ou *CANCELAR*.`;
+      : `Entendi. Confira antes de eu registrar:\n\n${preview(draft)}\n\nResponda *CONFIRMAR* para salvar ou *CANCELAR*.`);
     messages.push({ role: "assistant", content: reply, at: new Date().toISOString() });
     const saved = await input.db.from("marcia_ai_command").upsert({
       id: commandId,
