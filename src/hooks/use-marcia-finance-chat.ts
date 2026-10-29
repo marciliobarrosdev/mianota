@@ -7,6 +7,7 @@ import {
   executeFinanceCommand,
   interpretFinanceCommand,
   listFinanceChatHistory,
+  undoFinanceCommand,
 } from "@/lib/finance-command.functions";
 import {
   newId,
@@ -36,6 +37,7 @@ export function useMarciaFinanceChat(
   const execute = useServerFn(executeFinanceCommand);
   const cancelCommand = useServerFn(cancelFinanceCommand);
   const readHistory = useServerFn(listFinanceChatHistory);
+  const undoCommand = useServerFn(undoFinanceCommand);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [phase, setPhase] = useState<ChatPhase>("idle");
   const [pending, setPending] = useState<ChatPendingTurn | null>(null);
@@ -81,6 +83,12 @@ export function useMarciaFinanceChat(
         role: "assistant",
         text: result?.message || "Pronto. Registrei para você.",
         kind: "success",
+        undoCommandId: result?.transactionId ? commandId : undefined,
+        link: result?.transactionId
+          ? { to: "/app/movimentacoes", label: "Ver no extrato" }
+          : result?.budgetId || result?.goalId || result?.recurrenceId
+            ? { to: "/app/planejamento", label: "Ver no planejamento" }
+            : undefined,
       });
       commandIdRef.current = null;
       setPending(null);
@@ -185,5 +193,41 @@ export function useMarciaFinanceChat(
     setPhase((current) => (listening ? "listening" : current === "listening" ? "idle" : current));
   }, []);
 
-  return { messages, phase, pending, historyLoading, send, confirm, cancel, setListening };
+  const undo = useCallback(
+    async (messageId: string) => {
+      const target = messages.find((m) => m.id === messageId);
+      if (!companyId || !target?.undoCommandId || target.undone) return;
+      try {
+        await undoCommand({ data: { companyId, commandId: target.undoCommandId } });
+        setMessages((current) =>
+          current.map((m) => (m.id === messageId ? { ...m, undone: true } : m)),
+        );
+        append({ role: "assistant", text: "Desfeito. Removi esse lançamento.", kind: "answer" });
+        window.dispatchEvent(new CustomEvent("marcia:finance-updated"));
+      } catch (error: any) {
+        toast.error(error?.message || "Não consegui desfazer.");
+      }
+    },
+    [append, companyId, messages, undoCommand],
+  );
+
+  const clear = useCallback(() => {
+    if (busyRef.current) return;
+    commandIdRef.current = null;
+    setPending(null);
+    setMessages([]);
+  }, []);
+
+  return {
+    messages,
+    phase,
+    pending,
+    historyLoading,
+    send,
+    confirm,
+    cancel,
+    setListening,
+    undo,
+    clear,
+  };
 }
