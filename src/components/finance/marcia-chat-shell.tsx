@@ -21,7 +21,7 @@ export function MarciaChatShell({
       <header className="flex shrink-0 items-center gap-3 border-b border-border bg-gradient-to-r from-[color:var(--brand-soft)] to-transparent px-4 py-2.5">
         <div className="relative grid size-9 place-items-center rounded-full bg-[color:var(--brand)] text-primary-foreground">
           <Sparkles className="size-4" />
-          <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-[color:var(--success,theme(colors.emerald.500))]" />
+          <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-[color:var(--brand)]" />
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-base font-black">{assistantName}</h1>
