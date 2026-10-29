@@ -2,7 +2,7 @@
 import { createFileRoute, redirect, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase, signOutRealm } from "@/lib/auth/realm-supabase";
+import { supabase } from "@/lib/auth/realm-supabase";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -306,14 +306,15 @@ function ChannelsTab({ companyId, userId }: { companyId: string; userId: string 
   async function downloadReport() {
     setBusy("report");
     try {
-      const r: any = await report({ data: { companyId } as any });
-      const bin = atob(r.base64 || r.pdf || "");
+      const month = new Date().toISOString().slice(0, 7);
+      const r = await report({ data: { companyId, month } });
+      const bin = atob(r.base64);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
       const a = document.createElement("a");
       a.href = url;
-      a.download = r.filename || "relatorio-mensal.pdf";
+      a.download = r.fileName;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
@@ -610,7 +611,7 @@ function PrivacyTab({ companyId }: { companyId: string }) {
       </Card>
       <Card className={cardCls}>
         <SectionTitle icon={LogOut} title="Sair de todos os aparelhos" text="Encerra sua sessão em todos os celulares e computadores, inclusive neste." action={
-          <Button variant="outline" size="sm" disabled={busy === "out"} onClick={() => void run("out", async () => { await supabase.auth.signOut({ scope: "global" }); await signOutRealm("subscriber" as any); window.location.href = "/entrar"; })}>Sair de tudo</Button>
+          <Button variant="outline" size="sm" disabled={busy === "out"} onClick={() => void run("out", async () => { await supabase.auth.signOut({ scope: "global" }); window.location.href = "/entrar"; })}>Sair de tudo</Button>
         } />
       </Card>
       <Card className={`${cardCls} lg:col-span-2`}>
