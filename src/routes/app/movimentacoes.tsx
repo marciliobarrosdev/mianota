@@ -28,7 +28,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FinanceEmpty, FinanceError, FinanceLoading } from "@/components/finance/finance-states";
-import { TransactionsView } from "@/components/finance/transactions-view";
+import { TransactionsView, type TransactionsActions } from "@/components/finance/transactions-view";
+import {
+  bulkTransactionAction,
+  getTransactionBudgets,
+  transactionAction,
+  undoTransactionAction,
+  type TxBudget,
+  type TxUndo,
+} from "@/lib/finance-transactions.functions";
+import { downloadPeriodReport } from "@/lib/finance-planner.functions";
 import {
   addFinanceTransaction,
   listFinanceTransactions,
@@ -61,6 +70,12 @@ function TransactionsPage() {
   const [data, setData] = useState<Payload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [budgets, setBudgets] = useState<TxBudget[]>([]);
+  const act = useServerFn(transactionAction);
+  const bulk = useServerFn(bulkTransactionAction);
+  const undoFn = useServerFn(undoTransactionAction);
+  const budgetsFn = useServerFn(getTransactionBudgets);
+  const pdf = useServerFn(downloadPeriodReport);
 
   const refresh = useCallback(async () => {
     if (!companyId) return;
@@ -73,7 +88,74 @@ function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [companyId, list, period.from, period.to]);
+    budgetsFn({ data: { companyId, month: period.to.slice(0, 7) } }).then(setBudgets).catch(() => setBudgets([]));
+  }, [companyId, list, budgetsFn, period.from, period.to]);
+
+  const notifyChanged = useCallback(async () => {
+    await refresh();
+    window.dispatchEvent(new Event("marcia:notifications-changed"));
+  }, [refresh]);
+
+  const withUndo = useCallback(
+    async (p: Promise<{ undo: TxUndo[]; message: string }>) => {
+      try {
+        const r = await p;
+        await notifyChanged();
+        toast.success(r.message, {
+          action: r.undo.length
+            ? {
+                label: "Desfazer",
+                onClick: () => {
+                  if (!companyId) return;
+                  void undoFn({ data: { companyId, undo: r.undo } })
+                    .then(() => notifyChanged())
+                    .then(() => toast.success("Ação desfeita."))
+                    .catch((e: any) => toast.error(e?.message || "Não foi possível desfazer."));
+                },
+              }
+            : undefined,
+        });
+      } catch (e: any) {
+        toast.error(e?.message || "Não foi possível concluir.");
+      }
+    },
+    [companyId, notifyChanged, undoFn],
+  );
+
+  const actions: TransactionsActions | undefined =
+    companyId && data
+      ? {
+          categories: data.categories,
+          budgets,
+          onAction: (item, action) => withUndo(act({ data: { companyId, id: item.id, action } })),
+          onEdit: (item, patch) =>
+            withUndo(
+              act({
+                data: {
+                  companyId,
+                  id: item.id,
+                  action: "edit",
+                  ...patch,
+                  paymentMethod: patch.paymentMethod as any,
+                },
+              }),
+            ),
+          onBulk: (ids, action, categoryId) => withUndo(bulk({ data: { companyId, ids, action, categoryId } })),
+          onExportPdf: async () => {
+            try {
+              const r = await pdf({ data: { companyId, from: period.from, to: period.to, label: "Movimentações" } });
+              const bin = Uint8Array.from(atob(r.base64), (c) => c.charCodeAt(0));
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(new Blob([bin], { type: "application/pdf" }));
+              a.download = r.fileName;
+              a.click();
+              URL.revokeObjectURL(a.href);
+            } catch (e: any) {
+              toast.error(e?.message || "Não foi possível gerar o PDF.");
+            }
+          },
+        }
+      : undefined;
 
   useEffect(() => {
     void refresh();
@@ -111,6 +193,7 @@ function TransactionsPage() {
           period={period}
           onPeriodChange={setPeriod}
           loading={loading}
+          actions={actions}
           emptyState={
             <FinanceEmpty
               title="Nenhuma movimentação neste período"
