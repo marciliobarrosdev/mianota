@@ -11,7 +11,9 @@ export const Route = createFileRoute("/api/public/cron/reminders")({
         const authFailure = await authenticateCronRequest(request);
         if (authFailure) return authFailure;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { runAllForUser } = await import("@/lib/notification-jobs.server");
+        const body = (await request.json().catch(() => ({}))) as { kind?: string };
+        const jobs = await import("@/lib/notification-jobs.server");
+        const run = body.kind === "summary" ? jobs.sendDailySummary : jobs.runAllForUser;
         const db = supabaseAdmin as any;
         const { data: members, error } = await db
           .from("company_user")
@@ -23,7 +25,7 @@ export const Route = createFileRoute("/api/public/cron/reminders")({
         let failed = 0;
         for (const m of members || []) {
           try {
-            created += await runAllForUser(db, m.company_id, m.user_id);
+            created += await run(db, m.company_id, m.user_id);
           } catch {
             failed++;
           }

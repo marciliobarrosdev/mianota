@@ -249,3 +249,49 @@ export async function notifyPaymentConfirmed(db: any, companyId: string, periodE
     console.error("[billing.notify]", error instanceof Error ? error.message : "falha");
   }
 }
+
+/** Resumo diário (só para quem ligou nas preferências): gastos de hoje e contas dos próximos 3 dias. */
+export async function sendDailySummary(db: any, companyId: string, userId: string) {
+  const { data: pref } = await db
+    .from("notification_preference")
+    .select("daily_summary")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!pref?.daily_summary) return 0;
+  const today = saoPauloDate();
+  const [{ data: spent }, { data: bills }] = await Promise.all([
+    db
+      .from("fin_lancamento")
+      .select("valor_cents")
+      .eq("company_id", companyId)
+      .eq("tipo", "despesa")
+      .neq("status", "cancelado")
+      .gte("ocorrido_em", `${today}T00:00:00-03:00`)
+      .lte("ocorrido_em", `${today}T23:59:59-03:00`),
+    db
+      .from("fin_lancamento")
+      .select("valor_cents")
+      .eq("company_id", companyId)
+      .eq("tipo", "despesa")
+      .in("status", ["pendente", "atrasado"])
+      .gt("vencimento", today)
+      .lte("vencimento", addDays(today, 3)),
+  ]);
+  const total = (spent || []).reduce((s: number, r: any) => s + Number(r.valor_cents || 0), 0);
+  const upcoming = (bills || []).length;
+  const upTotal = (bills || []).reduce((s: number, r: any) => s + Number(r.valor_cents || 0), 0);
+  return insertOnce(
+    db,
+    {
+      company_id: companyId,
+      recipient_user_id: userId,
+      type: "system.daily_summary",
+      title: "Seu resumo do dia",
+      body:
+        `Hoje você gastou ${money(total)}.` +
+        (upcoming ? ` ${upcoming} ${upcoming === 1 ? "conta vence" : "contas vencem"} nos próximos 3 dias (${money(upTotal)}).` : " Nenhuma conta nos próximos 3 dias."),
+      data: { route: "/app/inicio" },
+    },
+    `summary:${today}`,
+  );
+}
