@@ -23,9 +23,15 @@ export const createInfinitePayCheckout = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ url: string | null }> => {
     const { resolveIntegration } = await import("./integration-secrets.server");
     const ip = await resolveIntegration("infinitepay");
-    if (!ip.handle) return { url: null };
+    if (!ip.handle && !ip.checkout_link && !ip.checkout_link_2) return { url: null };
 
     const { requireCompanyAdminAccess } = await import("./company-admin-access.server");
+    await requireCompanyAdminAccess(context.supabase, context.userId, data.companyId);
+    const { checkoutLinkForPlan } = await import("@/lib/billing/infinitepay-rules");
+    const fixed = checkoutLinkForPlan(data.planSlug, ip);
+    if (fixed) return { url: fixed };
+    if (data.planSlug === "starter" || data.planSlug === "pro")
+      throw new Error("Este plano ainda não tem link de pagamento. Avise o administrador.");
     const access = await requireCompanyAdminAccess(context.supabase, context.userId, data.companyId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
