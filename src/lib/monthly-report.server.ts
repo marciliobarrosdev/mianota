@@ -20,7 +20,7 @@ export async function buildPeriodReport(db: any, companyId: string, start: strin
     db.from("company").select("nome,nome_fantasia").eq("id", companyId).maybeSingle(),
     db
       .from("fin_lancamento")
-      .select("tipo,status,valor_cents,descricao,competencia,fin_categoria(nome)")
+      .select("tipo,status,valor_cents,descricao,competencia,fin_categoria(nome),fin_lancamento_split(valor_cents,fin_categoria(nome))")
       .eq("company_id", companyId)
       .gte("competencia", start)
       .lte("competencia", last)
@@ -28,7 +28,7 @@ export async function buildPeriodReport(db: any, companyId: string, start: strin
       .limit(2000),
   ]);
   if (error) throw new Error(error.message);
-  const list = (rows || []).map((r: any) => ({ ...r, categoria: r.fin_categoria?.nome ?? null }));
+  const list = (rows || []).map((r: any) => ({ ...r, categoria: r.fin_categoria?.nome ?? null, splits: (r.fin_lancamento_split || []).map((p: any) => ({ categoria: p.fin_categoria?.nome ?? null, valor_cents: p.valor_cents })) }));
   const sum = summarizeMonth(list as ReportRow[]);
 
   const pdf = await PDFDocument.create();
