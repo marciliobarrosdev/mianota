@@ -26,7 +26,7 @@ function isTimeoutError(error: unknown) {
   return error.name === "AbortError" || error.name === "TimeoutError";
 }
 
-/** Chat real com a MárcIA: usa as mesmas funções de servidor do WhatsApp financeiro. */
+/** Chat real com a MIA: usa as mesmas funções de servidor do WhatsApp financeiro. */
 export function useMarciaFinanceChat(
   companyId: string | null | undefined,
   options: { loadHistory?: boolean } = {},

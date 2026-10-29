@@ -114,7 +114,7 @@ export const listStripeRecurringPrices = createServerFn({ method: "GET" })
     return { prices };
   });
 
-/** Cria produto e preço recorrente no Stripe usando os dados do plano da MárcIA. */
+/** Cria produto e preço recorrente no Stripe usando os dados do plano da MIA. */
 export const createStripePlanPrice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(

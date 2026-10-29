@@ -381,7 +381,7 @@ async function requestDraft(
   pdf?: { name: string; dataUrl: string } | null,
 ) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-  const system = `Você é o cérebro financeiro da MárcIA. Transforme a fala, texto ou comprovante do usuário em UMA ação financeira estruturada.
+  const system = `Você é o cérebro financeiro da MIA. Transforme a fala, texto ou comprovante do usuário em UMA ação financeira estruturada.
 
 REGRAS INEGOCIÁVEIS:
 - Use somente informações realmente ditas. Nunca invente valor, conta, categoria, data, meta ou pagamento.
@@ -834,7 +834,7 @@ export type FinanceChatHistoryMessage = {
   at: string;
 };
 
-/** Histórico recente das conversas do próprio usuário com a MárcIA (somente leitura). */
+/** Histórico recente das conversas do próprio usuário com a MIA (somente leitura). */
 export const listFinanceChatHistory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { companyId: string }) => {

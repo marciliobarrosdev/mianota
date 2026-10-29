@@ -19,10 +19,10 @@ export type CloneBrand = {
 // Fallback que mantém o clone utilizável antes mesmo da configuração inicial.
 // A identidade salva pelo dono do clone é carregada em BrandProvider.
 export const brand: CloneBrand = {
-  name: "MárcIA",
-  shortName: "MárcIA",
-  assistantName: "Márcia",
-  tagline: "Sua assessora financeira pessoal com inteligência artificial",
+  name: "MIAnota",
+  shortName: "MIAnota",
+  assistantName: "MIA",
+  tagline: "Sua assistente financeira na palma da mão.",
   description: "Registre, organize e entenda sua vida financeira por voz, texto, foto ou banco.",
   primary: "#7C3AED",
   primaryOklch: "0.56 0.25 292",
@@ -73,7 +73,8 @@ export function isSafeBrandAssetUrl(candidate: unknown): candidate is string {
 }
 
 export function personalizeAssistantText(value: string, assistantName: string): string {
-  return value.replaceAll("MárcIA", assistantName).replaceAll("Márcia", assistantName);
+  // Troca só o nome da assistente ("MIA" e os nomes antigos), nunca o nome do sistema "MIAnota".
+  return value.replace(/M[aá]rcIA|Márcia|\bMIA\b(?!nota)/g, assistantName);
 }
 
 const GENERATED_ASSISTANT_INTRO_PREFIXES = [

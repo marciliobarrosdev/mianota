@@ -135,12 +135,12 @@ const FAQS = [
     "Não nesta versão. Você organiza contas, cartões e saldos manualmente, sem entregar acesso bancário e sem pagar por uma conexão externa.",
   ],
   [
-    "A MárcIA movimenta meu dinheiro?",
+    "A MIA movimenta meu dinheiro?",
     "Não. Ela organiza informações, prepara registros, mostra alertas e ajuda a interpretar o mês. Pagamentos e transferências continuam sempre com você.",
   ],
   [
     "Posso mandar foto de comprovante?",
-    "Sim. Envie uma imagem legível pelo aplicativo. A MárcIA identifica os dados disponíveis e pergunta o que faltar antes de registrar.",
+    "Sim. Envie uma imagem legível pelo aplicativo. A MIA identifica os dados disponíveis e pergunta o que faltar antes de registrar.",
   ],
 ];
 
@@ -254,7 +254,7 @@ const FINANCE_FEATURES: Array<{
   },
   {
     icon: Sparkles,
-    title: "Leitura da MárcIA",
+    title: "Leitura da MIA",
     text: "Os números viram uma explicação curta e uma próxima ação clara.",
     tag: "Decidir",
   },
@@ -265,7 +265,7 @@ const COMPARISON_ROWS = [
   ["Entender o mês", "Somar e interpretar sozinho", "Receber uma leitura em linguagem simples"],
   ["Lembrar contas", "Confiar na memória", "Calendário e aviso antes do vencimento"],
   ["Corrigir informação", "Editar vários campos", "Responder à pergunta que faltou"],
-  ["Tomar uma decisão", "Cruzar saldos, faturas e limites", "Perguntar diretamente à MárcIA"],
+  ["Tomar uma decisão", "Cruzar saldos, faturas e limites", "Perguntar diretamente à MIA"],
 ] as const;
 
 const START_STEPS: Array<{ icon: LucideIcon; number: string; title: string; text: string }> = [
@@ -279,7 +279,7 @@ const START_STEPS: Array<{ icon: LucideIcon; number: string; title: string; text
     icon: MessageCircle,
     number: "02",
     title: "Conte a primeira movimentação",
-    text: "Fale, digite ou fotografe. A MárcIA pergunta somente o que estiver faltando.",
+    text: "Fale, digite ou fotografe. A MIA pergunta somente o que estiver faltando.",
   },
   {
     icon: ListChecks,
@@ -690,7 +690,7 @@ export function FinanceLanding({
               centered
               eyebrow="06 · A diferença na prática"
               title="Controle financeiro sem virar operador de planilha."
-              description="A MárcIA não mostra apenas uma lista de números. Ela reduz o trabalho entre o que aconteceu e a decisão que você precisa tomar."
+              description="A MIA não mostra apenas uma lista de números. Ela reduz o trabalho entre o que aconteceu e a decisão que você precisa tomar."
             />
             <div className="mt-9 overflow-hidden rounded-[26px] border border-violet-100 bg-white shadow-[0_30px_70px_-52px_rgba(55,28,77,.65)]">
               <div className="grid grid-cols-[1fr_1fr] border-b border-violet-100 bg-[#21132f] text-white sm:grid-cols-[.72fr_1fr_1fr]">
@@ -780,7 +780,7 @@ export function FinanceLanding({
               centered
               eyebrow="08 · Planos simples"
               title="Escolha o quanto quer automatizar."
-              description="Comece com o essencial ou leve a MárcIA também para o WhatsApp."
+              description="Comece com o essencial ou leve a MIA também para o WhatsApp."
             />
             <div data-stagger className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-2">
               {displayPlans.map((plan) => (

@@ -133,7 +133,7 @@ function FinanceOnboarding() {
                 O que você quer melhorar primeiro?
               </h2>
               <p className="mt-3 text-muted-foreground">
-                Isso ajuda a MárcIA a destacar o que mais importa para você.
+                Isso ajuda a MIA a destacar o que mais importa para você.
               </p>
               <div className="mt-7 grid gap-3">
                 {goals.map((item) => {
@@ -228,11 +228,11 @@ function FinanceOnboarding() {
               <p className="mx-auto mt-3 max-w-md leading-relaxed text-muted-foreground">
                 Você vai dizer algo como{" "}
                 <strong className="text-foreground">“gastei 85 reais no mercado pelo Pix”</strong>.
-                A MárcIA entende, confirma e registra.
+                A MIA entende, confirma e registra.
               </p>
               <div className="mt-7 rounded-2xl bg-violet-50 p-4 text-left text-sm text-violet-950">
                 <strong>Depois, se quiser:</strong> ative seu celular para registrar também pelo
-                número oficial da MárcIA. Você não precisa disso para começar.
+                número oficial da MIA. Você não precisa disso para começar.
               </div>
               <div className="mt-8 flex gap-3">
                 <Button variant="ghost" onClick={() => setStep(2)} className="h-13 rounded-2xl">

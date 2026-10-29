@@ -42,7 +42,7 @@ const navigation: Array<{ label: string; items: DemoNavItem[] }> = [
       { to: "/demo/dashboard", label: "Visão do mês", icon: Home },
       { to: "/demo/movimentacoes", label: "Movimentações", icon: ArrowLeftRight },
       { to: "/demo/planejamento", label: "Planejamento e calendário", icon: CalendarDays },
-      { to: "/demo/marcia", label: "Falar com a MárcIA", icon: Sparkles, featured: true },
+      { to: "/demo/marcia", label: "Falar com a MIA", icon: Sparkles, featured: true },
     ],
   },
 ];
@@ -50,7 +50,7 @@ const navigation: Array<{ label: string; items: DemoNavItem[] }> = [
 const mobileItems: MobileNavItem[] = [
   { to: "/demo/dashboard", label: "Mês", icon: Home },
   { to: "/demo/movimentacoes", label: "Extrato", icon: ArrowLeftRight },
-  { to: "/demo/marcia", label: "MárcIA", icon: Sparkles },
+  { to: "/demo/marcia", label: "MIAnota", icon: Sparkles },
   { to: "/demo/planejamento", label: "Calendário", icon: CalendarDays },
   { to: "/demo/configuracoes", label: "Ajustes", icon: Settings2 },
 ];

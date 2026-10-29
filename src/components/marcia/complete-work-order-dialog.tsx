@@ -71,7 +71,7 @@ export function CompleteWorkOrderDialog({
         <DialogHeader>
           <div className="mb-2 grid size-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><WalletCards /></div>
           <DialogTitle className="font-display text-xl font-black">Fechar OS #{String(order.number).padStart(3, "0")}</DialogTitle>
-          <DialogDescription>Confirme o resultado do serviço e o pagamento. A MárcIA organiza o financeiro.</DialogDescription>
+          <DialogDescription>Confirme o resultado do serviço e o pagamento. A MIA organiza o financeiro.</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="mt-2 space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">

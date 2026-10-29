@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
         const token = url.searchParams.get("hub.verify_token") || "";
         const challenge = url.searchParams.get("hub.challenge") || "";
         if (mode !== "subscribe" || !challenge) {
-          return new Response("MárcIA support webhook online", { status: 200 });
+          return new Response("MIAnota support webhook online", { status: 200 });
         }
         const { getOrCreateSupportChannel, secureCompare } =
           await import("@/lib/master-whatsapp.server");

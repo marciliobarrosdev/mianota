@@ -208,7 +208,7 @@ function EvolutionMessageCard({ state, onSaved }: { state: State; onSaved: () =>
   const hasCode = /\{\{codigo\}\}/i.test(message);
   const preview = buildEvolutionActivationText({
     name: "Ana Souza",
-    product: "MárcIA",
+    product: "MIAnota",
     code: "K7P2QX",
     template: message,
   });

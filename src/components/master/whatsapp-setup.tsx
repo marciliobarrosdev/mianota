@@ -109,7 +109,7 @@ export function MasterWhatsappPage({ initialMode }: { initialMode: Mode }) {
   async function runDisconnect() {
     if (
       !confirm(
-        "Desconectar o número central da MárcIA? Os assinantes ficarão sem o canal até a reconexão.",
+        "Desconectar o número central da MIA? Os assinantes ficarão sem o canal até a reconexão.",
       )
     )
       return;
@@ -334,7 +334,7 @@ function QrSetup({
           </GuideStep>
           <GuideStep number="2" title="Gere o QR Code" done={Boolean(qr) || connected}>
             <p>
-              Clique no botão ao lado. O sistema cria a instância central da MárcIA e configura a
+              Clique no botão ao lado. O sistema cria a instância central da MIA e configura a
               sincronização das mensagens.
             </p>
           </GuideStep>
@@ -374,7 +374,7 @@ function QrSetup({
                 <div className="bg-white p-3 rounded-2xl inline-block">
                   <img
                     src={qr}
-                    alt="QR Code para conectar o número central da MárcIA"
+                    alt="QR Code para conectar o número central da MIA"
                     className="size-52"
                   />
                 </div>

@@ -593,7 +593,7 @@ export function buildDemoSnapshot(
     insight: top
       ? {
           title: `${top.name} lidera seus gastos`,
-          body: `${top.share}% das saídas do período estão nessa categoria. Peça à MárcIA para comparar com o mês passado.`,
+          body: `${top.share}% das saídas do período estão nessa categoria. Peça à MIA para comparar com o mês passado.`,
           tone: top.share >= 40 ? "attention" : "neutral",
         }
       : {

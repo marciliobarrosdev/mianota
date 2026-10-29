@@ -63,7 +63,7 @@ function FinanceGuide() {
     },
     {
       title: "WhatsApp no seu ritmo",
-      text: "Ative seu celular e mande mensagens para o número oficial da MárcIA. Sem QR Code ou configuração técnica.",
+      text: "Ative seu celular e mande mensagens para o número oficial da MIA. Sem QR Code ou configuração técnica.",
       done: false,
       action: "Ativar WhatsApp",
       to: "/app/conexao" as const,

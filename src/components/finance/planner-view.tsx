@@ -75,7 +75,7 @@ export function PlannerView({
   month: Date;
   onMonthChange: (month: Date) => void;
   loading?: boolean;
-  /** Área para adicionar lembrete/conta no dia escolhido (chat com a MárcIA). */
+  /** Área para adicionar lembrete/conta no dia escolhido (chat com a MIA). */
   renderDayComposer?: (date: string) => ReactNode;
   aside?: ReactNode;
 }) {

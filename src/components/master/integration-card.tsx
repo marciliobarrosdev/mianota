@@ -59,7 +59,7 @@ const META: Record<
     title: "WhatsApp",
     icon: MessageCircle,
     intro:
-      "Servidor que mantém conectado o único número central da MárcIA. Os assinantes enviam mensagens para esse número; o sistema identifica cada conta com segurança.",
+      "Servidor que mantém conectado o único número central da MIA. Os assinantes enviam mensagens para esse número; o sistema identifica cada conta com segurança.",
     steps: [
       "Abra o painel do seu servidor Evolution.",
       "Copie o endereço do servidor e a chave global (API Key).",

@@ -23,7 +23,7 @@ export const sendTestPush = createServerFn({ method: "POST" })
     const { sendPushToUser } = await import("./web-push.server");
     const r = await sendPushToUser(supabaseAdmin, data.companyId, context.userId, {
       title: "Teste de notificação",
-      body: "Tudo certo! Você vai receber os avisos da MárcIA neste aparelho.",
+      body: "Tudo certo! Você vai receber os avisos da MIA neste aparelho.",
       url: "/app/notificacoes",
       tag: "teste",
     });

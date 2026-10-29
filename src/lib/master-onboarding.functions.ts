@@ -454,7 +454,7 @@ export const simulatePurchaseMessage = createServerFn({ method: "POST" })
     const brand = (
       await db.from("clone_brand_config").select("product_name").limit(1).maybeSingle()
     ).data;
-    const product = String(brand?.product_name || "MárcIA");
+    const product = String(brand?.product_name || "MIAnota");
     return {
       dryRun: true,
       normalized: { name, phone: rules.maskPhone(phone) },

@@ -94,7 +94,7 @@ function FinancePage() {
         <PageHeader
           eyebrow="Financeiro operacional"
           title="Valores que nascem do trabalho"
-          description="Conclua uma OS por voz e a MárcIA registra recebimentos e despesas automaticamente."
+          description="Conclua uma OS por voz e a MIA registra recebimentos e despesas automaticamente."
         />
         <div className="grid min-h-[480px] place-items-center rounded-[28px] border border-violet-200 bg-gradient-to-br from-white to-violet-50 p-6 text-center shadow-[var(--shadow-card)]">
           <div className="max-w-md">
@@ -124,7 +124,7 @@ function FinancePage() {
       <PageHeader
         eyebrow="Financeiro operacional"
         title="Dinheiro ligado à execução"
-        description="Entradas, despesas e valores a receber registrados pela MárcIA ou pela sua equipe."
+        description="Entradas, despesas e valores a receber registrados pela MIA ou pela sua equipe."
         action={
           <Button asChild className="rounded-xl bg-violet-700 hover:bg-violet-800">
             <Link to="/app/marcia">
@@ -176,11 +176,11 @@ function FinancePage() {
         ) : visible.length === 0 ? (
           <EmptyState
             title="Nenhum lançamento ainda"
-            description="Diga à MárcIA o que entrou ou saiu, ou conclua uma ordem de serviço."
+            description="Diga à MIA o que entrou ou saiu, ou conclua uma ordem de serviço."
             action={
               <Button asChild className="rounded-xl bg-violet-700 hover:bg-violet-800">
                 <Link to="/app/marcia">
-                  <Mic /> Falar com a MárcIA
+                  <Mic /> Falar com a MIA
                 </Link>
               </Button>
             }

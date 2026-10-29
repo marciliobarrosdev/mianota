@@ -43,7 +43,7 @@ export function FinanceEmpty({
       )}
       <Button asChild className="mt-5 rounded-xl bg-[color:var(--brand)]">
         <Link to="/app/marcia">
-          <Mic /> Falar com a MárcIA <ArrowRight />
+          <Mic /> Falar com a MIA <ArrowRight />
         </Link>
       </Button>
     </div>
