@@ -37,6 +37,7 @@ import { listPlansBasic } from "@/lib/master.functions";
 import { MoneyInput } from "@/components/money-input";
 import { DEFAULT_MAX_CENTS } from "@/lib/money";
 import { isValidHttpUrl } from "@/lib/masks";
+import { duplicatePricePlans, isInfinitePayLink } from "@/lib/billing/infinitepay-rules";
 
 function isValidPlanPrice(cents: unknown): cents is number {
   return (
@@ -198,6 +199,15 @@ function PlanosPage() {
     if (editing.checkout_mode !== "stripe" && checkoutUrl && !isValidHttpUrl(checkoutUrl))
       return toast.error(
         "Link de checkout inválido. Use o endereço completo, começando com https://",
+      );
+    const slugNow = editing.slug!.toLowerCase().trim();
+    const dup = duplicatePricePlans([
+      ...plans.filter((p) => p.slug !== slugNow && (editing as any).id !== p.id),
+      { slug: slugNow, preco_cents: Number(editing.preco_cents), ativo: !!editing.ativo },
+    ]);
+    if (editing.ativo && dup.includes(slugNow))
+      return toast.error(
+        "Outro plano ativo já tem esse preço. Use valores diferentes para a InfinitePay reconhecer o plano pago.",
       );
     setSaving(true);
     const payload: any = {
@@ -658,7 +668,7 @@ function PlanosPage() {
                 </Field>
               )}
               {editing.checkout_mode !== "stripe" && (
-                <Field label="URL de checkout externo" full>
+                <Field label="Link de Checkout InfinitePay" full>
                   <Input
                     type="url"
                     inputMode="url"
@@ -666,13 +676,26 @@ function PlanosPage() {
                     spellCheck={false}
                     value={editing.checkout_url ?? ""}
                     onChange={(e) => setEditing({ ...editing, checkout_url: e.target.value })}
-                    placeholder="https://pay.kiwify.com.br/abc123"
+                    placeholder="https://checkout.infinitepay.io/sua-tag/abc123"
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    Link para onde o cliente é enviado ao clicar em "Assinar". O sistema adiciona o
-                    e-mail dele automaticamente (<code>?email=</code>) para identificar a
-                    assinatura.
-                  </p>
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <p className="text-[11px] text-muted-foreground">
+                      Plano Basic → Link 1 · Plano Pro → Link 2. Crie na InfinitePay um link com o
+                      mesmo valor deste plano. O cliente deve pagar com o mesmo e-mail da conta.
+                    </p>
+                    {isInfinitePayLink(editing.checkout_url) && (
+                      <Button asChild type="button" variant="outline" size="sm">
+                        <a href={editing.checkout_url!.trim()} target="_blank" rel="noreferrer">
+                          Testar link
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                  {(editing.checkout_url ?? "").trim() && !isInfinitePayLink(editing.checkout_url) && (
+                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                      Este não parece um link da InfinitePay (https://checkout.infinitepay.io/…).
+                    </p>
+                  )}
                 </Field>
               )}
               <div className="col-span-2 flex items-center gap-6 pt-1">
@@ -757,6 +780,19 @@ function CheckoutStatus({ plan }: { plan: Plan }) {
     );
   }
 
+  if (isInfinitePayLink(url)) {
+    return (
+      <div className="flex items-center gap-1.5 -mt-1 min-w-0">
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+          <CheckCircle2 className="size-3" /> InfinitePay configurado
+        </span>
+        <a href={url} target="_blank" rel="noreferrer" className="truncate text-[10px] text-muted-foreground hover:underline">
+          {url}
+        </a>
+      </div>
+    );
+  }
+
   if (url) {
     return (
       <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 -mt-1 truncate">
@@ -771,7 +807,7 @@ function CheckoutStatus({ plan }: { plan: Plan }) {
   return (
     <div className="-mt-1 flex items-start gap-1.5 text-[10px] text-amber-600 dark:text-amber-400">
       <AlertTriangle className="mt-0.5 size-3 shrink-0" />
-      <span>Sem URL de checkout — clientes não conseguem assinar</span>
+      <span>Sem link de checkout</span>
     </div>
   );
 }
