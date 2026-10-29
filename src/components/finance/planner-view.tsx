@@ -215,7 +215,7 @@ export function PlannerView({
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
       <SummaryCard icon={<ArrowDownLeft className="size-4" />} label="A receber" value={money(totals.toReceiveCents)} tone="text-emerald-700 dark:text-emerald-400" />
       <SummaryCard icon={<ArrowUpRight className="size-4" />} label="A pagar" value={money(totals.toPayCents)} tone="text-rose-700 dark:text-rose-400" />
-      <SummaryCard icon={<AlertTriangle className="size-4" />} label="Atrasadas" value={`${totals.overdueCount} · ${money(totals.overdueCents)}`} tone={totals.overdueCount ? "text-rose-700 dark:text-rose-400" : ""} onClick={totals.overdueCount ? () => setFilter("vencido") : undefined} />
+      <SummaryCard icon={<AlertTriangle className="size-4" />} label="Atrasadas" value={totals.overdueCount ? `${totals.overdueCount} ${totals.overdueCount === 1 ? "conta" : "contas"} · ${money(totals.overdueCents)}` : "Nenhuma"} tone={totals.overdueCount ? "text-rose-700 dark:text-rose-400" : ""} onClick={totals.overdueCount ? () => setFilter("vencido") : undefined} />
       <SummaryCard icon={<Wallet className="size-4" />} label="Saldo projetado no fim do mês" value={money(totals.projectedCents)} tone={totals.projectedCents >= 0 ? "text-[color:var(--brand-text)]" : "text-rose-700 dark:text-rose-400"} />
     </div>
     {lowest && (
