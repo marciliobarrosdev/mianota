@@ -48,3 +48,8 @@ export const monthLabel = (month: string) => {
   const [y, m] = month.split("-").map(Number);
   return `${MONTHS[m - 1]} de ${y}`;
 };
+
+export function reportCaption(label: string, s: { income: number; expense: number; balance: number }) {
+  const brl = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return `📊 *Relatório de ${label}*\nReceitas: ${brl(s.income)}\nDespesas: ${brl(s.expense)}\nSaldo: ${brl(s.balance)}`;
+}

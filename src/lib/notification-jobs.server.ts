@@ -304,7 +304,7 @@ export async function sendMonthlyReport(db: any, companyId: string, userId: stri
     .eq("user_id", userId)
     .maybeSingle();
   if (pref && pref.monthly_report === false) return 0;
-  const { previousMonth, monthLabel } = await import("./monthly-report-rules");
+  const { previousMonth, monthLabel, reportCaption } = await import("./monthly-report-rules");
   const month = previousMonth(saoPauloDate());
   const created = await insertOnce(
     db,
@@ -321,8 +321,7 @@ export async function sendMonthlyReport(db: any, companyId: string, userId: stri
   if (!created) return 0;
   const { buildMonthlyReport, bytesToBase64 } = await import("./monthly-report.server");
   const { userWhatsappPhone, sendCentralDocument } = await import("./notification-whatsapp.server");
-  const { reportCaption } = await import("./monthly-report.functions");
-  const phone = await userWhatsappPhone(db, companyId, userId);
+    const phone = await userWhatsappPhone(db, companyId, userId);
   if (phone) {
     const { bytes, summary } = await buildMonthlyReport(db, companyId, month);
     await sendCentralDocument(phone, bytesToBase64(bytes), `MIAnota-relatorio-${month}.pdf`, reportCaption(monthLabel(month), summary));

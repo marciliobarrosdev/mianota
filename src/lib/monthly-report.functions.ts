@@ -21,7 +21,7 @@ export const sendMonthlyReportWhatsapp = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { buildMonthlyReport, bytesToBase64 } = await import("./monthly-report.server");
     const { userWhatsappPhone, sendCentralDocument, sendCentralText } = await import("./notification-whatsapp.server");
-    const { monthLabel } = await import("./monthly-report-rules");
+    const { monthLabel, reportCaption } = await import("./monthly-report-rules");
     const phone = await userWhatsappPhone(context.supabase, data.companyId, context.userId);
     if (!phone) return { ok: false as const, error: "Vincule seu WhatsApp à MIA para receber o relatório." };
     const { bytes, summary } = await buildMonthlyReport(context.supabase, data.companyId, data.month);
@@ -32,7 +32,3 @@ export const sendMonthlyReportWhatsapp = createServerFn({ method: "POST" })
     return r.ok ? { ok: true as const, mode: "text" as const } : { ok: false as const, error: "Não foi possível enviar pelo WhatsApp agora." };
   });
 
-export function reportCaption(label: string, s: { income: number; expense: number; balance: number }) {
-  const brl = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  return `📊 *Relatório de ${label}*\nReceitas: ${brl(s.income)}\nDespesas: ${brl(s.expense)}\nSaldo: ${brl(s.balance)}`;
-}
