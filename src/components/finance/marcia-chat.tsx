@@ -11,7 +11,6 @@ import {
   Mic,
   Paperclip,
   Send,
-  Sparkles,
   Square,
   Undo2,
   X,
