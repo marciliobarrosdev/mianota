@@ -2,7 +2,6 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Bell,
   CalendarDays,
   ChevronRight,
   LayoutDashboard,
