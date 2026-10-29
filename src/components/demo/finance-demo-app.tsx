@@ -103,7 +103,7 @@ function DemoMovements() {
           </Button>
         }
       />
-      <TransactionsView items={items} period={period} onPeriodChange={setPeriod} />
+      <TransactionsView items={items} period={period} onPeriodChange={setPeriod} basePath="/demo" />
     </div>
   );
 }
