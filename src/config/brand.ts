@@ -73,7 +73,8 @@ export function isSafeBrandAssetUrl(candidate: unknown): candidate is string {
 }
 
 export function personalizeAssistantText(value: string, assistantName: string): string {
-  return value.replaceAll("MIAnota", assistantName).replaceAll("MIA", assistantName);
+  // Troca só o nome da assistente ("MIA" e os nomes antigos), nunca o nome do sistema "MIAnota".
+  return value.replace(/M[aá]rcIA|Márcia|\bMIA\b(?!nota)/g, assistantName);
 }
 
 const GENERATED_ASSISTANT_INTRO_PREFIXES = [
