@@ -16,3 +16,9 @@ describe("novo assinante", () => {
     expect(provisionTrialDays({ ativo: true, is_free: false }, 3)).toBe(3);
   });
 });
+
+import { freePlanAlreadyUsed } from "../src/lib/subscriber-provision-rules";
+describe("plano gratuito uma vez por conta", () => {
+  it("bloqueia quem já usou", () => expect(freePlanAlreadyUsed([{ email: "a@b.com" }])).toBe(true));
+  it("libera quem nunca usou", () => expect(freePlanAlreadyUsed([])).toBe(false));
+});

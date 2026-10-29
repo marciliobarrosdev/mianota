@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { slugify } from "@/lib/tenant";
 import { normalizeValidBrazilianPhone } from "@/lib/phone";
-import { provisionTrialDays } from "@/lib/subscriber-provision-rules";
+import { freePlanAlreadyUsed, provisionTrialDays } from "@/lib/subscriber-provision-rules";
 
 async function assertSuper(supabase: any, _userId: string) {
   const { data, error } = await supabase.rpc("is_super_admin");
@@ -365,6 +365,18 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
     if (!chosenPlan || !chosenPlan.ativo) throw new Error("Selecione um plano ativo");
     const trialDays = provisionTrialDays(chosenPlan, data.trialDays);
 
+    // Regra: cada conta (e-mail do responsável) usa o plano gratuito uma única vez.
+    if (chosenPlan.is_free) {
+      const { data: preAuthId } = await admin.rpc("marcia_find_auth_user_by_email", { _email: data.ownerEmail });
+      let q = admin.from("free_plan_usage").select("email").limit(1);
+      q = preAuthId ? q.or(`email.eq.${data.ownerEmail},user_id.eq.${preAuthId}`) : q.eq("email", data.ownerEmail);
+      const { data: used, error: usedError } = await q;
+      if (usedError) throw new Error(usedError.message);
+      if (freePlanAlreadyUsed(used ?? [])) {
+        throw new Error("Esta conta já usou o plano gratuito. Escolha um plano pago.");
+      }
+    }
+
     // A identidade do owner vem exclusivamente de auth.users. profiles.email é
     // um espelho editável do perfil e nunca pode decidir quem recebe um tenant.
     const findAuthOwnerByEmail = async (): Promise<string | null> => {
@@ -505,6 +517,13 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
       throw new Error(`${reason} A conta foi preservada para nova tentativa segura.`);
     }
 
+    if (chosenPlan.is_free) {
+      const { error: markError } = await admin.from("free_plan_usage").insert({
+        email: data.ownerEmail, user_id: ownerId, company_id: String(companyId), plan_id: data.planId, source: "master",
+      });
+      // Corrida: outra criação marcou o mesmo e-mail primeiro.
+      if (markError && markError.code !== "23505") throw new Error(markError.message);
+    }
     return finalizeExistingOwnerCredential(String(companyId));
   });
 
