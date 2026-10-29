@@ -352,8 +352,8 @@ function NotificationsPage() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-display text-base font-extrabold">
-              {weekSummary.count} {weekSummary.count === 1 ? "conta vence" : "contas vencem"} esta semana ·{" "}
-              {money(weekSummary.total)}
+              {weekSummary.count} {weekSummary.count === 1 ? "conta vence" : "contas vencem"} esta semana
+              {weekSummary.total > 0 ? ` · ${money(weekSummary.total)}` : ""}
             </p>
             <p className="text-xs text-muted-foreground">
               {weekSummary.overdue
