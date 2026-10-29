@@ -80,8 +80,8 @@ export const getChannelStatus = createServerFn({ method: "POST" })
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: ch } = await (supabaseAdmin as any).from("platform_support_channel").select("*").limit(1).maybeSingle();
-      const s = String(ch?.status || ch?.connection_status || "").toLowerCase();
-      centralConnected = Boolean(ch?.active_provider) && (s === "" ? true : ["connected", "open", "ok", "conectado"].includes(s));
+      const { isActiveChannelConnected } = await import("./purchase-onboarding-rules");
+      centralConnected = isActiveChannelConnected(ch as any);
     } catch {
       centralConnected = false;
     }
