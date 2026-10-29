@@ -2,7 +2,6 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Bell,
   CalendarDays,
   ChevronRight,
   LayoutDashboard,
@@ -37,6 +36,7 @@ import type { CompanyRow, Membership } from "@/lib/tenant";
 import { useWhatsappStatus } from "@/hooks/use-whatsapp-status";
 import { clearAppAccessCache } from "@/lib/app-access-cache";
 import { clearImpersonation, currentAuthRealm, signOutRealm } from "@/lib/auth/realm-supabase";
+import { NotificationBell } from "@/components/notification-bell";
 import { syncFinanceReminders } from "@/lib/finance-reminders.functions";
 
 type NavItem = {
@@ -195,14 +195,7 @@ export function AppShell({
             {isAdmin && <WhatsappStatusPill companyId={company?.id} />}
             <div className="ml-auto flex items-center gap-2">
               {company && <CreditsBadge companyId={company.id} />}
-              <Link
-                to="/app/notificacoes"
-                className="grid size-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground"
-                title="Notificações"
-                aria-label="Abrir notificações"
-              >
-                <Bell className="size-[17px]" />
-              </Link>
+              <NotificationBell companyId={company?.id} className="border border-border bg-card" />
               <ThemeToggle />
               <div className="grid size-9 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-sm font-extrabold text-[color:var(--brand-text)] ring-1 ring-[color:var(--brand-soft-strong)]">
                 {userName.slice(0, 1).toUpperCase()}
@@ -246,13 +239,7 @@ function MobileHeader({
         </div>
       </div>
       <div className="ml-auto flex items-center gap-1">
-        <Link
-          to="/app/notificacoes"
-          className="grid size-9 place-items-center rounded-xl text-muted-foreground"
-          aria-label="Abrir notificações"
-        >
-          <Bell className="size-[17px]" />
-        </Link>
+        <NotificationBell companyId={company?.id} />
         <ThemeToggle />
         <Sheet>
           <SheetTrigger asChild>

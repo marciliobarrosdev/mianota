@@ -2345,6 +2345,7 @@ export type Database = {
       }
       marcia_notification: {
         Row: {
+          archived_at: string | null
           body: string | null
           company_id: string
           created_at: string
@@ -2352,12 +2353,14 @@ export type Database = {
           entity_id: string | null
           entity_type: string | null
           id: string
+          priority: string
           read_at: string | null
           recipient_user_id: string
           title: string
           type: string
         }
         Insert: {
+          archived_at?: string | null
           body?: string | null
           company_id: string
           created_at?: string
@@ -2365,12 +2368,14 @@ export type Database = {
           entity_id?: string | null
           entity_type?: string | null
           id?: string
+          priority?: string
           read_at?: string | null
           recipient_user_id: string
           title: string
           type: string
         }
         Update: {
+          archived_at?: string | null
           body?: string | null
           company_id?: string
           created_at?: string
@@ -2378,6 +2383,7 @@ export type Database = {
           entity_id?: string | null
           entity_type?: string | null
           id?: string
+          priority?: string
           read_at?: string | null
           recipient_user_id?: string
           title?: string
@@ -3256,6 +3262,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preference: {
+        Row: {
+          daily_summary: boolean
+          push_categories: string[]
+          quiet_end: number | null
+          quiet_start: number | null
+          reminder_lead_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          daily_summary?: boolean
+          push_categories?: string[]
+          quiet_end?: number | null
+          quiet_start?: number | null
+          reminder_lead_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          daily_summary?: boolean
+          push_categories?: string[]
+          quiet_end?: number | null
+          quiet_start?: number | null
+          reminder_lead_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       plan: {
         Row: {

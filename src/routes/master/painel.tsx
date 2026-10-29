@@ -42,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { brandedRouteHead } from "@/config/brand";
 import { masterKpis } from "@/lib/master.functions";
 import { getMasterSetupProgress } from "@/lib/master-setup.functions";
+import { BroadcastCard } from "@/components/master/broadcast-card";
 
 type CompanySummary = {
   id: string;
@@ -456,6 +457,7 @@ function OverviewPage() {
           </div>
         </Card>
       </section>
+      <BroadcastCard />
     </div>
   );
 }
