@@ -129,7 +129,7 @@ export function shouldSendWhatsapp(
   hourInSaoPaulo: number,
 ) {
   const p = { ...DEFAULT_PREFERENCE, ...(pref || {}) };
-  if (n.type === "push.test" || n.type === "system.broadcast") return false;
+  if (n.type === "push.test" || n.type === "system.broadcast" || n.type === "system.monthly_report") return false;
   if (!p.whatsapp_enabled) return false;
   if (!(p.whatsapp_categories || []).includes(notificationCategory(n))) return false;
   return !isQuietHour(hourInSaoPaulo, p.quiet_start, p.quiet_end);

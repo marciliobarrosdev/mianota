@@ -295,3 +295,37 @@ export async function sendDailySummary(db: any, companyId: string, userId: strin
     `summary:${today}`,
   );
 }
+
+/** Dia 1: relatório do mês anterior — aviso na Central e PDF no WhatsApp (uma vez por conta). */
+export async function sendMonthlyReport(db: any, companyId: string, userId: string) {
+  const { data: pref } = await db
+    .from("notification_preference")
+    .select("monthly_report")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (pref && pref.monthly_report === false) return 0;
+  const { previousMonth, monthLabel } = await import("./monthly-report-rules");
+  const month = previousMonth(saoPauloDate());
+  const created = await insertOnce(
+    db,
+    {
+      company_id: companyId,
+      recipient_user_id: userId,
+      type: "system.monthly_report",
+      title: `Relatório de ${monthLabel(month)} pronto`,
+      body: "Baixe o PDF com receitas, despesas e gastos por categoria.",
+      data: { route: "/app/notificacoes", month, whatsappSkip: true },
+    },
+    `monthly:${month}`,
+  );
+  if (!created) return 0;
+  const { buildMonthlyReport, bytesToBase64 } = await import("./monthly-report.server");
+  const { userWhatsappPhone, sendCentralDocument } = await import("./notification-whatsapp.server");
+  const { reportCaption } = await import("./monthly-report.functions");
+  const phone = await userWhatsappPhone(db, companyId, userId);
+  if (phone) {
+    const { bytes, summary } = await buildMonthlyReport(db, companyId, month);
+    await sendCentralDocument(phone, bytesToBase64(bytes), `MIAnota-relatorio-${month}.pdf`, reportCaption(monthLabel(month), summary));
+  }
+  return created;
+}

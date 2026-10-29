@@ -13,7 +13,8 @@ export const Route = createFileRoute("/api/public/cron/reminders")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const body = (await request.json().catch(() => ({}))) as { kind?: string };
         const jobs = await import("@/lib/notification-jobs.server");
-        const run = body.kind === "summary" ? jobs.sendDailySummary : jobs.runAllForUser;
+        const run =
+          body.kind === "summary" ? jobs.sendDailySummary : body.kind === "monthly" ? jobs.sendMonthlyReport : jobs.runAllForUser;
         const db = supabaseAdmin as any;
         const { data: members, error } = await db
           .from("company_user")
