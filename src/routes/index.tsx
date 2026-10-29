@@ -90,7 +90,7 @@ function LandingRoute() {
       try {
         const { data } = await supabase
           .from("plan")
-          .select("slug,nome,preco_cents,descricao,features,destaque,trial_days")
+          .select("slug,nome,preco_cents,descricao,features,destaque,trial_days,is_free")
           .eq("ativo", true)
           .order("ordem");
         if (!active || !data?.length) return;
@@ -119,6 +119,7 @@ function LandingRoute() {
               features: features.length ? features : fallback?.features || [],
               trialDays: row.trial_days,
               featured: row.destaque,
+              free: !!row.is_free,
             } satisfies FinancePlan;
           }),
         );
