@@ -246,7 +246,7 @@ export function TransactionsView({
           <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
             <span>{visible.length} de {items.length} movimentações</span>
             {active.map((k) => (
-              <button key={k} type="button" onClick={() => set({ [k]: EMPTY_TX_FILTERS[k] } as Partial<TxFilters>)} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--brand-soft,theme(colors.muted.DEFAULT))] bg-muted px-2 py-0.5 font-bold text-foreground">
+              <button key={k} type="button" onClick={() => set({ [k]: EMPTY_TX_FILTERS[k] } as Partial<TxFilters>)} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 font-bold text-foreground">
                 {chipLabel(k)} <X className="size-3" />
               </button>
             ))}
