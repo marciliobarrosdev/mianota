@@ -452,7 +452,7 @@ export const listPlansBasic = createServerFn({ method: "POST" })
         slug: "starter",
         nome: "Basic",
         descricao: "O essencial para cuidar do dinheiro sem planilha.",
-        preco_cents: 4900,
+        preco_cents: 2990,
         moeda: "BRL",
         intervalo: "month",
         limite_mensagens: 300,
@@ -479,7 +479,7 @@ export const listPlansBasic = createServerFn({ method: "POST" })
         slug: "pro",
         nome: "Pro",
         descricao: "Para automatizar a rotina e conversar com seu financeiro.",
-        preco_cents: 6900,
+        preco_cents: 4990,
         moeda: "BRL",
         intervalo: "month",
         limite_mensagens: 1500,
@@ -503,15 +503,25 @@ export const listPlansBasic = createServerFn({ method: "POST" })
       },
     ];
 
+    // Só cria o plano canônico se ele não existir: nunca sobrescreve preço,
+    // nome ou link editados pelo dono em /master/planos.
+    const { data: existing, error: existingError } = await supabaseAdmin
+      .from("plan")
+      .select("slug")
+      .in("slug", canonicalPlans.map((p) => p.slug));
+    if (existingError) throw existingError;
+    const have = new Set((existing ?? []).map((r: { slug: string }) => r.slug));
     for (const plan of canonicalPlans) {
-      const { error } = await supabaseAdmin.from("plan").update(plan).eq("slug", plan.slug);
+      if (have.has(plan.slug)) continue;
+      const { error } = await supabaseAdmin.from("plan").insert(plan as any);
       if (error) throw error;
     }
+    // Catálogo histórico reinserido por bootstraps antigos fica inativo.
     const { error: retireError } = await supabaseAdmin
       .from("plan")
       .update({ ativo: false, destaque: false, ordem: 99 })
-      .neq("slug", "starter")
-      .neq("slug", "pro");
+      .eq("slug", "business")
+      .eq("ativo", true);
     if (retireError) throw retireError;
 
     const { data, error } = await supabaseAdmin
