@@ -9,6 +9,13 @@ const safe = (s: string) => s.replace(/[^\u0020-\u00FF]/g, "").trim();
 /** Gera o PDF do mês (AAAA-MM) da conta. Retorna bytes do arquivo. */
 export async function buildMonthlyReport(db: any, companyId: string, month: string) {
   const { start, end } = monthBounds(month);
+  const d = new Date(`${end}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return buildPeriodReport(db, companyId, start, d.toISOString().slice(0, 10), monthLabel(month), "Relatório mensal");
+}
+
+/** PDF de um período qualquer (datas inclusivas AAAA-MM-DD). */
+export async function buildPeriodReport(db: any, companyId: string, start: string, last: string, label: string, title = "Relatório") {
   const [{ data: company }, { data: rows, error }] = await Promise.all([
     db.from("company").select("nome,nome_fantasia").eq("id", companyId).maybeSingle(),
     db
@@ -16,7 +23,7 @@ export async function buildMonthlyReport(db: any, companyId: string, month: stri
       .select("tipo,status,valor_cents,descricao,competencia,fin_categoria(nome)")
       .eq("company_id", companyId)
       .gte("competencia", start)
-      .lt("competencia", end)
+      .lte("competencia", last)
       .order("competencia", { ascending: true })
       .limit(2000),
   ]);
@@ -48,7 +55,7 @@ export async function buildMonthlyReport(db: any, companyId: string, month: stri
   y = 842 - 50;
   text("MIAnota", M, 22, bold, rgb(1, 1, 1));
   y -= 22;
-  text(`Relatório mensal · ${monthLabel(month)}`, M, 12, font, rgb(1, 1, 1));
+  text(`${title} · ${label}`, M, 12, font, rgb(1, 1, 1));
   y -= 16;
   text(company?.nome_fantasia || company?.nome || "", M, 9, font, rgb(0.92, 0.9, 1));
   y = 842 - 150;
@@ -56,7 +63,7 @@ export async function buildMonthlyReport(db: any, companyId: string, month: stri
   const cards: [string, number][] = [
     ["Receitas", sum.income],
     ["Despesas", sum.expense],
-    ["Saldo do mês", sum.balance],
+    ["Saldo", sum.balance],
     ["A pagar", sum.pending],
   ];
   const w = (595 - M * 2 - 30) / 4;
@@ -71,7 +78,7 @@ export async function buildMonthlyReport(db: any, companyId: string, month: stri
   text("Gastos por categoria", M, 13, bold);
   y -= 20;
   if (!sum.categories.length) {
-    text("Nenhuma despesa registrada neste mês.", M, 10, font, gray);
+    text("Nenhuma despesa registrada no período.", M, 10, font, gray);
     y -= 18;
   }
   for (const c of sum.categories.slice(0, 12)) {
@@ -87,7 +94,7 @@ export async function buildMonthlyReport(db: any, companyId: string, month: stri
   y -= 14;
 
   ensure(40);
-  text("Lançamentos do mês", M, 13, bold);
+  text("Lançamentos do período", M, 13, bold);
   y -= 20;
   const header = () => {
     text("Data", M, 8, bold, gray);
