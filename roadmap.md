@@ -22,3 +22,11 @@
 - Aprovação do template na Meta (até 48h) e teste do botão Começar
 - Compra real em cada plataforma confirmando que o telefone chega no webhook
 - Primeira resposta real "COMEÇAR código" e status entregue/lido
+
+## Central de avisos
+- [x] Filtros, agrupamento por dia, ações (paga/adiar), arquivar/excluir, resumo semanal, carregar mais
+- [x] Preferências (categorias no celular, silêncio, antecedência, resumo diário)
+- [x] Rotina diária no servidor + alertas de orçamento, plano vencendo, créditos, pagamento confirmado
+- [x] Sininho com contador; aviso em massa no Master
+- [ ] Envio dos avisos também pelo WhatsApp — não feito nesta etapa
+- [ ] Relatório mensal em PDF pelo WhatsApp — não feito nesta etapa
