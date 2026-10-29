@@ -11,15 +11,16 @@ export function useUnreadNotifications(companyId?: string | null, userId?: strin
 
   const load = useCallback(async () => {
     if (!companyId || !userId) return;
-    const base = () =>
+    const base = (cols: string, opts?: any) =>
       (supabase as any)
         .from("marcia_notification")
+        .select(cols, opts)
         .eq("company_id", companyId)
         .eq("recipient_user_id", userId)
         .is("archived_at", null);
     const [count, list] = await Promise.all([
-      base().select("id", { count: "exact", head: true }).is("read_at", null),
-      base().select("id,title,created_at,read_at").order("created_at", { ascending: false }).limit(5),
+      base("id", { count: "exact", head: true }).is("read_at", null),
+      base("id,title,created_at,read_at").order("created_at", { ascending: false }).limit(5),
     ]);
     setUnread(count.count || 0);
     setLatest((list.data || []) as BellNotification[]);
@@ -29,7 +30,7 @@ export function useUnreadNotifications(companyId?: string | null, userId?: strin
     void load();
     if (!companyId || !userId) return;
     const channel = supabase
-      .channel(`bell:${companyId}:${userId}`)
+      .channel(`bell:${companyId}:${userId}:${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "marcia_notification", filter: `company_id=eq.${companyId}` },
