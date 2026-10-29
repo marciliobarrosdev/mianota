@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { slugify } from "@/lib/tenant";
+import { normalizeValidBrazilianPhone } from "@/lib/phone";
+import { provisionTrialDays } from "@/lib/subscriber-provision-rules";
 
 async function assertSuper(supabase: any, _userId: string) {
   const { data, error } = await supabase.rpc("is_super_admin");
