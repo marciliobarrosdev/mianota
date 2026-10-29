@@ -492,21 +492,12 @@ function CheckoutPage() {
                     </p>
                     <Button
                       onClick={pagarAgora}
-                      disabled={
-                        !plano ||
-                        !(
-                          plano?.checkout_url ||
-                          (plano?.checkout_mode === "stripe" && plano?.stripe_price_id)
-                        )
-                      }
+                      disabled={!plano}
                       size="lg"
                       className="w-full md:w-auto min-w-[280px] bg-gradient-brand text-primary-foreground hover:opacity-90 font-semibold"
                     >
                       <ExternalLink className="size-4 mr-2" />
-                      {plano?.checkout_url ||
-                      (plano?.checkout_mode === "stripe" && plano?.stripe_price_id)
-                        ? `Assinar ${plano?.nome} agora`
-                        : "Plano sem checkout configurado"}
+                      {`Assinar ${plano?.nome ?? ""} agora`}
                     </Button>
                   </>
                 ) : (

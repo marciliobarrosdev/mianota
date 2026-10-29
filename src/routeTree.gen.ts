@@ -100,6 +100,7 @@ import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/
 import { Route as ApiPublicSupportWhatsappWebhookRouteImport } from './routes/api/public/support-whatsapp-webhook'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp-webhook'
 import { Route as AppOrdensOrderIdRouteImport } from './routes/app/ordens.$orderId'
+import { Route as ApiPublicBillingInfinitepayRouteImport } from './routes/api/public/billing/infinitepay'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -560,6 +561,12 @@ const AppOrdensOrderIdRoute = AppOrdensOrderIdRouteImport.update({
   path: '/$orderId',
   getParentRoute: () => AppOrdensRoute,
 } as any)
+const ApiPublicBillingInfinitepayRoute =
+  ApiPublicBillingInfinitepayRouteImport.update({
+    id: '/api/public/billing/infinitepay',
+    path: '/api/public/billing/infinitepay',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing/webhook',
   path: '/api/public/billing/webhook',
@@ -658,6 +665,7 @@ export interface FileRoutesByFullPath {
   '/api/public/support-whatsapp-webhook': typeof ApiPublicSupportWhatsappWebhookRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
+  '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -749,6 +757,7 @@ export interface FileRoutesByTo {
   '/api/public/support-whatsapp-webhook': typeof ApiPublicSupportWhatsappWebhookRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
+  '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
 }
 export interface FileRoutesById {
@@ -844,6 +853,7 @@ export interface FileRoutesById {
   '/api/public/support-whatsapp-webhook': typeof ApiPublicSupportWhatsappWebhookRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
+  '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
 }
 export interface FileRouteTypes {
@@ -940,6 +950,7 @@ export interface FileRouteTypes {
     | '/api/public/support-whatsapp-webhook'
     | '/api/public/whatsapp-webhook'
     | '/app/ordens/$orderId'
+    | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1031,6 +1042,7 @@ export interface FileRouteTypes {
     | '/api/public/support-whatsapp-webhook'
     | '/api/public/whatsapp-webhook'
     | '/app/ordens/$orderId'
+    | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
   id:
     | '__root__'
@@ -1125,6 +1137,7 @@ export interface FileRouteTypes {
     | '/api/public/support-whatsapp-webhook'
     | '/api/public/whatsapp-webhook'
     | '/app/ordens/$orderId'
+    | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -1148,6 +1161,7 @@ export interface RootRouteChildren {
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicSupportWhatsappWebhookRoute: typeof ApiPublicSupportWhatsappWebhookRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
+  ApiPublicBillingInfinitepayRoute: typeof ApiPublicBillingInfinitepayRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
 }
 
@@ -1790,6 +1804,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrdensOrderIdRouteImport
       parentRoute: typeof AppOrdensRoute
     }
+    '/api/public/billing/infinitepay': {
+      id: '/api/public/billing/infinitepay'
+      path: '/api/public/billing/infinitepay'
+      fullPath: '/api/public/billing/infinitepay'
+      preLoaderRoute: typeof ApiPublicBillingInfinitepayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/billing/webhook': {
       id: '/api/public/billing/webhook'
       path: '/api/public/billing/webhook'
@@ -1999,6 +2020,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicSupportWhatsappWebhookRoute: ApiPublicSupportWhatsappWebhookRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
+  ApiPublicBillingInfinitepayRoute: ApiPublicBillingInfinitepayRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport
