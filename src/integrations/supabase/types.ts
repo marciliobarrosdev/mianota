@@ -3241,8 +3241,10 @@ export type Database = {
           descricao: string | null
           destaque: boolean
           features: Json
+          free_days: number | null
           id: string
           intervalo: string
+          is_free: boolean
           limite_contatos: number
           limite_instancias: number
           limite_mensagens: number
@@ -3269,8 +3271,10 @@ export type Database = {
           descricao?: string | null
           destaque?: boolean
           features?: Json
+          free_days?: number | null
           id?: string
           intervalo?: string
+          is_free?: boolean
           limite_contatos?: number
           limite_instancias?: number
           limite_mensagens?: number
@@ -3297,8 +3301,10 @@ export type Database = {
           descricao?: string | null
           destaque?: boolean
           features?: Json
+          free_days?: number | null
           id?: string
           intervalo?: string
+          is_free?: boolean
           limite_contatos?: number
           limite_instancias?: number
           limite_mensagens?: number
