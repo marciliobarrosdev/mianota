@@ -1,5 +1,6 @@
 import { EMAIL_INPUT_PROPS, emailError, maskCpf, maskCnpj, normalizeEmail } from "@/lib/masks";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { maskBrazilianPhoneInput, PHONE_INPUT_PROPS } from "@/lib/phone";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,17 @@ type Plan = {
   moeda: string;
   intervalo: string;
   trial_days: number;
+  is_free?: boolean | null;
+  free_days?: number | null;
+  limite_mensagens?: number | null;
+  limite_usuarios?: number | null;
+  creditos_mensais?: number | null;
+  creditos_trial?: number | null;
+};
+
+const EMPTY_EXTRA = {
+  telefone: "", responsavelNome: "", inscricaoEstadual: "", emailCorporativo: "", site: "",
+  cep: "", rua: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "",
 };
 
 function fmt(cents: number, moeda = "BRL") {
@@ -42,7 +54,17 @@ function NovaEmpresa() {
   const [password, setPassword] = useState("");
   const [planId, setPlanId] = useState<string>("");
   const [trialDays, setTrialDays] = useState<number>(3);
+  const [extra, setExtra] = useState(EMPTY_EXTRA);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
+  const setX = (k: keyof typeof EMPTY_EXTRA) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setExtra((x) => ({ ...x, [k]: e.target.value }));
+  const selectedPlan = plans.find((p) => p.id === planId);
+  const isFree = !!selectedPlan?.is_free;
+  function choosePlan(p: Plan) {
+    setPlanId(p.id);
+    setTrialDays(p.is_free ? (p.free_days ?? 1) : (p.trial_days ?? 0));
+  }
   const [created, setCreated] = useState<{ email: string; password: string | null } | null>(null);
 
   useEffect(() => {
@@ -53,9 +75,11 @@ function NovaEmpresa() {
         const mid =
           r.plans?.find((p: any) => p.nome?.toLowerCase().includes("pro")) ?? r.plans?.[0];
         if (mid) setPlanId(mid.id);
-        if (mid?.trial_days != null) setTrialDays(mid.trial_days);
+        if (mid) setTrialDays(mid.is_free ? (mid.free_days ?? 1) : (mid.trial_days ?? 0));
       } catch (e: any) {
         toast.error(e?.message);
+      } finally {
+        setLoaded(true);
       }
     })();
   }, []);
@@ -70,7 +94,7 @@ function NovaEmpresa() {
     setCreated(null);
     try {
       const r = await create({
-        data: { nome, tipoPessoa, cnpjCpf: documento, razaoSocial, nomeFantasia: tipoPessoa === "pj" ? nome : "", ownerEmail: cleanEmail, planId: planId || null, trialDays, password: password || null },
+        data: { nome, tipoPessoa, cnpjCpf: documento, razaoSocial, nomeFantasia: tipoPessoa === "pj" ? nome : "", ownerEmail: cleanEmail, planId: planId || null, trialDays, password: password || null, ...extra },
       });
       if (r.warning) toast.warning(r.warning, { duration: 12000 });
       else toast.success("Assinante criado e liberada com trial");
@@ -81,6 +105,9 @@ function NovaEmpresa() {
       setNome("");
       setOwnerEmail("");
       setPassword("");
+      setDocumento("");
+      setRazaoSocial("");
+      setExtra(EMPTY_EXTRA);
     } catch (e: any) {
       toast.error(e?.message || "Falha");
     } finally {
@@ -139,19 +166,48 @@ function NovaEmpresa() {
               </p>
             </div>
             <div>
-              <Label>Dias de teste grátis</Label>
+              <Label>{isFree ? "Dias de acesso grátis" : "Dias de teste grátis"}</Label>
               <Input
                 type="number"
                 min={0}
                 max={90}
+                disabled={isFree}
                 value={trialDays}
                 onChange={(e) =>
                   setTrialDays(Math.max(0, Math.min(90, Number(e.target.value) || 0)))
                 }
               />
               <p className="text-[11px] text-muted-foreground mt-1">
-                Após esse prazo o cliente precisa pagar pra continuar.
+                {isFree
+                  ? "Definido pelo limite de dias do plano gratuito."
+                  : "Após esse prazo o cliente precisa pagar pra continuar."}
               </p>
+            </div>
+            <div><Label>Nome do responsável (opcional)</Label><Input value={extra.responsavelNome} onChange={setX("responsavelNome")} /></div>
+            <div><Label>WhatsApp do responsável (opcional)</Label><Input {...PHONE_INPUT_PROPS} value={extra.telefone} onChange={(e) => setExtra((x) => ({ ...x, telefone: maskBrazilianPhoneInput(e.target.value) }))} placeholder="(11) 91234-5678" /></div>
+          </div>
+
+          {tipoPessoa === "pj" && (
+            <div>
+              <h2 className="text-sm font-semibold mb-2">Empresa</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div><Label>Inscrição estadual (opcional)</Label><Input value={extra.inscricaoEstadual} onChange={setX("inscricaoEstadual")} /></div>
+                <div><Label>E-mail da empresa (opcional)</Label><Input {...EMAIL_INPUT_PROPS} value={extra.emailCorporativo} onChange={setX("emailCorporativo")} /></div>
+                <div><Label>Site (opcional)</Label><Input value={extra.site} onChange={setX("site")} placeholder="https://" /></div>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h2 className="text-sm font-semibold mb-2">Endereço (opcional)</h2>
+            <div className="grid md:grid-cols-6 gap-4">
+              <div className="md:col-span-2"><Label>CEP</Label><Input inputMode="numeric" value={extra.cep} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 8); setExtra((x) => ({ ...x, cep: d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d })); }} placeholder="00000-000" /></div>
+              <div className="md:col-span-4"><Label>Rua</Label><Input value={extra.rua} onChange={setX("rua")} /></div>
+              <div className="md:col-span-2"><Label>Número</Label><Input value={extra.numero} onChange={setX("numero")} /></div>
+              <div className="md:col-span-4"><Label>Complemento</Label><Input value={extra.complemento} onChange={setX("complemento")} /></div>
+              <div className="md:col-span-2"><Label>Bairro</Label><Input value={extra.bairro} onChange={setX("bairro")} /></div>
+              <div className="md:col-span-3"><Label>Cidade</Label><Input value={extra.cidade} onChange={setX("cidade")} /></div>
+              <div className="md:col-span-1"><Label>UF</Label><Input maxLength={2} value={extra.estado} onChange={(e) => setExtra((x) => ({ ...x, estado: e.target.value.toUpperCase().replace(/[^A-Z]/g, "") }))} placeholder="SP" /></div>
             </div>
           </div>
 
@@ -164,7 +220,7 @@ function NovaEmpresa() {
                   <button
                     type="button"
                     key={p.id}
-                    onClick={() => setPlanId(p.id)}
+                    onClick={() => choosePlan(p)}
                     className={`text-left rounded-xl border p-3 transition ${
                       sel
                         ? "border-primary ring-2 ring-primary/30 bg-primary/5"
@@ -176,13 +232,28 @@ function NovaEmpresa() {
                       {sel && <Check className="size-4 text-primary" />}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      {fmt(p.preco_cents, p.moeda)}
-                      <span className="text-xs">/{p.intervalo === "month" ? "mês" : "ano"}</span>
+                      {p.is_free ? (
+                        <>Grátis · {p.free_days ?? 0} dias</>
+                      ) : (
+                        <>
+                          {fmt(p.preco_cents, p.moeda)}
+                          <span className="text-xs">/{p.intervalo === "month" ? "mês" : "ano"}</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-1">
+                      {p.limite_mensagens ?? "∞"} msgs · {p.limite_usuarios ?? "∞"} usuário(s) ·{" "}
+                      {(p.is_free ? p.creditos_trial : p.creditos_mensais) ?? 0} créditos IA
                     </div>
                   </button>
                 );
               })}
             </div>
+            {loaded && plans.length === 0 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Nenhum plano ativo. <Link to="/master/planos" className="text-primary underline">Cadastre um plano</Link>.
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end">
