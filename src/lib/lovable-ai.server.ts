@@ -36,16 +36,18 @@ export async function lovableAiChat(
   // Modelo escolhido no Master vale quando o chamador usa o padrão e o modo otimizado está desligado.
   const { getAiProviderConfig } = await import("./ai-provider.server");
   const providerCfg = await getAiProviderConfig();
+  const { resolveModel, needsReasoningEffort } = await import("./ai-model-rules");
   const chosen =
-    providerCfg?.mode === "lovable" && providerCfg?.optimized === false && providerCfg?.model
-      ? String(providerCfg.model)
+    providerCfg?.mode === "lovable"
+      ? resolveModel("lovable", providerCfg?.model, providerCfg?.optimized !== false)
       : null;
   const requested = cfg.model || LOVABLE_AI_MODEL;
   const model = chosen && requested === LOVABLE_AI_MODEL ? chosen : requested;
+  const extra = needsReasoningEffort(model) ? { reasoning_effort: "low" } : {};
   const res = await fetchAiProvider("Lovable AI", GATEWAY, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model, messages }),
+    body: JSON.stringify({ model, messages, ...extra }),
   });
   if (!res.ok) {
     const t = await res.text();

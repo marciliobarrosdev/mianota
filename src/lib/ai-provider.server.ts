@@ -2,35 +2,11 @@
 // Seleção do provedor de IA: Lovable AI (padrão) ou BYOK OpenAI/Anthropic,
 // um único ativo por vez. A chave nunca sai do servidor.
 import type { ChatMsg } from "./lovable-ai.server";
-import { LOVABLE_AI_MODEL } from "./lovable-ai-config";
 import { fetchAiProvider } from "./ai-request.server";
+import { AI_MODEL_OPTIONS, resolveModel, type AiMode } from "./ai-model-rules";
 
-export type AiMode = "lovable" | "openai" | "anthropic";
-
-export const AI_MODEL_OPTIONS: Record<AiMode, { id: string; label: string; hint: string }[]> = {
-  lovable: [
-    {
-      id: LOVABLE_AI_MODEL,
-      label: "Padrão do app (Flash)",
-      hint: "Rápido e econômico (recomendado)",
-    },
-    {
-      id: "google/gemini-2.5-flash",
-      label: "Gemini 2.5 Flash",
-      hint: "Equilíbrio custo/qualidade",
-    },
-    { id: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro", hint: "Mais qualidade, mais custo" },
-    { id: "openai/gpt-5-mini", label: "GPT-5 Mini", hint: "Bom raciocínio, custo médio" },
-  ],
-  openai: [
-    { id: "gpt-5-mini", label: "GPT-5 Mini", hint: "Custo médio" },
-    { id: "gpt-5", label: "GPT-5", hint: "Mais qualidade, mais custo" },
-  ],
-  anthropic: [
-    { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", hint: "Rápido e econômico" },
-    { id: "claude-sonnet-4-5", label: "Claude Sonnet 4.5", hint: "Mais qualidade, mais custo" },
-  ],
-};
+export { AI_MODEL_OPTIONS };
+export type { AiMode };
 
 let cache: { at: number; value: any } | null = null;
 
@@ -40,7 +16,7 @@ export async function getAiProviderConfig(fresh = false) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await (supabaseAdmin as any)
       .from("ai_provider_config")
-      .select("mode,model,optimized,test_ok")
+      .select("mode,model,optimized,test_ok,last_error")
       .eq("id", true)
       .maybeSingle();
     cache = { at: Date.now(), value: data ?? { mode: "lovable" } };
@@ -59,22 +35,50 @@ async function byokKey(mode: "openai" | "anthropic") {
   return (await resolveIntegration(mode === "openai" ? "ai_openai" : "ai_anthropic")).api_key || "";
 }
 
-/** Retorna null quando o modo ativo é Lovable AI (ou BYOK indisponível). */
+async function recordByokError(message: string | null) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await (supabaseAdmin as any)
+      .from("ai_provider_config")
+      .update({ last_error: message })
+      .eq("id", true);
+  } catch {
+    /* ignora */
+  }
+}
+
+/** Retorna null quando o modo ativo é Lovable AI, ou quando o BYOK falha (cai para Lovable AI). */
 export async function maybeByokChat(messages: ChatMsg[]): Promise<string | null> {
   const cfg = await getAiProviderConfig();
   if (!cfg || cfg.mode === "lovable" || cfg.test_ok !== true) return null;
   const mode = cfg.mode as "openai" | "anthropic";
   const key = await byokKey(mode);
   if (!key) return null;
-  const model = cfg.model || AI_MODEL_OPTIONS[mode][0].id;
-  return mode === "openai" ? openAiChat(key, model, messages) : anthropicChat(key, model, messages);
+  const model = resolveModel(mode, cfg.model, cfg.optimized !== false);
+  try {
+    const out =
+      mode === "openai"
+        ? await openAiChat(key, model, messages)
+        : await anthropicChat(key, model, messages);
+    if (cfg.last_error) {
+      cfg.last_error = null;
+      await recordByokError(null);
+    }
+    return out;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Falha no provedor.";
+    console.error("[ai] BYOK falhou, usando Lovable AI:", message);
+    cfg.last_error = message;
+    await recordByokError(`${new Date().toISOString()} · ${message}`);
+    return null;
+  }
 }
 
 export async function openAiChat(key: string, model: string, messages: ChatMsg[]) {
   const res = await fetchAiProvider("OpenAI", "https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model, messages }),
+    body: JSON.stringify({ model, messages, max_completion_tokens: 4000 }),
   });
   if (!res.ok) throw new Error(`OpenAI recusou a chamada (${res.status}).`);
   const data: any = await res.json();
@@ -108,7 +112,7 @@ export async function anthropicChat(key: string, model: string, messages: ChatMs
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1500,
+      max_tokens: 4000,
       system: system || undefined,
       messages: messages
         .filter((m) => m.role !== "system")
