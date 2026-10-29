@@ -3822,6 +3822,21 @@ export type Database = {
           },
         ]
       }
+      push_dispatch_secret: {
+        Row: {
+          id: boolean
+          token: string
+        }
+        Insert: {
+          id?: boolean
+          token?: string
+        }
+        Update: {
+          id?: boolean
+          token?: string
+        }
+        Relationships: []
+      }
       remix_installation_guard: {
         Row: {
           activation_code_hash: string | null
