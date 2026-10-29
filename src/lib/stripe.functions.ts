@@ -57,7 +57,7 @@ export const createStripeCheckout = createServerFn({ method: "POST" })
     params.set("subscription_data[metadata][plan_slug]", plan.slug);
     if (Number(plan.trial_days) > 0)
       params.set("subscription_data[trial_period_days]", String(Math.min(730, plan.trial_days)));
-    params.set("success_url", `${base}/app/checkout?stripe=sucesso`);
+    params.set("success_url", `${base}/app/sucesso`);
     params.set("cancel_url", `${base}/app/checkout?stripe=cancelado`);
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {

@@ -49,6 +49,7 @@ import { Route as AppOrdensRouteImport } from './routes/app/ordens'
 import { Route as AppPlanejamentoRouteImport } from './routes/app/planejamento'
 import { Route as AppRecorrenciasRouteImport } from './routes/app/recorrencias'
 import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
+import { Route as AppSucessoRouteImport } from './routes/app/sucesso'
 import { Route as CsatTokenRouteImport } from './routes/csat.$token'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoAgendaRouteImport } from './routes/demo/agenda'
@@ -300,6 +301,11 @@ const AppRecorrenciasRoute = AppRecorrenciasRouteImport.update({
 const AppRelatoriosRoute = AppRelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSucessoRoute = AppSucessoRouteImport.update({
+  id: '/sucesso',
+  path: '/sucesso',
   getParentRoute: () => AppRoute,
 } as any)
 const CsatTokenRoute = CsatTokenRouteImport.update({
@@ -600,6 +606,7 @@ export interface FileRoutesByFullPath {
   '/app/planejamento': typeof AppPlanejamentoRoute
   '/app/recorrencias': typeof AppRecorrenciasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/sucesso': typeof AppSucessoRoute
   '/csat/$token': typeof CsatTokenRoute
   '/demo/agenda': typeof DemoAgendaRoute
   '/demo/calendario': typeof DemoCalendarioRoute
@@ -690,6 +697,7 @@ export interface FileRoutesByTo {
   '/app/planejamento': typeof AppPlanejamentoRoute
   '/app/recorrencias': typeof AppRecorrenciasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/sucesso': typeof AppSucessoRoute
   '/csat/$token': typeof CsatTokenRoute
   '/demo/agenda': typeof DemoAgendaRoute
   '/demo/calendario': typeof DemoCalendarioRoute
@@ -784,6 +792,7 @@ export interface FileRoutesById {
   '/app/planejamento': typeof AppPlanejamentoRoute
   '/app/recorrencias': typeof AppRecorrenciasRoute
   '/app/relatorios': typeof AppRelatoriosRoute
+  '/app/sucesso': typeof AppSucessoRoute
   '/csat/$token': typeof CsatTokenRoute
   '/demo/agenda': typeof DemoAgendaRoute
   '/demo/calendario': typeof DemoCalendarioRoute
@@ -879,6 +888,7 @@ export interface FileRouteTypes {
     | '/app/planejamento'
     | '/app/recorrencias'
     | '/app/relatorios'
+    | '/app/sucesso'
     | '/csat/$token'
     | '/demo/agenda'
     | '/demo/calendario'
@@ -969,6 +979,7 @@ export interface FileRouteTypes {
     | '/app/planejamento'
     | '/app/recorrencias'
     | '/app/relatorios'
+    | '/app/sucesso'
     | '/csat/$token'
     | '/demo/agenda'
     | '/demo/calendario'
@@ -1062,6 +1073,7 @@ export interface FileRouteTypes {
     | '/app/planejamento'
     | '/app/recorrencias'
     | '/app/relatorios'
+    | '/app/sucesso'
     | '/csat/$token'
     | '/demo/agenda'
     | '/demo/calendario'
@@ -1419,6 +1431,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/app/relatorios'
       preLoaderRoute: typeof AppRelatoriosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/sucesso': {
+      id: '/app/sucesso'
+      path: '/sucesso'
+      fullPath: '/app/sucesso'
+      preLoaderRoute: typeof AppSucessoRouteImport
       parentRoute: typeof AppRoute
     }
     '/csat/$token': {
@@ -1820,6 +1839,7 @@ interface AppRouteChildren {
   AppPlanejamentoRoute: typeof AppPlanejamentoRoute
   AppRecorrenciasRoute: typeof AppRecorrenciasRoute
   AppRelatoriosRoute: typeof AppRelatoriosRoute
+  AppSucessoRoute: typeof AppSucessoRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -1850,6 +1870,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlanejamentoRoute: AppPlanejamentoRoute,
   AppRecorrenciasRoute: AppRecorrenciasRoute,
   AppRelatoriosRoute: AppRelatoriosRoute,
+  AppSucessoRoute: AppSucessoRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
