@@ -19,6 +19,8 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-trial-banner: var(--trial-banner);
+  --color-trial-banner-foreground: var(--trial-banner-foreground);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -61,6 +63,8 @@
    LIGHT THEME (default :root) — clean & legible
    ============================================================ */
 :root {
+  --trial-banner: #4abaa8;
+  --trial-banner-foreground: #ffffff;
   --radius: 1rem;
 
   --brand: #7c3aed;
@@ -146,6 +150,8 @@
    DARK THEME — premium, subtle green glow
    ============================================================ */
 .dark {
+  --trial-banner: #4abaa8;
+  --trial-banner-foreground: #ffffff;
   color-scheme: dark;
 
   --brand: #a78bfa;
