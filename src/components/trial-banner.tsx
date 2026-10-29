@@ -30,7 +30,7 @@ export function TrialBanner({ company }: { company: CompanyRow }) {
     credits === null ? "carregando saldo" : `${credits.toLocaleString("pt-BR")} créditos`;
 
   return (
-    <div className="flex flex-col items-center justify-center gap-2 border-b border-red-800 bg-red-600 px-4 py-2.5 text-center text-sm font-medium text-white sm:flex-row sm:text-left">
+    <div className="flex flex-col items-center justify-center gap-2 border-b border-trial-banner bg-trial-banner px-4 py-2.5 text-center text-sm font-medium text-trial-banner-foreground sm:flex-row sm:text-left">
       <AlertTriangle className="hidden size-4 shrink-0 sm:block" />
       <div>
         <span className="font-extrabold uppercase tracking-wide">Trial</span>
@@ -46,14 +46,14 @@ export function TrialBanner({ company }: { company: CompanyRow }) {
         ) : (
           <> · período encerrado</>
         )}
-        <span className="block text-[11px] font-normal text-red-50 sm:ml-2 sm:inline">
+        <span className="block text-[11px] font-normal text-trial-banner-foreground sm:ml-2 sm:inline">
           1 crédito = 1 resposta enviada pela IA no WhatsApp.
           {credits === 0 ? " A IA está pausada até a ativação do plano." : ""}
         </span>
       </div>
       <Link
         to="/app/checkout"
-        className="inline-flex shrink-0 items-center rounded-md bg-white px-3 py-1 text-xs font-bold text-red-700 shadow-sm transition hover:bg-red-50 sm:ml-2"
+        className="inline-flex shrink-0 items-center rounded-md bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow-sm transition hover:bg-primary/90 sm:ml-2"
       >
         Ativar plano
       </Link>

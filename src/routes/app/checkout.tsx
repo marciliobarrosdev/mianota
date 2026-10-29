@@ -44,6 +44,7 @@ type Plano = {
   checkout_mode?: string | null;
   stripe_price_id?: string | null;
   destaque: boolean;
+  is_free?: boolean | null;
   limite_mensagens: number;
   limite_instancias: number;
   limite_usuarios: number;
@@ -127,18 +128,19 @@ function CheckoutPage() {
     hasCompany &&
     ctx.company!.status_cobranca === "trial" &&
     trialDaysLeft(ctx.company!.trial_ate) > 0;
-  const paywallMode = hasCompany && !trialActive && ctx.company!.status_cobranca !== "ativo";
+  // Conta existente (trial/gratuito em uso ou já usado) só pode ativar plano pago.
+  const paywallMode = hasCompany && ctx.company!.status_cobranca !== "ativo";
 
   // Empresa ativa ou em trial ainda válido → não deveria estar aqui
   useEffect(() => {
     if (!ctx.company) return;
-    if (ctx.company.status_cobranca === "ativo" || trialActive) {
+    if (ctx.company.status_cobranca === "ativo") {
       navigate({
         to: ctx.company.onboarding_completed ? "/app/inicio" : "/app/onboarding",
         replace: true,
       });
     }
-  }, [ctx.company, navigate, trialActive]);
+  }, [ctx.company, navigate]);
 
   useEffect(() => {
     supabase
@@ -148,7 +150,10 @@ function CheckoutPage() {
       .order("ordem")
       .then(({ data }) => {
         if (data?.length) {
-          const list = data as Plano[];
+          const list = (data as Plano[]).filter(
+            (p) => !ctx.company || (!p.is_free && p.preco_cents > 0),
+          );
+          if (!list.length) return;
           setPlans(list);
           // Sem empresa, ninguém começa com plano presumido: a pessoa escolhe
           // Basic ou Pro explicitamente. No paywall, sugere o plano já usado.
@@ -260,7 +265,10 @@ function CheckoutPage() {
   }
 
   const headerBadge = paywallMode
-    ? { icon: <Lock className="size-3.5 mr-1.5" />, text: "Seu período de teste terminou" }
+    ? {
+        icon: <Lock className="size-3.5 mr-1.5" />,
+        text: trialActive ? "Escolha um plano pago" : "Seu período de teste terminou",
+      }
     : {
         icon: <Sparkles className="size-3.5 mr-1.5" />,
         text: `${plans[0]?.trial_days ?? 3} dias grátis sem cartão`,
