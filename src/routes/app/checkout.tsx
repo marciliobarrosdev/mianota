@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { createCheckoutCompany } from "@/lib/checkout.functions";
 import { createStripeCheckout } from "@/lib/stripe.functions";
+import { createInfinitePayCheckout } from "@/lib/infinitepay.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { trialDaysLeft } from "@/lib/tenant";
 
@@ -111,6 +112,7 @@ function CheckoutPage() {
   const search = useSearch({ from: "/app/checkout" }) as Search;
   const createCompany = useServerFn(createCheckoutCompany);
   const startStripe = useServerFn(createStripeCheckout);
+  const startInfinite = useServerFn(createInfinitePayCheckout);
 
   const [plans, setPlans] = useState<Plano[]>([]);
   const [selected, setSelected] = useState<string | null>(search.plano ?? null);
@@ -233,6 +235,19 @@ function CheckoutPage() {
         toast.error(e instanceof Error ? e.message : "Não foi possível abrir o pagamento.");
       }
       return;
+    }
+    if (ctx.company?.id) {
+      try {
+        const { url } = await startInfinite({
+          data: { planSlug: plano.slug, companyId: ctx.company.id },
+        });
+        if (url) {
+          window.location.href = url;
+          return;
+        }
+      } catch (e) {
+        return toast.error(e instanceof Error ? e.message : "Não foi possível abrir o pagamento.");
+      }
     }
     if (!plano.checkout_url) {
       return toast.error(
