@@ -47,7 +47,12 @@ import {
   type PrimaryGoal,
 } from "@/lib/assistant-profile-rules";
 
-type Knowledge = Awaited<ReturnType<typeof getAssistantKnowledge>>;
+type Knowledge = {
+  transactions: number;
+  topCategories: { name: string; count: number }[];
+  whatsappLinked: boolean;
+  categories: { id: string; name: string; type: string }[];
+};
 
 const STYLES: [AssistantProfile["assistant_style"], string, string][] = [
   ["direta", "Direta", "Resposta curta e objetiva"],
@@ -84,7 +89,7 @@ export function FinanceAssistantSettings({ companyId }: { companyId?: string | n
         setLoading(false);
       });
     loadKnowledge({ data: { companyId } })
-      .then((k) => active && setKnowledge(k))
+      .then((k: any) => active && setKnowledge(k as Knowledge))
       .catch(() => undefined);
     return () => {
       active = false;
@@ -95,7 +100,7 @@ export function FinanceAssistantSettings({ companyId }: { companyId?: string | n
   const set = <K extends keyof AssistantProfile>(k: K, v: AssistantProfile[K]) =>
     setProfile((c) => ({ ...c, [k]: v }));
   const catName = useMemo(
-    () => new Map((knowledge?.categories || []).map((c) => [c.id, c.name])),
+    () => new Map<string, string>((knowledge?.categories || []).map((c) => [c.id, c.name])),
     [knowledge],
   );
 
