@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Sparkles } from "lucide-react";
+import { MiaAvatar } from "./mia-avatar";
 
 /** Moldura de altura fixa para o chat: histórico rola, composer fica no rodapé. */
 export function MarciaChatShell({
@@ -19,8 +19,8 @@ export function MarciaChatShell({
   const chat = (
     <section className="mx-auto flex h-[calc(100dvh-15rem)] min-h-[420px] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] lg:h-[calc(100dvh-12.5rem)]">
       <header className="flex shrink-0 items-center gap-3 border-b border-border bg-gradient-to-r from-[color:var(--brand-soft)] to-transparent px-4 py-2.5">
-        <div className="relative grid size-9 place-items-center rounded-full bg-[color:var(--brand)] text-primary-foreground">
-          <Sparkles className="size-4" />
+        <div className="relative size-9 shrink-0">
+          <MiaAvatar className="size-9" />
           <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-[color:var(--brand)]" />
         </div>
         <div className="min-w-0 flex-1">
