@@ -21,7 +21,7 @@ function validIso(y: number, m: number, d: number): string | null {
 export function parseStatementDate(raw: string): string | null {
   const s = raw.trim();
   let m = s.match(/^(\d{4})(\d{2})(\d{2})/);
-  if (m && !s.includes("/") && !s.includes("-")) return validIso(+m[1], +m[2], +m[3]);
+  if (m && !/^\d{1,4}[/.-]/.test(s)) return validIso(+m[1], +m[2], +m[3]);
   m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (m) return validIso(+m[1], +m[2], +m[3]);
   m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/);
