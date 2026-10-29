@@ -43,6 +43,7 @@ export const INTEGRATION_FIELDS: Record<
     { field: "handle", env: "INFINITEPAY_TAG", secret: false },
     { field: "api_key", env: "INFINITEPAY_API_KEY", secret: true },
     { field: "checkout_link", env: "INFINITEPAY_CHECKOUT_LINK", secret: false },
+    { field: "checkout_link_2", env: "INFINITEPAY_CHECKOUT_LINK_2", secret: false },
   ],
 };
 
