@@ -379,6 +379,7 @@ async function requestDraft(
   financeContext: FinanceContext,
   imageDataUrl?: string | null,
   pdf?: { name: string; dataUrl: string } | null,
+  extraSystem = "",
 ) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
   const system = `Você é o cérebro financeiro da MIA. Transforme a fala, texto ou comprovante do usuário em UMA ação financeira estruturada.
@@ -400,7 +401,7 @@ REGRAS INEGOCIÁVEIS:
 
 INTENTS: record_expense, record_income, create_bill, create_budget, create_goal, create_recurring, query_summary, unknown.
 FORMATO:
-{"intent":"...","type":null,"summary":null,"amountCents":null,"categoryId":null,"categoryName":null,"accountId":null,"accountName":null,"paymentMethod":null,"paymentStatus":null,"date":null,"frequency":null,"targetCents":null,"deadline":null,"queryPeriod":null}`;
+{"intent":"...","type":null,"summary":null,"amountCents":null,"categoryId":null,"categoryName":null,"accountId":null,"accountName":null,"paymentMethod":null,"paymentStatus":null,"date":null,"frequency":null,"targetCents":null,"deadline":null,"queryPeriod":null}`+extraSystem;
   const { lovableAiChat } = await import("./lovable-ai.server");
   const prompt = `CONTEXTO REAL:\n${JSON.stringify(financeContext)}\n\nRASCUNHO ANTERIOR:\n${JSON.stringify(previous)}\n\nNOVA MENSAGEM:\n${message}`;
   const raw = await lovableAiChat(
@@ -535,6 +536,10 @@ export const interpretFinanceCommand = createServerFn({ method: "POST" })
     if (consumed.error) throw new Error(consumed.error.message);
     if (!consumed.data)
       throw new Error("Seus créditos de IA terminaram. Ative ou renove seu plano para continuar.");
+    const rules = await import("./assistant-profile-rules");
+    const { data: comp } = await db.from("company").select("finance_profile").eq("id", data.companyId).maybeSingle();
+    const profile = rules.normalizeAssistantProfile(comp?.finance_profile);
+    const names = new Map(financeContext.categories.map((c: any) => [c.id, c.name]));
     let interpreted: FinanceCommandDraft;
     try {
       interpreted = await requestDraft(
@@ -543,7 +548,10 @@ export const interpretFinanceCommand = createServerFn({ method: "POST" })
         financeContext,
         data.imageDataUrl,
         data.pdf,
+        rules.assistantProfilePrompt(profile, names),
       );
+      const forced = rules.matchCategoryRule(data.message, profile.category_rules);
+      if (forced && names.has(forced)) { interpreted.categoryId = forced; interpreted.categoryName = names.get(forced) || null; }
     } catch (error) {
       await db
         .rpc("refund_ai_credit", { _company_id: data.companyId, _ref: creditRef })
@@ -572,7 +580,7 @@ export const interpretFinanceCommand = createServerFn({ method: "POST" })
     ];
 
     if (draft.intent === "query_summary") {
-      const answer = await answerSummary(data.companyId, draft.queryPeriod || "month");
+      const answer = rules.personalizeReply(await answerSummary(data.companyId, draft.queryPeriod || "month"), profile, { tail: false });
       messages.push({ role: "assistant", content: answer, at: new Date().toISOString() });
       const result = { message: answer };
       const saved = await db.from("marcia_ai_command").upsert({
@@ -591,7 +599,7 @@ export const interpretFinanceCommand = createServerFn({ method: "POST" })
     }
 
     const question = draft.missing[0] ? questionFor(draft.missing[0], financeContext) : null;
-    const assistantMessage = question?.message || actionMessage(draft.intent);
+    const assistantMessage = rules.personalizeReply(question?.message || actionMessage(draft.intent), profile, { tail: false });
     messages.push({ role: "assistant", content: assistantMessage, at: new Date().toISOString() });
     const saved = await db.from("marcia_ai_command").upsert({
       id: commandId,
