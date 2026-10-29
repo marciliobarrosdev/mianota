@@ -29,6 +29,13 @@
       "when": 1793291928125,
       "tag": "0003_push_dispatch_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793294355278,
+      "tag": "0004_rename_brand_mianota",
+      "breakpoints": true
     }
   ]
 }
