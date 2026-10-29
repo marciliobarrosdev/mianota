@@ -136,6 +136,10 @@ export type FinancePlannerItem = {
   paymentMethod: string | null;
   source: string | null;
   note: string | null;
+  /** Lançamento real (quando existe) e recorrência de origem, usados pelas ações do dia. */
+  entryId?: string | null;
+  recurrenceId?: string | null;
+  categoryId?: string | null;
 };
 
 function monthBounds(reference = new Date()) {
@@ -569,10 +573,9 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
       db
         .from("fin_lancamento")
         .select(
-          "id,descricao,valor_cents,tipo,status,vencimento,pago_em,competencia,ocorrido_em,categoria_id,forma_pagamento,fonte,observacao,recorrencia_id",
+          "id,descricao,valor_cents,tipo,status,vencimento,pago_em,competencia,ocorrido_em,categoria_id,forma_pagamento,fonte,observacao,recorrencia_id,metadata",
         )
         .eq("company_id", data.companyId)
-        .neq("status", "cancelado")
         .or(
           `and(vencimento.gte.${first},vencimento.lte.${last}),and(competencia.gte.${first},competencia.lte.${last})`,
         )
@@ -594,8 +597,14 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
     for (const row of entries.data || []) {
       const paid = row.status === "pago";
       const date = paid ? row.pago_em || row.competencia : row.vencimento;
+      if (row.recorrencia_id) {
+        // Ocorrências já lançadas (pagas, adiadas, editadas ou excluídas) não reaparecem como previstas.
+        for (const d of [date, row.vencimento, row.metadata?.recurrence_date]) {
+          if (d) recurrenceDates.add(`${row.recorrencia_id}:${d}`);
+        }
+      }
+      if (row.status === "cancelado") continue;
       if (!date || date < first || date > last) continue;
-      if (row.recorrencia_id) recurrenceDates.add(`${row.recorrencia_id}:${date}`);
       items.push({
         id: `entry-${row.id}`,
         date,
@@ -610,6 +619,9 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
         paymentMethod: row.forma_pagamento || null,
         source: row.fonte || null,
         note: row.observacao || null,
+        entryId: row.id,
+        recurrenceId: row.recorrencia_id || null,
+        categoryId: row.categoria_id || null,
       });
     }
     for (const row of recurrences.data || []) {
@@ -633,6 +645,9 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
             paymentMethod: null,
             source: "recorrencia",
             note: `Repete ${row.frequencia || "mensal"}`,
+            entryId: null,
+            recurrenceId: row.id,
+            categoryId: row.categoria_id || null,
           });
         }
         date = nextOccurrence(date, row.frequencia);
