@@ -32,7 +32,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MoneyInput } from "@/components/ui/money-input";
+import { MoneyInput } from "@/components/money-input";
 import { useBrand } from "@/contexts/brand-context";
 import { supabase } from "@/lib/auth/realm-supabase";
 import { getAssistantKnowledge, saveAssistantProfile } from "@/lib/assistant-profile.functions";
@@ -273,7 +273,7 @@ export function FinanceAssistantSettings({ companyId }: { companyId?: string | n
               </div>
               <div className="space-y-2">
                 <Label>Avisar quando um único gasto passar de</Label>
-                <MoneyInput valueCents={profile.large_expense_cents} onValueCentsChange={(c: number) => set("large_expense_cents", c)} className="h-11 rounded-xl" />
+                <MoneyInput cents={profile.large_expense_cents} onChange={(c: number | null) => set("large_expense_cents", c || 0)} allowZero className="h-11 rounded-xl" />
                 <p className="text-xs text-muted-foreground">Deixe R$ 0,00 para não avisar.</p>
               </div>
               <ToggleRow checked={profile.weekly_summary} onChange={(v) => set("weekly_summary", v)} title="Resumo semanal" text="Toda segunda: quanto gastou, o que mais pesou e as contas da semana." />

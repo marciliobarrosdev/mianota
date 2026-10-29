@@ -3,7 +3,7 @@ import { FinanceAssistantSettings } from "@/components/finance/finance-assistant
 import { brandedRouteHead } from "@/config/brand";
 
 export const Route = createFileRoute("/app/agente")({
-  head: brandedRouteHead("Configurar assistente"),
+  head: brandedRouteHead("Personalidade e regras"),
   beforeLoad: ({ context }) => {
     const role = context?.membership?.role;
     if (role !== "owner" && role !== "admin") throw redirect({ to: "/app/inicio" });
