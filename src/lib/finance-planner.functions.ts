@@ -134,7 +134,7 @@ export const plannerItemAction = createServerFn({ method: "POST" })
             competencia: target,
             pago_em: status === "pago" ? today() : null,
             ocorrido_em: `${target}T12:00:00.000Z`,
-            fonte: "recorrencia",
+            fonte: "manual",
             metadata: { recurrence_date: data.date, created_from: "planner" },
             created_by: context.userId,
           })
@@ -167,7 +167,7 @@ export const undoPlannerAction = createServerFn({ method: "POST" })
     for (const u of data.undo) {
       if (u.before === null) {
         if (u.table !== "fin_lancamento") continue;
-        await db.from("fin_lancamento").delete().eq("id", u.id).eq("company_id", data.companyId).eq("fonte", "recorrencia");
+        await db.from("fin_lancamento").delete().eq("id", u.id).eq("company_id", data.companyId).not("recorrencia_id", "is", null);
         continue;
       }
       const patch: Record<string, any> = {};
