@@ -27,8 +27,8 @@ async function refreshNotices(db: any, companyId: string, userId: string) {
 
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
-const FIELDS = "id,tipo,descricao,estabelecimento,valor_cents,status,vencimento,pago_em,competencia,ocorrido_em,categoria_id,conta_id,cartao_id,forma_pagamento,observacao";
-const RESTORABLE = ["descricao", "estabelecimento", "valor_cents", "status", "vencimento", "pago_em", "competencia", "ocorrido_em", "categoria_id", "forma_pagamento", "observacao"];
+const FIELDS = "id,tipo,descricao,estabelecimento,valor_cents,status,vencimento,pago_em,competencia,ocorrido_em,categoria_id,conta_id,cartao_id,forma_pagamento,observacao,tags,conta_id";
+const RESTORABLE = ["descricao", "estabelecimento", "valor_cents", "status", "vencimento", "pago_em", "competencia", "ocorrido_em", "categoria_id", "forma_pagamento", "observacao", "tags"];
 export type TxUndo = { id: string; before: Record<string, any> | null };
 
 async function checkCategory(db: any, companyId: string, categoryId: string | null | undefined) {
@@ -70,6 +70,7 @@ const ActionInput = z.object({
   categoryId: uuid.nullish(),
   paymentMethod: PAYMENT.nullish(),
   note: z.string().trim().max(500).nullish(),
+  tags: z.array(z.string().max(40)).max(20).optional(),
   learn: z.boolean().optional(),
 });
 
@@ -89,7 +90,7 @@ export const transactionAction = createServerFn({ method: "POST" })
       const { data: copy, error: e } = await db.from("fin_lancamento").insert({
         company_id: data.companyId, tipo: row.tipo, descricao: row.descricao, estabelecimento: row.estabelecimento,
         valor_cents: row.valor_cents, categoria_id: row.categoria_id, conta_id: row.conta_id, cartao_id: row.cartao_id,
-        forma_pagamento: row.forma_pagamento, observacao: row.observacao, status: "pago", vencimento: d, pago_em: d,
+        forma_pagamento: row.forma_pagamento, observacao: row.observacao, tags: row.tags || [], status: "pago", vencimento: d, pago_em: d,
         competencia: d, ocorrido_em: `${d}T12:00:00.000Z`, fonte: "manual", created_by: context.userId,
       }).select("id").single();
       if (e) throw new Error(e.message);
@@ -111,10 +112,20 @@ export const transactionAction = createServerFn({ method: "POST" })
         await checkCategory(db, data.companyId, data.categoryId);
         if (data.description) patch.descricao = data.description;
         if (data.merchant !== undefined) patch.estabelecimento = data.merchant || null;
-        if (data.amountCents) patch.valor_cents = data.amountCents;
+        if (data.amountCents) {
+          patch.valor_cents = data.amountCents;
+          if (data.amountCents !== row.valor_cents) {
+            const { count } = await db.from("fin_lancamento_split").select("id", { count: "exact", head: true }).eq("lancamento_id", row.id);
+            if (count) throw new Error("Este lançamento está dividido. Remova ou ajuste a divisão antes de mudar o valor.");
+          }
+        }
         if (data.categoryId !== undefined) patch.categoria_id = data.categoryId || null;
         if (data.paymentMethod !== undefined) patch.forma_pagamento = data.paymentMethod || null;
         if (data.note !== undefined) patch.observacao = data.note || null;
+        if (data.tags !== undefined) {
+          const { normalizeTags } = await import("./transactions-rules");
+          patch.tags = normalizeTags(data.tags);
+        }
         if (data.date && data.date !== row.competencia) {
           Object.assign(patch, { competencia: data.date, vencimento: data.date, ocorrido_em: `${data.date}T12:00:00.000Z` });
           if (row.status === "pago") patch.pago_em = data.date;
@@ -137,8 +148,9 @@ export const transactionAction = createServerFn({ method: "POST" })
 const BulkInput = z.object({
   companyId: uuid,
   ids: z.array(uuid).min(1).max(500),
-  action: z.enum(["pay", "delete", "category"]),
+  action: z.enum(["pay", "delete", "category", "tag"]),
   categoryId: uuid.nullish(),
+  tags: z.array(z.string().max(40)).max(20).optional(),
 });
 
 /** Ações em lote: pagar, excluir ou trocar categoria. */
@@ -152,10 +164,14 @@ export const bulkTransactionAction = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const undo: TxUndo[] = [];
     const d = today();
+    const { normalizeTags } = await import("./transactions-rules");
+    const add = normalizeTags(data.tags || []);
+    if (data.action === "tag" && !add.length) throw new Error("Informe ao menos uma tag.");
     for (const row of rows || []) {
       const patch: Record<string, any> =
         data.action === "pay" ? (row.status === "pago" ? {} : { status: "pago", pago_em: d })
         : data.action === "delete" ? { status: "cancelado" }
+        : data.action === "tag" ? (add.every((t) => (row.tags || []).includes(t)) ? {} : { tags: normalizeTags([...(row.tags || []), ...add]) })
         : { categoria_id: data.categoryId || null };
       if (!Object.keys(patch).length) continue;
       const before = snapshot(row, patch);
@@ -165,7 +181,7 @@ export const bulkTransactionAction = createServerFn({ method: "POST" })
     }
     await refreshNotices(db, data.companyId, context.userId);
     const n = undo.length;
-    const verb = data.action === "pay" ? "marcada(s) como paga(s)" : data.action === "delete" ? "excluída(s)" : "com categoria alterada";
+    const verb = data.action === "pay" ? "marcada(s) como paga(s)" : data.action === "delete" ? "excluída(s)" : data.action === "tag" ? "com tag adicionada" : "com categoria alterada";
     return { ok: true, undo, message: `${n} movimentação(ões) ${verb}.` };
   });
 
@@ -206,13 +222,117 @@ export const getTransactionBudgets = createServerFn({ method: "POST" })
     const end = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
     const [buds, spent] = await Promise.all([
       db.from("fin_orcamento").select("categoria_id,limite_cents").eq("company_id", data.companyId).eq("competencia", start),
-      db.from("fin_lancamento").select("categoria_id,valor_cents").eq("company_id", data.companyId).eq("tipo", "despesa").neq("status", "cancelado").gte("competencia", start).lte("competencia", end).limit(5000),
+      db.from("fin_lancamento").select("categoria_id,valor_cents,fin_lancamento_split(categoria_id,valor_cents)").eq("company_id", data.companyId).eq("tipo", "despesa").neq("status", "cancelado").gte("competencia", start).lte("competencia", end).limit(5000),
     ]);
     if (buds.error || spent.error) throw new Error((buds.error || spent.error).message);
     const byCat = new Map<string, number>();
-    for (const r of spent.data || []) if (r.categoria_id) byCat.set(r.categoria_id, (byCat.get(r.categoria_id) || 0) + Number(r.valor_cents || 0));
+    for (const r of spent.data || []) {
+      const parts = r.fin_lancamento_split?.length ? r.fin_lancamento_split : [r];
+      for (const p of parts) if (p.categoria_id) byCat.set(p.categoria_id, (byCat.get(p.categoria_id) || 0) + Number(p.valor_cents || 0));
+    }
     return (buds.data || []).filter((b: any) => b.categoria_id && b.limite_cents > 0).map((b: any) => {
       const s = byCat.get(b.categoria_id) || 0;
       return { categoryId: b.categoria_id, limitCents: b.limite_cents, spentCents: s, percentage: Math.round((s / b.limite_cents) * 100) };
     });
+  });
+
+const SplitInput = z.object({
+  companyId: uuid,
+  id: uuid,
+  parts: z.array(z.object({ categoryId: uuid.nullable(), amountCents: z.number().int().positive().max(1_000_000_000) })).max(10),
+});
+
+/** Divide um lançamento entre categorias (lista vazia remove a divisão). A soma precisa bater com o valor. */
+export const setTransactionSplits = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => SplitInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const db = await access(context, data.companyId);
+    const { data: row } = await db.from("fin_lancamento").select("id,valor_cents").eq("id", data.id).eq("company_id", data.companyId).neq("status", "cancelado").maybeSingle();
+    if (!row) throw new Error("Movimentação não encontrada.");
+    if (data.parts.length) {
+      const { validateSplits } = await import("./transactions-rules");
+      const err = validateSplits(row.valor_cents, data.parts);
+      if (err) throw new Error(err);
+      for (const p of data.parts) await checkCategory(db, data.companyId, p.categoryId);
+    }
+    const { error: delErr } = await db.from("fin_lancamento_split").delete().eq("lancamento_id", row.id).eq("company_id", data.companyId);
+    if (delErr) throw new Error(delErr.message);
+    if (data.parts.length) {
+      const { error } = await db.from("fin_lancamento_split").insert(data.parts.map((p) => ({ company_id: data.companyId, lancamento_id: row.id, categoria_id: p.categoryId, valor_cents: p.amountCents })));
+      if (error) throw new Error(error.message);
+    }
+    await refreshNotices(db, data.companyId, context.userId);
+    return { ok: true, message: data.parts.length ? `Dividido em ${data.parts.length} categorias.` : "Divisão removida." };
+  });
+
+const ImportRow = z.object({
+  date: iso,
+  description: z.string().trim().min(1).max(240),
+  amountCents: z.number().int().positive().max(1_000_000_000),
+  type: z.enum(["receita", "despesa"]),
+  fitid: z.string().max(120).nullable(),
+  categoryId: uuid.nullable(),
+});
+
+/** Prepara a revisão do extrato: marca repetidos e sugere categorias pelas regras da MIA. */
+export const previewStatementImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ companyId: uuid, rows: z.array(ImportRow.omit({ categoryId: true })).min(1).max(1000) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const db = await access(context, data.companyId);
+    const dates = data.rows.map((r) => r.date).sort();
+    const [{ data: existing, error }, { data: comp }] = await Promise.all([
+      db.from("fin_lancamento").select("competencia,valor_cents,tipo,descricao,metadata").eq("company_id", data.companyId).neq("status", "cancelado").gte("competencia", dates[0]).lte("competencia", dates[dates.length - 1]).limit(5000),
+      db.from("company").select("finance_profile").eq("id", data.companyId).maybeSingle(),
+    ]);
+    if (error) throw new Error(error.message);
+    const { markDuplicates, suggestCategory } = await import("./bank-statement-rules");
+    const { normalizeAssistantProfile } = await import("./assistant-profile-rules");
+    const rules = normalizeAssistantProfile((comp?.finance_profile || {}) as any).category_rules;
+    const marked = markDuplicates(data.rows, (existing || []).map((e: any) => ({ date: e.competencia, amountCents: e.valor_cents, type: e.tipo, description: e.descricao || "", fitid: e.metadata?.fitid || null })));
+    return marked.map((r) => ({ ...r, categoryId: suggestCategory(r.description, rules) }));
+  });
+
+/** Grava as linhas revisadas como pagas, origem "importação", num lote que pode ser desfeito. */
+export const importStatement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ companyId: uuid, accountId: uuid.nullable(), fileName: z.string().max(200), rows: z.array(ImportRow).min(1).max(1000) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const db = await access(context, data.companyId);
+    if (data.accountId) {
+      const { data: acc } = await db.from("fin_conta").select("id").eq("id", data.accountId).eq("company_id", data.companyId).maybeSingle();
+      if (!acc) throw new Error("Conta inválida.");
+    }
+    const { data: cats } = await db.from("fin_categoria").select("id").eq("company_id", data.companyId);
+    const valid = new Set((cats || []).map((c: any) => c.id));
+    const batch = crypto.randomUUID();
+    const payload = data.rows.map((r) => ({
+      company_id: data.companyId, tipo: r.type, descricao: r.description, valor_cents: r.amountCents,
+      categoria_id: r.categoryId && valid.has(r.categoryId) ? r.categoryId : null, conta_id: data.accountId,
+      status: "pago", vencimento: r.date, pago_em: r.date, competencia: r.date, ocorrido_em: `${r.date}T12:00:00.000Z`,
+      fonte: "importacao", created_by: context.userId,
+      metadata: { import_batch: batch, import_file: data.fileName, ...(r.fitid ? { fitid: r.fitid } : {}) },
+    }));
+    for (let i = 0; i < payload.length; i += 200) {
+      const { error } = await db.from("fin_lancamento").insert(payload.slice(i, i + 200));
+      if (error) {
+        await db.from("fin_lancamento").delete().eq("company_id", data.companyId).eq("metadata->>import_batch", batch);
+        throw new Error(error.message);
+      }
+    }
+    await refreshNotices(db, data.companyId, context.userId);
+    return { ok: true, batch, count: payload.length };
+  });
+
+/** Desfaz uma importação inteira (só o lote criado por este usuário). */
+export const undoStatementImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ companyId: uuid, batch: uuid }).parse(d))
+  .handler(async ({ data, context }) => {
+    const db = await access(context, data.companyId);
+    const { error } = await db.from("fin_lancamento").update({ status: "cancelado" }).eq("company_id", data.companyId).eq("created_by", context.userId).eq("fonte", "importacao").eq("metadata->>import_batch", data.batch);
+    if (error) throw new Error(error.message);
+    await refreshNotices(db, data.companyId, context.userId);
+    return { ok: true };
   });
