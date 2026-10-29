@@ -13,6 +13,9 @@ import {
   Paperclip,
   Pencil,
   Search,
+  Split,
+  Tag,
+  Upload,
   Sparkles,
   Trash2,
   Undo2,
@@ -42,6 +45,7 @@ import {
 } from "@/lib/transactions-rules";
 import { PeriodFilter } from "./period-filter";
 import { money } from "./finance-overview";
+import { ExpenseCharts, SplitDialog, TagInput } from "./transactions-extras";
 
 /** Compatibilidade com chamadas antigas. */
 export function filterTransactions(items: FinanceTransactionDetail[], f: Partial<TxFilters>) {
@@ -56,17 +60,20 @@ export type TxEditPatch = {
   categoryId: string | null;
   paymentMethod: string | null;
   note: string | null;
+  tags: string[];
   learn: boolean;
 };
 export type TxSingleAction = "pay" | "unpay" | "delete" | "duplicate";
-export type TxBulkAction = "pay" | "delete" | "category";
+export type TxBulkAction = "pay" | "delete" | "category" | "tag";
 
 export type TransactionsActions = {
   categories: { id: string; name: string; type: string }[];
   budgets?: { categoryId: string; limitCents: number; spentCents: number; percentage: number }[];
   onAction: (item: FinanceTransactionDetail, action: TxSingleAction) => Promise<void> | void;
   onEdit: (item: FinanceTransactionDetail, patch: TxEditPatch) => Promise<void> | void;
-  onBulk: (ids: string[], action: TxBulkAction, categoryId?: string | null) => Promise<void> | void;
+  onBulk: (ids: string[], action: TxBulkAction, categoryId?: string | null, tags?: string[]) => Promise<void> | void;
+  onSplit?: (item: FinanceTransactionDetail, parts: { categoryId: string | null; amountCents: number }[]) => Promise<void> | void;
+  onImport?: () => void;
   onExportPdf?: () => Promise<void> | void;
 };
 
@@ -121,14 +128,17 @@ export function TransactionsView({
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<FinanceTransactionDetail | null>(null);
+  const [splitting, setSplitting] = useState<FinanceTransactionDetail | null>(null);
+  const [bulkTags, setBulkTags] = useState<string[] | null>(null);
   const [busy, setBusy] = useState(false);
   const today = toIsoDate(new Date());
 
-  const categories = useMemo(() => Array.from(new Set(items.map((i) => i.category || "Sem categoria"))).sort(), [items]);
+  const categories = useMemo(() => Array.from(new Set(items.flatMap((i) => (i.splits?.length ? i.splits.map((p) => p.category || "Sem categoria") : [i.category || "Sem categoria"])))).sort(), [items]);
+  const allTags = useMemo(() => Array.from(new Set(items.flatMap((i) => i.tags || []))).sort(), [items]);
   const payments = useMemo(() => Array.from(new Set(items.map((i) => i.paymentMethod || "nao_informado"))), [items]);
   const visible = useMemo(() => sortTx(filterTx(items, filters, today), sort), [items, filters, sort, today]);
   const totals = useMemo(() => txTotals(visible), [visible]);
-  const groups = useMemo(() => (sort.startsWith("date") ? groupTxByDay(visible) : [{ date: "", items: visible, netCents: 0 }]), [visible, sort]);
+  const groups = useMemo(() => (sort.startsWith("date") ? groupTxByDay(visible) : [{ date: "", items: visible, netCents: 0, runningCents: 0 }]), [visible, sort]);
   const set = (patch: Partial<TxFilters>) => setFilters((c) => ({ ...c, ...patch }));
   const active = (Object.keys(EMPTY_TX_FILTERS) as (keyof TxFilters)[]).filter((k) => filters[k] !== EMPTY_TX_FILTERS[k]);
 
@@ -171,6 +181,7 @@ export function TransactionsView({
     if (k === "payment") return v === "nao_informado" ? "Forma não informada" : PAYMENT_METHOD_LABELS[v] || v;
     if (k === "status") return STATUS_CHIPS.find((s) => s.key === v)?.label || v;
     if (k === "source") return SOURCE_CHIPS.find((s) => s.key === v)?.label || v;
+    if (k === "tag") return `#${v}`;
     return v;
   };
 
@@ -183,11 +194,18 @@ export function TransactionsView({
         <SummaryCard icon={<Clock className="size-4" />} label="Pendentes" value={money(totals.pendingCents)} tone={totals.pendingCount ? "text-amber-700 dark:text-amber-400" : ""} onClick={() => set({ status: filters.status === "pendente" ? "all" : "pendente" })} active={filters.status === "pendente"} />
       </div>
 
+      <ExpenseCharts items={visible} activeCategory={filters.category} onPickCategory={(name) => set({ category: filters.category === name ? "all" : name })} />
+
       <section className={`rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] ${loading ? "opacity-60" : ""}`}>
         <div className="space-y-3 border-b border-border p-3 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <PeriodFilter value={period} onChange={onPeriodChange} />
             <div className="flex flex-wrap gap-1.5">
+              {actions?.onImport && (
+                <Button size="sm" variant="outline" className="h-8 rounded-lg" onClick={actions.onImport}>
+                  <Upload /> Importar extrato
+                </Button>
+              )}
               <Button size="sm" variant="outline" className="h-8 rounded-lg" onClick={exportCsv} disabled={!visible.length}>
                 <FileDown /> CSV
               </Button>
@@ -242,6 +260,15 @@ export function TransactionsView({
             {SOURCE_CHIPS.map((s) => (
               <FilterChip key={s.key} active={filters.source === s.key} onClick={() => set({ source: s.key })}>{s.label}</FilterChip>
             ))}
+            {allTags.length > 0 && (
+              <>
+                <span className="mx-1 h-4 w-px bg-border" />
+                <Tag className="size-3.5 text-muted-foreground" />
+                {allTags.map((t) => (
+                  <FilterChip key={t} active={filters.tag === t} onClick={() => set({ tag: filters.tag === t ? "all" : t })}>#{t}</FilterChip>
+                ))}
+              </>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
             <span>{visible.length} de {items.length} movimentações</span>
@@ -271,6 +298,9 @@ export function TransactionsView({
                 {actions.categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
+            <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={() => setBulkTags([])}>
+              <Tag /> Adicionar tag
+            </Button>
             <Button size="sm" variant="outline" className="h-8 rounded-lg text-rose-700 dark:text-rose-400" disabled={busy} onClick={() => { if (confirm(`Excluir ${selected.size} movimentação(ões)?`)) void run(async () => { await actions.onBulk([...selected], "delete"); setSelected(new Set()); }); }}>
               <Trash2 /> Excluir
             </Button>
@@ -295,8 +325,13 @@ export function TransactionsView({
                 {g.date && (
                   <div className="sticky top-0 z-[5] flex items-center justify-between border-b border-border bg-muted/70 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.1em] text-muted-foreground backdrop-blur sm:px-4">
                     <span>{formatDayHeader(g.date, today)}</span>
-                    <span className={`tabular-nums normal-case tracking-normal ${g.netCents >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
-                      Saldo do dia {g.netCents >= 0 ? "+" : "−"} {money(Math.abs(g.netCents))}
+                    <span className="flex flex-wrap justify-end gap-x-3 tabular-nums normal-case tracking-normal">
+                      <span className={g.netCents >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"} title="Entradas menos saídas só deste dia">
+                        Resultado do dia {g.netCents >= 0 ? "+" : "−"} {money(Math.abs(g.netCents))}
+                      </span>
+                      <span className={g.runningCents >= 0 ? "text-foreground" : "text-rose-700 dark:text-rose-400"} title="Soma de todas as entradas e saídas do período até o fim deste dia">
+                        Saldo até aqui {g.runningCents < 0 ? "−" : ""}{money(Math.abs(g.runningCents))}
+                      </span>
                     </span>
                   </div>
                 )}
@@ -315,10 +350,15 @@ export function TransactionsView({
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
                                 {!g.date && <span>{formatDate(item.date)}</span>}
                                 {item.time && <span>{item.time}</span>}
-                                <span className="inline-flex items-center gap-1">
-                                  <i className="size-2 rounded-full" style={{ background: item.categoryColor || "#94A3B8" }} />
-                                  {item.category || "Sem categoria"}
-                                </span>
+                                {item.splits?.length ? (
+                                  <span className="inline-flex items-center gap-1 font-bold"><Split className="size-3" /> Dividido em {item.splits.length}</span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1">
+                                    <i className="size-2 rounded-full" style={{ background: item.categoryColor || "var(--muted-foreground)" }} />
+                                    {item.category || "Sem categoria"}
+                                  </span>
+                                )}
+                                {(item.tags || []).slice(0, 3).map((t) => <span key={t} className="font-bold text-[color:var(--brand-text)]">#{t}</span>)}
                                 {item.paymentMethod && <span className="hidden sm:inline">{PAYMENT_METHOD_LABELS[item.paymentMethod] || item.paymentMethod}</span>}
                                 <span className="hidden items-center gap-1 md:inline-flex">
                                   {item.hasAttachment && <Paperclip className="size-3" />}
@@ -343,6 +383,7 @@ export function TransactionsView({
                             actions={actions ? {
                               act: (a) => run(() => actions.onAction(item, a)),
                               edit: () => setEditing(item),
+                              split: actions.onSplit ? () => setSplitting(item) : undefined,
                             } : undefined}
                           />
                         )}
@@ -360,10 +401,35 @@ export function TransactionsView({
         <EditDialog
           item={editing}
           categories={actions.categories}
+          tagSuggestions={allTags}
           onClose={() => setEditing(null)}
           onSave={(patch) => run(async () => { await actions.onEdit(editing, patch); setEditing(null); })}
           busy={busy}
         />
+      )}
+      {actions?.onSplit && splitting && (
+        <SplitDialog
+          item={splitting}
+          categories={actions.categories}
+          onClose={() => setSplitting(null)}
+          onSave={(parts) => run(async () => { await actions.onSplit!(splitting, parts); setSplitting(null); })}
+          busy={busy}
+        />
+      )}
+      {actions && bulkTags && (
+        <Dialog open onOpenChange={(o) => !o && setBulkTags(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Adicionar tag</DialogTitle>
+              <DialogDescription>Vale para as {selected.size} movimentações selecionadas. As tags que já existem nelas são mantidas.</DialogDescription>
+            </DialogHeader>
+            <TagInput value={bulkTags} onChange={setBulkTags} suggestions={allTags} />
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setBulkTags(null)}>Cancelar</Button>
+              <Button disabled={busy || !bulkTags.length} onClick={() => run(async () => { await actions.onBulk([...selected], "tag", null, bulkTags); setBulkTags(null); setSelected(new Set()); })}>Adicionar</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
@@ -445,7 +511,7 @@ function Details({
   today: string;
   basePath: "/app" | "/demo";
   budget?: { limitCents: number; spentCents: number; percentage: number };
-  actions?: { act: (a: TxSingleAction) => void; edit: () => void };
+  actions?: { act: (a: TxSingleAction) => void; edit: () => void; split?: () => void };
   busy: boolean;
 }) {
   const paid = item.status === "pago";
@@ -454,7 +520,8 @@ function Details({
     ["Hora", item.time || "Não informada"],
     ["Tipo", item.type === "receita" ? "Entrada" : "Saída"],
     ["Estabelecimento", item.merchant || "Não informado"],
-    ["Categoria", item.category || "Sem categoria"],
+    ["Categoria", item.splits?.length ? item.splits.map((p) => `${p.category || "Sem categoria"} ${money(p.amountCents)}`).join(" + ") : item.category || "Sem categoria"],
+    ["Tags", item.tags?.length ? item.tags.map((t) => `#${t}`).join(" ") : "Nenhuma"],
     ["Valor", money(item.amountCents)],
     ["Forma de pagamento", item.paymentMethod ? PAYMENT_METHOD_LABELS[item.paymentMethod] || item.paymentMethod : "Não informada"],
     ["Conta / carteira / cartão", item.card || item.account || "Não informado"],
@@ -482,6 +549,7 @@ function Details({
             </Button>
           )}
           <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={actions.edit}><Pencil /> Editar</Button>
+          {actions.split && <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={actions.split}><Split /> {item.splits?.length ? "Ajustar divisão" : "Dividir em categorias"}</Button>}
           <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={() => actions.act("duplicate")}><Copy /> Duplicar</Button>
           <Button size="sm" variant="outline" className="h-8 rounded-lg text-rose-700 dark:text-rose-400" disabled={busy} onClick={() => actions.act("delete")}><Trash2 /> Excluir</Button>
         </div>
@@ -555,12 +623,14 @@ function Details({
 function EditDialog({
   item,
   categories,
+  tagSuggestions,
   onClose,
   onSave,
   busy,
 }: {
   item: FinanceTransactionDetail;
   categories: { id: string; name: string; type: string }[];
+  tagSuggestions: string[];
   onClose: () => void;
   onSave: (patch: TxEditPatch) => void;
   busy: boolean;
@@ -573,6 +643,8 @@ function EditDialog({
   const [paymentMethod, setPaymentMethod] = useState(item.paymentMethod || "none");
   const [note, setNote] = useState(item.note || "");
   const [learn, setLearn] = useState(true);
+  const [tags, setTags] = useState<string[]>(item.tags || []);
+  const split = Boolean(item.splits?.length);
   const options = categories.filter((c) => c.type === item.type || !c.type);
   const categoryChanged = (categoryId === "none" ? null : categoryId) !== (item.categoryId || null);
 
@@ -587,6 +659,7 @@ function EditDialog({
       categoryId: categoryId === "none" ? null : categoryId,
       paymentMethod: paymentMethod === "none" ? null : paymentMethod,
       note: note.trim() || null,
+      tags,
       learn: learn && categoryChanged,
     });
   };
@@ -610,7 +683,8 @@ function EditDialog({
             </div>
             <div className="space-y-1">
               <Label>Valor</Label>
-              <MoneyInput aria-label="Valor" cents={amountCents} onChange={setAmountCents} required allowZero={false} />
+              <MoneyInput aria-label="Valor" cents={amountCents} onChange={setAmountCents} required allowZero={false} disabled={split} />
+              {split && <p className="text-[10px] text-muted-foreground">Dividido: ajuste a divisão para mudar o valor.</p>}
             </div>
             <div className="space-y-1">
               <Label>Data</Label>
@@ -641,6 +715,10 @@ function EditDialog({
                   Ensinar a MIA a usar esta categoria para “{merchant || description}”
                 </label>
               )}
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label>Tags</Label>
+              <TagInput value={tags} onChange={setTags} suggestions={tagSuggestions} />
             </div>
             <div className="space-y-1 sm:col-span-2">
               <Label>Observação</Label>

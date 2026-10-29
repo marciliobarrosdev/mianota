@@ -3,6 +3,8 @@ export type ReportRow = {
   status: string;
   valor_cents: number;
   categoria: string | null;
+  /** Partes de um lançamento dividido; quando houver, contam no lugar da categoria única. */
+  splits?: { categoria: string | null; valor_cents: number }[];
 };
 
 /** Limites do mês "AAAA-MM": primeiro dia e primeiro dia do mês seguinte. */
@@ -33,8 +35,11 @@ export function summarizeMonth(rows: ReportRow[]) {
     else {
       expense += v;
       if (r.status === "pendente" || r.status === "atrasado") pending += v;
-      const k = r.categoria || "Sem categoria";
-      byCat.set(k, (byCat.get(k) || 0) + v);
+      const parts = r.splits && r.splits.length ? r.splits.map((p) => [p.categoria, Number(p.valor_cents || 0)] as const) : [[r.categoria, v] as const];
+      for (const [c, pv] of parts) {
+        const k = c || "Sem categoria";
+        byCat.set(k, (byCat.get(k) || 0) + pv);
+      }
     }
   }
   const categories = [...byCat.entries()]

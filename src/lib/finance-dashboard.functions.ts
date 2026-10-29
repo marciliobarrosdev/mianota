@@ -121,6 +121,8 @@ export type FinanceTransactionDetail = {
   installment: string | null;
   categoryId?: string | null;
   attachmentUrl?: string | null;
+  tags?: string[];
+  splits?: { categoryId: string | null; category: string | null; color: string | null; amountCents: number }[];
 };
 
 /** Item do calendário de Planejamento. */
@@ -480,7 +482,7 @@ export const listFinanceTransactions = createServerFn({ method: "POST" })
         db
           .from("fin_lancamento")
           .select(
-            "id,tipo,descricao,estabelecimento,valor_cents,status,vencimento,pago_em,competencia,ocorrido_em,categoria_id,conta_id,cartao_id,forma_pagamento,fonte,anexo_url,observacao,original_input,parcela_numero,parcela_total,created_at",
+            "id,tipo,descricao,estabelecimento,valor_cents,status,vencimento,pago_em,competencia,ocorrido_em,categoria_id,conta_id,cartao_id,forma_pagamento,fonte,anexo_url,observacao,original_input,parcela_numero,parcela_total,created_at,tags,fin_lancamento_split(categoria_id,valor_cents)",
           )
           .eq("company_id", data.companyId)
           .neq("status", "cancelado")
@@ -528,6 +530,11 @@ export const listFinanceTransactions = createServerFn({ method: "POST" })
             hasAttachment: Boolean(row.anexo_url),
             attachmentUrl: /^https:\/\//.test(row.anexo_url || "") ? row.anexo_url : null,
             categoryId: row.categoria_id || null,
+            tags: Array.isArray(row.tags) ? row.tags : [],
+            splits: (row.fin_lancamento_split || []).map((p: any) => {
+              const c = categoryById.get(p.categoria_id) as any;
+              return { categoryId: p.categoria_id || null, category: c?.nome || null, color: c?.cor || null, amountCents: cents(p.valor_cents) };
+            }),
             status: row.status,
             dueDate: row.vencimento || null,
             paidAt: row.pago_em || null,
