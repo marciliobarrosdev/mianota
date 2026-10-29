@@ -23,24 +23,23 @@ export const createInfinitePayCheckout = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ url: string | null }> => {
     const { resolveIntegration } = await import("./integration-secrets.server");
     const ip = await resolveIntegration("infinitepay");
-    if (!ip.handle && !ip.checkout_link && !ip.checkout_link_2) return { url: null };
 
     const { requireCompanyAdminAccess } = await import("./company-admin-access.server");
-    await requireCompanyAdminAccess(context.supabase, context.userId, data.companyId);
-    const { checkoutLinkForPlan } = await import("@/lib/billing/infinitepay-rules");
-    const fixed = checkoutLinkForPlan(data.planSlug, ip);
-    if (fixed) return { url: fixed };
-    if (data.planSlug === "starter" || data.planSlug === "pro")
-      throw new Error("Este plano ainda não tem link de pagamento. Avise o administrador.");
     const access = await requireCompanyAdminAccess(context.supabase, context.userId, data.companyId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: plan } = await (supabaseAdmin as any)
       .from("plan")
-      .select("slug,nome,preco_cents,ativo")
+      .select("slug,nome,preco_cents,ativo,checkout_url")
       .eq("slug", data.planSlug)
       .maybeSingle();
     if (!plan?.ativo || !plan.preco_cents) throw new Error("Plano indisponível.");
+
+    // Link fixo do plano (Master) ou reserva Link 1/Link 2.
+    const { checkoutLinkForPlan } = await import("@/lib/billing/infinitepay-rules");
+    const fixed = checkoutLinkForPlan(plan, ip);
+    if (fixed) return { url: fixed };
+    if (!ip.handle) return { url: null };
 
     const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(context.userId);
     const base = origin();
