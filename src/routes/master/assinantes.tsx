@@ -457,7 +457,7 @@ function EmpresasPage() {
                 <Field k="Email corporativo" v={detail.company.email_corporativo} />
                 <Field k="Telefone" v={detail.company.telefone} />
                 <Field k={detail.company.tipo_pessoa === "pj" ? "CNPJ" : "CPF"} v={detail.company.cnpj_cpf} />
-                <Field k="Endereço" v={detail.company.endereco} />
+                <Field k="Endereço" v={[detail.company.rua, detail.company.numero, detail.company.complemento, detail.company.bairro, detail.company.cidade && `${detail.company.cidade}${detail.company.estado ? "/" + detail.company.estado : ""}`, detail.company.cep].filter(Boolean).join(", ") || null} />
                 <Field
                   k="Cidade/UF"
                   v={[detail.company.cidade, detail.company.uf].filter(Boolean).join(" / ")}

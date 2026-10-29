@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { slugify } from "@/lib/tenant";
+import { normalizeValidBrazilianPhone } from "@/lib/phone";
+import { provisionTrialDays } from "@/lib/subscriber-provision-rules";
 
 async function assertSuper(supabase: any, _userId: string) {
   const { data, error } = await supabase.rpc("is_super_admin");
@@ -238,9 +240,34 @@ export const setCompanyTrial = createServerFn({ method: "POST" })
     return row as { trial_ate: string; creditos_saldo: number };
   });
 
-async function saveSubscriberIdentity(admin: any, confirmedCompanyId: string, data: { tipoPessoa: string; cnpjCpf: string; razaoSocial: string; nomeFantasia: string; nome: string }) {
-      const { error: identityError } = await admin.from("company").update({ tipo_pessoa: data.tipoPessoa, cnpj_cpf: data.cnpjCpf || null, razao_social: data.tipoPessoa === "pj" ? data.razaoSocial || null : null, nome_fantasia: data.tipoPessoa === "pj" ? data.nomeFantasia || data.nome : null }).eq("id", confirmedCompanyId);
-      if (identityError) throw new Error("Assinante criado, mas não foi possível salvar CPF/CNPJ. Confira o cadastro antes de tentar novamente.");
+type SubscriberExtra = {
+  tipoPessoa: string; cnpjCpf: string; razaoSocial: string; nomeFantasia: string; nome: string;
+  telefone: string | null; responsavelNome: string; inscricaoEstadual: string; emailCorporativo: string;
+  site: string; cep: string; rua: string; numero: string; complemento: string; bairro: string;
+  cidade: string; estado: string;
+};
+
+async function saveSubscriberIdentity(admin: any, confirmedCompanyId: string, data: SubscriberExtra, ownerId?: string | null) {
+  const n = (v: string) => v || null;
+  const { error: identityError } = await admin.from("company").update({
+    tipo_pessoa: data.tipoPessoa,
+    cnpj_cpf: data.cnpjCpf || null,
+    razao_social: data.tipoPessoa === "pj" ? data.razaoSocial || null : null,
+    nome_fantasia: data.tipoPessoa === "pj" ? data.nomeFantasia || data.nome : null,
+    inscricao_estadual: data.tipoPessoa === "pj" ? n(data.inscricaoEstadual) : null,
+    email_corporativo: n(data.emailCorporativo),
+    site: n(data.site),
+    telefone: data.telefone,
+    cep: n(data.cep), rua: n(data.rua), numero: n(data.numero), complemento: n(data.complemento),
+    bairro: n(data.bairro), cidade: n(data.cidade), estado: n(data.estado),
+  }).eq("id", confirmedCompanyId);
+  if (identityError) throw new Error("Assinante criado, mas não foi possível salvar os dados cadastrais. Confira o cadastro antes de tentar novamente.");
+  if (ownerId && (data.responsavelNome || data.telefone)) {
+    const patch: Record<string, string> = {};
+    if (data.responsavelNome) { patch.nome = data.responsavelNome; patch.nome_completo = data.responsavelNome; }
+    if (data.telefone) patch.telefone = data.telefone;
+    await admin.from("profiles").update(patch).eq("user_id", ownerId);
+  }
 }
 
 export const createCompanyWithOwner = createServerFn({ method: "POST" })
@@ -256,6 +283,18 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
       planId?: string | null;
       trialDays?: number;
       password?: string | null;
+      telefone?: string | null;
+      responsavelNome?: string;
+      inscricaoEstadual?: string;
+      emailCorporativo?: string;
+      site?: string;
+      cep?: string;
+      rua?: string;
+      numero?: string;
+      complemento?: string;
+      bairro?: string;
+      cidade?: string;
+      estado?: string;
     }) => {
       const tipoPessoa = d.tipoPessoa ?? "pf";
       if (tipoPessoa !== "pf" && tipoPessoa !== "pj") throw new Error("Tipo de pessoa inválido");
@@ -278,12 +317,34 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
       }
       const password = d.password ? String(d.password) : null;
       if (password && password.length < 8) throw new Error("Senha mínima de 8 caracteres");
+      const txt = (v: unknown, max = 200) => {
+        const t = String(v ?? "").trim();
+        if (t.length > max) throw new Error("Campo muito longo");
+        return t;
+      };
+      const rawPhone = txt(d.telefone, 40);
+      const telefone = rawPhone ? normalizeValidBrazilianPhone(rawPhone) : null;
+      if (rawPhone && !telefone) throw new Error("WhatsApp inválido");
+      const emailCorporativo = txt(d.emailCorporativo).toLowerCase();
+      if (emailCorporativo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailCorporativo)) throw new Error("E-mail da empresa inválido");
+      const cep = txt(d.cep, 20).replace(/\D/g, "");
+      if (cep && cep.length !== 8) throw new Error("CEP inválido");
+      const estado = txt(d.estado, 2).toUpperCase();
+      if (estado && !/^[A-Z]{2}$/.test(estado)) throw new Error("Estado inválido (use a sigla, ex.: SP)");
       return {
         nome, tipoPessoa, cnpjCpf, razaoSocial, nomeFantasia,
         ownerEmail,
         planId,
         trialDays: Math.max(0, Math.min(90, Math.floor(d.trialDays ?? 3))),
         password,
+        telefone,
+        responsavelNome: txt(d.responsavelNome),
+        inscricaoEstadual: txt(d.inscricaoEstadual, 40),
+        emailCorporativo,
+        site: txt(d.site),
+        cep, estado,
+        rua: txt(d.rua), numero: txt(d.numero, 20), complemento: txt(d.complemento),
+        bairro: txt(d.bairro), cidade: txt(d.cidade),
       };
     },
   )
@@ -294,6 +355,15 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
     const { generateProvisionKey, generateTemporaryPassword } =
       await import("./secure-random.server");
     const provisionKey = generateProvisionKey();
+
+    const { data: chosenPlan, error: planError } = await admin
+      .from("plan")
+      .select("id, ativo, is_free, free_days")
+      .eq("id", data.planId)
+      .maybeSingle();
+    if (planError) throw new Error(planError.message);
+    if (!chosenPlan || !chosenPlan.ativo) throw new Error("Selecione um plano ativo");
+    const trialDays = provisionTrialDays(chosenPlan, data.trialDays);
 
     // A identidade do owner vem exclusivamente de auth.users. profiles.email é
     // um espelho editável do perfil e nunca pode decidir quem recebe um tenant.
@@ -343,7 +413,7 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
     // que assinante, owner e assinatura foram gravados juntos. Falha de senha não
     // desfaz nem mascara um tenant que já foi criado.
     const finalizeExistingOwnerCredential = async (confirmedCompanyId: string) => {
-      await saveSubscriberIdentity(admin, confirmedCompanyId, data);
+      await saveSubscriberIdentity(admin, confirmedCompanyId, data, ownerId);
 
       if (ownerResolution === "reconciled" && !data.password) {
         return {
@@ -398,7 +468,7 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
         _slug_base: slugify(data.nome),
         _plan_id: data.planId,
         _idempotency_key: provisionKey,
-        _trial_days: data.trialDays,
+        _trial_days: trialDays,
         _force_password_change: !data.password && !!tempPassword,
       },
     );
@@ -526,9 +596,9 @@ export const listPlansBasic = createServerFn({ method: "POST" })
 
     const { data, error } = await supabaseAdmin
       .from("plan")
-      .select("id, slug, nome, preco_cents, moeda, intervalo, trial_days")
+      .select("id, slug, nome, preco_cents, moeda, intervalo, trial_days, ordem, is_free, free_days, limite_mensagens, limite_usuarios, creditos_mensais, creditos_trial")
       .eq("ativo", true)
-      .in("slug", ["starter", "pro"])
+      .order("ordem", { ascending: true })
       .order("preco_cents", { ascending: true });
     if (error) throw error;
     return { plans: data ?? [] };
