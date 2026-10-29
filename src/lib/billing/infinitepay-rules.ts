@@ -1,10 +1,7 @@
 // Regras puras da integração InfinitePay (sem rede), testadas em tests/infinitepay.test.ts.
+// Preços e links vêm dos planos no banco (editáveis em /master/planos).
 
-/** Valores mensais combinados com o dono (centavos), por slug do plano. */
-export const INFINITEPAY_PLAN_PRICES_CENTS: Record<string, number> = {
-  starter: 2990,
-  pro: 4990,
-};
+export type PlanPrice = { slug: string; preco_cents: number; ativo?: boolean };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -26,28 +23,39 @@ export function isPaymentAcceptable(
   check: { paid?: unknown; paid_amount?: unknown; amount?: unknown },
   expectedCents: number,
 ): boolean {
-  if (check?.paid !== true) return false;
+  if (check?.paid !== true || !(expectedCents > 0)) return false;
   const paid = Number(check.paid_amount ?? check.amount);
   return Number.isFinite(paid) && paid >= expectedCents;
 }
 
-/** Link fixo de checkout de cada plano: Link 1 = starter, Link 2 = pro. */
-export function checkoutLinkForPlan(
-  planSlug: string,
-  links: { checkout_link?: string; checkout_link_2?: string },
-): string | null {
-  const link =
-    planSlug === "starter" ? links.checkout_link : planSlug === "pro" ? links.checkout_link_2 : "";
-  return link && /^https:\/\//.test(link) ? link : null;
+export function isInfinitePayLink(url: unknown): boolean {
+  return typeof url === "string" && /^https:\/\/checkout\.infinitepay\.io\/\S+$/.test(url.trim());
 }
 
-/** Plano pelo valor pago (links fixos não carregam a empresa). */
-export function planSlugForAmount(cents: unknown): string | null {
+/** Link do plano (Master) tem prioridade; reserva: Link 1 = starter, Link 2 = pro. */
+export function checkoutLinkForPlan(
+  plan: { slug: string; checkout_url?: string | null },
+  envLinks: { checkout_link?: string; checkout_link_2?: string },
+): string | null {
+  if (isInfinitePayLink(plan.checkout_url)) return plan.checkout_url!.trim();
+  const fallback =
+    plan.slug === "starter" ? envLinks.checkout_link : plan.slug === "pro" ? envLinks.checkout_link_2 : "";
+  return fallback && /^https:\/\//.test(fallback) ? fallback : null;
+}
+
+/** Plano ativo cujo preço atual é exatamente o valor pago; ambíguo ou ausente = null. */
+export function planSlugForAmount(cents: unknown, plans: PlanPrice[]): string | null {
   const v = Number(cents);
-  for (const [slug, price] of Object.entries(INFINITEPAY_PLAN_PRICES_CENTS)) {
-    if (v === price) return slug;
-  }
-  return null;
+  const hits = plans.filter((p) => p.ativo !== false && p.preco_cents > 0 && p.preco_cents === v);
+  return hits.length === 1 ? hits[0].slug : null;
+}
+
+/** Slugs de planos ativos que compartilham preço (o webhook não saberia distinguir). */
+export function duplicatePricePlans(plans: PlanPrice[]): string[] {
+  const active = plans.filter((p) => p.ativo !== false && p.preco_cents > 0);
+  return active
+    .filter((p) => active.some((o) => o.slug !== p.slug && o.preco_cents === p.preco_cents))
+    .map((p) => p.slug);
 }
 
 /** E-mail do comprador no aviso da InfinitePay (campos variam). */
