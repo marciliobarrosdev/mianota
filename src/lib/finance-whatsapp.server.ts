@@ -603,7 +603,12 @@ export async function handleFinanceWhatsapp(input: {
       return {
         authorized: true,
         userId,
-        reply: await execute(input.db, input.companyId, userId, active.data),
+        reply: await (async () => {
+          const done = await execute(input.db, input.companyId, userId, active.data);
+          const rules = await import("./assistant-profile-rules");
+          const { data: comp } = await input.db.from("company").select("finance_profile").eq("id", input.companyId).maybeSingle();
+          return rules.personalizeReply(done, rules.normalizeAssistantProfile(comp?.finance_profile), { tail: true });
+        })(),
       };
     } catch (error: any) {
       await input.db
