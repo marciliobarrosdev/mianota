@@ -1,182 +1,143 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ArrowRight,
-  CalendarDays,
-  Check,
-  MessageCircle,
-  Mic,
-  RefreshCw,
-  Sparkles,
+  ArrowRight, Bell, BrainCircuit, CalendarDays, Check, Crown, MessageCircle, Mic, PartyPopper,
+  PiggyBank, RefreshCw, Sparkles,
 } from "lucide-react";
-import fallbackAvatarUrl from "@/assets/marcia-avatar-640.png";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
 import { Button } from "@/components/ui/button";
-import {
-  getFinanceDashboard,
-  type FinanceDashboardSnapshot,
-} from "@/lib/finance-dashboard.functions";
+import { MiaAvatar } from "@/components/finance/mia-avatar";
+import { getOnboardingProgress } from "@/lib/onboarding.functions";
+import { ONBOARDING_ORDER, onboardingProgress, type OnboardingSignals, type OnboardingStepId } from "@/lib/onboarding-rules";
 
 export const Route = createFileRoute("/app/guia")({
   head: brandedRouteHead("Comece aqui"),
-  beforeLoad: ({ context }) => {
-    const role = context?.membership?.role;
-    if (role !== "owner" && role !== "admin") throw redirect({ to: "/app/inicio" });
-  },
   component: FinanceGuide,
 });
+
+type StepInfo = {
+  title: string;
+  text: string;
+  action: string;
+  to: string;
+  search?: Record<string, string>;
+  example?: string;
+  icon: typeof Mic;
+};
 
 function FinanceGuide() {
   const context = Route.useRouteContext();
   const branding = useBrand();
-  const readDashboard = useServerFn(getFinanceDashboard);
-  const [snapshot, setSnapshot] = useState<FinanceDashboardSnapshot | null>(null);
+  const mia = branding.assistantName || "MIA";
+  const read = useServerFn(getOnboardingProgress);
+  const [data, setData] = useState<(OnboardingSignals & { planName: string | null; periodEnd: string | null }) | null>(null);
   const [loading, setLoading] = useState(true);
   const companyId = context.company?.id;
 
   const refresh = useCallback(async () => {
     if (!companyId) return;
     setLoading(true);
-    try {
-      setSnapshot(await readDashboard({ data: { companyId } }));
-    } finally {
-      setLoading(false);
-    }
-  }, [companyId, readDashboard]);
+    try { setData(await read({ data: { companyId } })); } finally { setLoading(false); }
+  }, [companyId, read]);
+  useEffect(() => { void refresh(); }, [refresh]);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const p = data ? onboardingProgress(data) : null;
+  const daysLeft = data?.periodEnd ? Math.max(0, Math.ceil((new Date(data.periodEnd).getTime() - Date.now()) / 86400000)) : null;
 
-  const firstMovement = Boolean(snapshot?.latest.length);
-  const completed = [firstMovement].filter(Boolean).length;
-  const steps = [
-    {
-      title: `Conte para ${branding.assistantName}`,
-      text: "Fale ou escreva um gasto ou receita. Ela pergunta o que faltar e confirma antes de salvar.",
-      done: firstMovement,
-      action: "Registrar por voz ou texto",
-      to: "/app/marcia" as const,
-      icon: Mic,
-    },
-    {
-      title: "WhatsApp no seu ritmo",
-      text: "Ative seu celular e mande mensagens para o número oficial da MIA. Sem QR Code ou configuração técnica.",
-      done: false,
-      action: "Ativar WhatsApp",
-      to: "/app/conexao" as const,
-      icon: MessageCircle,
-      optional: true,
-    },
-    {
-      title: "Agende as próximas contas",
-      text: "Conte o que vence e quando. O calendário organiza e avisa antes do pagamento.",
-      done: false,
-      action: "Abrir calendário",
-      to: "/app/planejamento" as const,
-      icon: CalendarDays,
-    },
-  ];
+  const info: Record<OnboardingStepId, StepInfo> = {
+    first_entry: { title: `Registre seu primeiro gasto com a ${mia}`, text: "Fale ou escreva. Ela pergunta o que faltar e confirma antes de salvar.", action: "Falar com a MIA", to: "/app/marcia", search: { pergunta: "Gastei R$ 45 no mercado hoje" }, example: "“Gastei R$ 45 no mercado hoje”", icon: Mic },
+    schedule: { title: "Agende as próximas contas", text: "Cadastre o que vence e quando, inclusive contas que se repetem. Você recebe aviso antes do vencimento.", action: "Abrir planejamento", to: "/app/planejamento", icon: CalendarDays },
+    plan: { title: "Ative seu plano", text: data?.paidPlan ? `Plano ${data.planName ?? ""} ativo.` : `Escolha Basic ou PRO para continuar usando sem limites${daysLeft !== null ? ` — restam ${daysLeft} dia(s) do período atual` : ""}.`, action: data?.paidPlan ? "Ver meu plano" : "Ativar plano", to: data?.paidPlan ? "/app/configuracoes" : "/app/planos", search: data?.paidPlan ? { aba: "conta" } : undefined, icon: Crown },
+    whatsapp: { title: "Use pelo WhatsApp", text: `Vincule seu celular e mande textos, áudios, fotos de recibos e PDFs para a ${mia}.`, action: "Ativar WhatsApp", to: "/app/conexao", icon: MessageCircle },
+    push: { title: "Ative as notificações", text: "Receba avisos de contas, orçamento e resumo do dia neste aparelho.", action: "Ativar avisos", to: "/app/notificacoes", icon: Bell },
+    teach_mia: { title: `Ensine a ${mia}`, text: "Defina o jeito de falar, metas, regras de categorias e limites de alerta.", action: "Personalizar", to: "/app/agente", icon: BrainCircuit },
+    budget: { title: "Crie um orçamento ou meta", text: "Defina quanto quer gastar por categoria ou quanto quer guardar.", action: "Criar orçamento", to: "/app/planejamento", icon: PiggyBank },
+  };
+
+  const allDone = p?.completed === p?.total;
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[32px] bg-[#160925] px-6 py-8 text-white shadow-2xl sm:px-9 lg:min-h-[330px] lg:pr-[390px]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(139,92,246,.45),transparent_35%),radial-gradient(circle_at_90%_80%,rgba(217,70,239,.24),transparent_35%)]" />
-        <div className="relative z-10 max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.18em]">
-            <Sparkles className="size-3.5" /> começo rápido
-          </span>
-          <h1 className="mt-5 font-display text-4xl font-black leading-[.98] tracking-[-.055em] sm:text-5xl">
-            Do zero ao primeiro dinheiro organizado.
-          </h1>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-violet-100/75 sm:text-base">
-            Sem planilha e sem configuração técnica. Comece pelo app; WhatsApp e lembretes entram no
-            seu ritmo.
-          </p>
-          <div className="mt-7 flex max-w-md items-center gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-            <div className="flex-1">
-              <div className="flex justify-between text-xs font-bold">
-                <span>{completed} de 1 essencial</span>
-                <span>{completed * 100}%</span>
-              </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-fuchsia-400 transition-all"
-                  style={{ width: `${completed * 100}%` }}
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => void refresh()}
-              className="grid size-10 place-items-center rounded-xl border border-white/15 bg-white/10"
-              aria-label="Atualizar progresso"
-            >
-              <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
-            </button>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <section className="relative overflow-hidden rounded-[28px] border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+          <MiaAvatar className="size-20 ring-4 ring-primary/20 sm:size-24" />
+          <div className="min-w-0 flex-1">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[.16em] text-primary">
+              <Sparkles className="size-3.5" /> Comece aqui
+            </span>
+            <h1 className="mt-3 font-display text-3xl font-black tracking-[-.04em] sm:text-4xl">Olá! Eu sou a {mia}.</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Sua assistente financeira na palma da mão. Siga os passos para deixar tudo pronto.</p>
           </div>
         </div>
-        <img
-          src={branding.avatarUrl || fallbackAvatarUrl}
-          alt={branding.assistantName}
-          className="marcia-float absolute -bottom-8 right-4 hidden h-[330px] object-contain drop-shadow-[0_24px_30px_rgba(0,0,0,.55)] lg:block"
-        />
+        <div className="mt-6 flex items-center gap-4">
+          <div className="flex-1">
+            <div className="flex justify-between text-xs font-bold">
+              <span>{p ? `${p.completed} de ${p.total} passos` : "Carregando…"}</span>
+              <span>{p?.percent ?? 0}%</span>
+            </div>
+            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${p?.percent ?? 0}%` }} />
+            </div>
+          </div>
+          <Button variant="outline" size="icon" onClick={() => void refresh()} aria-label="Atualizar progresso">
+            <RefreshCw className={loading ? "animate-spin" : ""} />
+          </Button>
+        </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          return (
-            <article
-              key={step.title}
-              className={`rounded-[26px] border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6 ${step.done ? "border-emerald-200" : "border-border"}`}
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className={`grid size-12 shrink-0 place-items-center rounded-2xl ${step.done ? "bg-emerald-100 text-emerald-700" : "bg-violet-100 text-violet-700"}`}
-                >
-                  {step.done ? <Check /> : <Icon />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-[.16em] text-violet-600">
-                      Passo {index + 1}
-                    </span>
-                    {step.optional && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">
-                        opcional
-                      </span>
-                    )}
+      {allDone && (
+        <section className="flex flex-col gap-4 rounded-[24px] border border-primary/30 bg-primary/5 p-6 sm:flex-row sm:items-center">
+          <PartyPopper className="size-10 text-primary" />
+          <div className="flex-1">
+            <h2 className="font-display text-xl font-black">Tudo pronto!</h2>
+            <p className="text-sm text-muted-foreground">Sua conta está configurada. Agora é só usar no dia a dia.</p>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline"><Link to="/app/inicio">Visão do mês</Link></Button>
+            <Button asChild><Link to="/app/marcia">Falar com a {mia}</Link></Button>
+          </div>
+        </section>
+      )}
+
+      {(["Essenciais", "Opcionais"] as const).map((group) => (
+        <section key={group} className="space-y-3">
+          <h2 className="text-xs font-black uppercase tracking-[.16em] text-muted-foreground">{group}</h2>
+          <ol className="relative space-y-3 border-l-2 border-border pl-6">
+            {ONBOARDING_ORDER.filter((s) => s.essential === (group === "Essenciais")).map((s) => {
+              const step = info[s.id];
+              const done = p?.done[s.id] ?? false;
+              const current = p?.next === s.id;
+              const Icon = step.icon;
+              return (
+                <li key={s.id} className={`relative rounded-[20px] border bg-card p-5 shadow-[var(--shadow-card)] ${current ? "border-primary ring-2 ring-primary/20" : "border-border"}`}>
+                  <span className={`absolute -left-[37px] top-6 grid size-6 place-items-center rounded-full border-2 border-background ${done ? "bg-primary text-primary-foreground" : current ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                    {done ? <Check className="size-3.5" /> : <span className="size-1.5 rounded-full bg-current" />}
+                  </span>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className={`grid size-11 shrink-0 place-items-center rounded-2xl ${done ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+                      {done ? <Check /> : <Icon />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-display text-lg font-black tracking-[-.03em]">{step.title}</h3>
+                        {done && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">Concluído</span>}
+                        {current && !done && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase text-primary-foreground">Próximo</span>}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{step.text}</p>
+                      {step.example && !done && <p className="mt-1 text-xs italic text-muted-foreground">Exemplo: {step.example}</p>}
+                    </div>
+                    <Button asChild variant={done ? "outline" : "default"} className="shrink-0 rounded-xl">
+                      <Link to={step.to as never} search={step.search as never}>{step.action}<ArrowRight /></Link>
+                    </Button>
                   </div>
-                  <h2 className="mt-1 font-display text-xl font-black tracking-[-.035em]">
-                    {step.title}
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
-                </div>
-              </div>
-              <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
-                <span
-                  className={`text-xs font-bold ${step.done ? "text-emerald-600" : "text-muted-foreground"}`}
-                >
-                  {step.done ? "Concluído" : step.optional ? "Faça quando quiser" : "Falta fazer"}
-                </span>
-                <Button
-                  asChild
-                  variant={step.done ? "outline" : "default"}
-                  className={`rounded-xl ${step.done ? "" : "bg-violet-700 hover:bg-violet-800"}`}
-                >
-                  <Link to={step.to}>
-                    {step.action}
-                    <ArrowRight />
-                  </Link>
-                </Button>
-              </div>
-            </article>
-          );
-        })}
-      </section>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      ))}
     </div>
   );
 }
