@@ -65,7 +65,10 @@ export function MarciaChat({
   placeholder,
   emptyState,
   composeText,
+  initialText,
 }: {
+  /** Texto inicial no campo (ex.: vindo de "Perguntar à MIA" em um aviso). */
+  initialText?: string;
   controller: MarciaChatController;
   assistantName: string;
   suggestions?: string[];
@@ -76,7 +79,7 @@ export function MarciaChat({
   composeText?: (text: string) => string;
 }) {
   const { messages, phase, pending, historyLoading } = controller;
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialText ?? "");
   const [attachment, setAttachment] = useState<ChatAttachment | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
