@@ -119,6 +119,8 @@ export type FinanceTransactionDetail = {
   note: string | null;
   originalInput: string | null;
   installment: string | null;
+  categoryId?: string | null;
+  attachmentUrl?: string | null;
 };
 
 /** Item do calendário de Planejamento. */
@@ -524,6 +526,8 @@ export const listFinanceTransactions = createServerFn({ method: "POST" })
             card: card ? `${card.nome}${card.ultimos_quatro ? ` •${card.ultimos_quatro}` : ""}` : null,
             source: row.fonte || "manual",
             hasAttachment: Boolean(row.anexo_url),
+            attachmentUrl: /^https:\/\//.test(row.anexo_url || "") ? row.anexo_url : null,
+            categoryId: row.categoria_id || null,
             status: row.status,
             dueDate: row.vencimento || null,
             paidAt: row.pago_em || null,
