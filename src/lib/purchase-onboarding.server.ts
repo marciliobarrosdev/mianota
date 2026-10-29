@@ -80,7 +80,7 @@ async function productName(client: any) {
     .select("product_name")
     .limit(1)
     .maybeSingle();
-  return String(data?.product_name || "MárcIA");
+  return String(data?.product_name || "MIAnota");
 }
 
 async function ownerUserId(client: any, companyId: string) {

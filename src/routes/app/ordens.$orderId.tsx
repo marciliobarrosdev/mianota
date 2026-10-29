@@ -67,7 +67,7 @@ function WorkOrderDetail() {
             className="rounded-xl border-violet-200 text-violet-700"
           >
             <Link to="/app/marcia">
-              <Mic /> Atualizar com a MárcIA
+              <Mic /> Atualizar com a MIA
             </Link>
           </Button>
           <Button

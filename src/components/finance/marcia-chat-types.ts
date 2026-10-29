@@ -1,4 +1,4 @@
-// Contrato entre a tela de chat da MárcIA e quem executa os pedidos.
+// Contrato entre a tela de chat da MIA e quem executa os pedidos.
 // O painel usa o fluxo real (interpretar → perguntar → confirmar → registrar);
 // a demonstração usa um roteiro local com o mesmo contrato.
 

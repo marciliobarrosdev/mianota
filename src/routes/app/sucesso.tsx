@@ -11,7 +11,7 @@ export const Route = createFileRoute("/app/sucesso")({
 const steps = [
   {
     title: "Confira seu WhatsApp",
-    text: "Você receberá uma mensagem de ativação da MárcIA no número usado na compra.",
+    text: "Você receberá uma mensagem de ativação da MIA no número usado na compra.",
   },
   {
     title: "Responda a mensagem de ativação",

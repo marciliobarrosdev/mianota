@@ -7,7 +7,7 @@ import { MarciaChatShell } from "@/components/finance/marcia-chat-shell";
 import { useMarciaFinanceChat } from "@/hooks/use-marcia-finance-chat";
 
 export const Route = createFileRoute("/app/marcia")({
-  head: brandedRouteHead("Falar com a MárcIA"),
+  head: brandedRouteHead("Falar com a MIA"),
   component: MarciaChatPage,
 });
 

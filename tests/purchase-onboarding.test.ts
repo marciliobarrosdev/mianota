@@ -57,7 +57,7 @@ function seed(channel: Record<string, unknown>, extra: Record<string, any[]> = {
     ],
     company_user: [{ company_id: COMPANY, user_id: USER, role: "owner", ativo: true }],
     company: [{ id: COMPANY, telefone: null, creditos_saldo: 50, trial_ate: "2026-11-01" }],
-    clone_brand_config: [{ product_name: "MárcIA" }],
+    clone_brand_config: [{ product_name: "MIAnota" }],
     ...extra,
   });
 }
@@ -178,15 +178,15 @@ describe("resposta de ativação", () => {
     expect(
       buildEvolutionActivationText({
         name: "Ana Souza",
-        product: "MárcIA",
+        product: "MIAnota",
         code: "K7P2QX",
         template: "Oi, {{nome}}! {{produto}} liberada. Responda COMEÇAR {{codigo}} em {{validade_horas}}h.",
       }),
-    ).toBe("Oi, Ana! MárcIA liberada. Responda COMEÇAR K7P2QX em 48h.");
+    ).toBe("Oi, Ana! MIAnota liberada. Responda COMEÇAR K7P2QX em 48h.");
     expect(
       buildEvolutionActivationText({
         name: "Ana Souza",
-        product: "MárcIA",
+        product: "MIAnota",
         code: "K7P2QX",
         template: "Mensagem inválida sem token",
       }),
@@ -283,7 +283,7 @@ describe("fluxo completo com backend simulado", () => {
       buyerPhone: "11987654321",
     });
     expect(sent[0].body).toMatch(
-      /^Bem-vinda, Ana! MárcIA está pronta\. Confirme com COMEÇAR [2-9A-HJ-NP-Z]{6}\.$/,
+      /^Bem-vinda, Ana! MIAnota está pronta\. Confirme com COMEÇAR [2-9A-HJ-NP-Z]{6}\.$/,
     );
   });
 

@@ -333,7 +333,7 @@ function PushActivationCard({
             </div>
             <p className="mt-1 max-w-xl text-sm leading-relaxed text-violet-100">
               {active
-                ? "Este aparelho vai receber os avisos da MárcIA: contas a vencer, lembretes e agendamentos."
+                ? "Este aparelho vai receber os avisos da MIA: contas a vencer, lembretes e agendamentos."
                 : "Toque em Cadastrar aparelho e permita as notificações. No iPhone, instale o app na tela inicial antes."}
             </p>
             {push.error && (

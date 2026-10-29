@@ -153,8 +153,8 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
 };
 
 export const SOURCE_LABELS: Record<string, string> = {
-  ia: "Chat MárcIA",
-  chat: "Chat MárcIA",
+  ia: "Chat MIAnota",
+  chat: "Chat MIAnota",
   whatsapp: "WhatsApp",
   manual: "Manual",
   foto: "Foto",

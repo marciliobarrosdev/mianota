@@ -136,7 +136,7 @@ function FinanceConnectionsInner({
               Calendário financeiro
             </h2>
             <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-              Envie uma conta futura ou recorrente. A MárcIA organiza a data e lembra você antes do
+              Envie uma conta futura ou recorrente. A MIA organiza a data e lembra você antes do
               vencimento.
             </p>
             <div className="mt-5 rounded-2xl bg-violet-50 p-4 text-xs leading-5 text-violet-950">

@@ -541,7 +541,7 @@ async function requestCommandDraft(params: {
   };
   const currentLocal = zonedParts(new Date(), DEFAULT_OPERATION_TIMEZONE);
   const currentLocalText = `${String(currentLocal.day).padStart(2, "0")}/${String(currentLocal.month).padStart(2, "0")}/${currentLocal.year} ${String(currentLocal.hour).padStart(2, "0")}:${String(currentLocal.minute).padStart(2, "0")}`;
-  const system = `Você é o interpretador operacional da MárcIA. Converta a fala ou texto do usuário em UMA ação estruturada.
+  const system = `Você é o interpretador operacional da MIA. Converta a fala ou texto do usuário em UMA ação estruturada.
 
 REGRAS:
 - Use somente fatos ditos pelo usuário, o rascunho anterior e IDs do contexto real.

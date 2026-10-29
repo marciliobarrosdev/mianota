@@ -87,7 +87,7 @@ export function WhatsappFinanceDemoView() {
                 M
               </div>
               <div>
-                <div className="font-bold">Márcia Finance</div>
+                <div className="font-bold">MIA Finance</div>
                 <div className="text-[10px] text-emerald-300">online agora</div>
               </div>
             </div>
@@ -124,7 +124,7 @@ export function SettingsFinanceDemoView() {
       <PageHeader
         eyebrow="Do seu jeito"
         title="Configurações"
-        description="Personalize a ajuda, escolha onde falar com a MárcIA e cuide da sua conta."
+        description="Personalize a ajuda, escolha onde falar com a MIA e cuide da sua conta."
         action={<DemoCta />}
       />
       <div className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]">

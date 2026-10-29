@@ -370,7 +370,7 @@ function ConfigPage() {
               icon={Smartphone}
               title="Neste aplicativo"
               status="Já está pronto"
-              description="Envie texto, áudio ou comprovante direto para a MárcIA, pelo celular ou computador."
+              description="Envie texto, áudio ou comprovante direto para a MIA, pelo celular ou computador."
               to="/app/marcia"
               action="Abrir conversa"
               ready
@@ -387,7 +387,7 @@ function ConfigPage() {
               icon={CalendarDays}
               title="Calendário e lembretes"
               status="Já está pronto"
-              description="Agende contas futuras e recorrentes. A MárcIA avisa antes do vencimento."
+              description="Agende contas futuras e recorrentes. A MIA avisa antes do vencimento."
               to="/app/planejamento"
               action="Abrir calendário"
               ready

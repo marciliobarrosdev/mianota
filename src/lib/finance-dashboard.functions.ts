@@ -358,7 +358,7 @@ export const getFinanceDashboard = createServerFn({ method: "POST" })
     const insight = topCategory
       ? {
           title: `${topCategory.name} lidera seus gastos`,
-          body: `${topCategory.share}% das saídas do período estão nessa categoria. Peça à MárcIA para comparar com outros períodos.`,
+          body: `${topCategory.share}% das saídas do período estão nessa categoria. Peça à MIA para comparar com outros períodos.`,
           tone: topCategory.share >= 40 ? ("attention" as const) : ("neutral" as const),
         }
       : leftoverCents >= 0
@@ -369,7 +369,7 @@ export const getFinanceDashboard = createServerFn({ method: "POST" })
           }
         : {
             title: "Há mais compromissos do que entradas no período",
-            body: "Revise as próximas contas com a MárcIA antes de assumir uma nova despesa.",
+            body: "Revise as próximas contas com a MIA antes de assumir uma nova despesa.",
             tone: "attention" as const,
           };
 

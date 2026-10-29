@@ -287,7 +287,7 @@ async function interpret(
   imageDataUrl?: string | null,
 ) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-  const system = `Você é o cérebro financeiro da MárcIA. Transforme a mensagem ou o comprovante em UMA ação financeira estruturada.
+  const system = `Você é o cérebro financeiro da MIA. Transforme a mensagem ou o comprovante em UMA ação financeira estruturada.
 
 REGRAS:
 - Use somente dados realmente presentes. Nunca invente valor, data, pagamento, conta ou categoria.
