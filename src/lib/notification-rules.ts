@@ -76,6 +76,9 @@ export type NotificationPreference = {
   quiet_end: number | null;
   reminder_lead_days: number;
   daily_summary: boolean;
+  whatsapp_enabled?: boolean;
+  whatsapp_categories?: string[];
+  monthly_report?: boolean;
 };
 
 export const DEFAULT_PREFERENCE: NotificationPreference = {
@@ -84,6 +87,9 @@ export const DEFAULT_PREFERENCE: NotificationPreference = {
   quiet_end: null,
   reminder_lead_days: 3,
   daily_summary: false,
+  whatsapp_enabled: true,
+  whatsapp_categories: ["finance", "budget", "system"],
+  monthly_report: true,
 };
 
 /** Decide se o aviso vai para o celular agora. A Central sempre guarda o aviso. */
@@ -114,4 +120,22 @@ export function budgetAlertLevel(spentCents: number, limitCents: number, alertPe
   if (pct >= 100) return "exceeded" as const;
   if (pct >= alertPercent) return "warning" as const;
   return null;
+}
+
+/** Decide se o aviso também vai pelo WhatsApp. Testes de celular e avisos do Master em massa não vão. */
+export function shouldSendWhatsapp(
+  n: NotificationLike,
+  pref: Partial<NotificationPreference> | null | undefined,
+  hourInSaoPaulo: number,
+) {
+  const p = { ...DEFAULT_PREFERENCE, ...(pref || {}) };
+  if (n.type === "push.test" || n.type === "system.broadcast" || n.type === "system.monthly_report") return false;
+  if (!p.whatsapp_enabled) return false;
+  if (!(p.whatsapp_categories || []).includes(notificationCategory(n))) return false;
+  return !isQuietHour(hourInSaoPaulo, p.quiet_start, p.quiet_end);
+}
+
+/** Texto do WhatsApp: título em negrito, corpo e assinatura da MIA. */
+export function whatsappText(n: { title: string; body?: string | null }) {
+  return `🔔 *${n.title}*${n.body ? `\n${n.body}` : ""}\n\n— MIA, sua assistente MIAnota`;
 }

@@ -28,5 +28,5 @@
 - [x] Preferências (categorias no celular, silêncio, antecedência, resumo diário)
 - [x] Rotina diária no servidor + alertas de orçamento, plano vencendo, créditos, pagamento confirmado
 - [x] Sininho com contador; aviso em massa no Master
-- [ ] Envio dos avisos também pelo WhatsApp — não feito nesta etapa
-- [ ] Relatório mensal em PDF pelo WhatsApp — não feito nesta etapa
+- [x] Envio dos avisos também pelo WhatsApp
+- [x] Relatório mensal em PDF (baixar, WhatsApp, automático dia 1)

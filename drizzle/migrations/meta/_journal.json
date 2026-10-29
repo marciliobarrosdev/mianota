@@ -43,6 +43,13 @@
       "when": 1793294992475,
       "tag": "0005_notification_center_upgrade",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793295731028,
+      "tag": "0006_notification_whatsapp",
+      "breakpoints": true
     }
   ]
 }

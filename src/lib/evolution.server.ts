@@ -269,3 +269,16 @@ export async function evoFetchNumberFromInstance(instanceName: string): Promise<
     return null;
   }
 }
+
+export async function evoSendDocument(
+  instanceName: string,
+  number: string,
+  base64: string,
+  fileName: string,
+  caption: string,
+) {
+  return evo(`/message/sendMedia/${encodeURIComponent(instanceName)}`, {
+    method: "POST",
+    json: { number, mediatype: "document", mimetype: "application/pdf", media: base64, fileName, caption },
+  });
+}
