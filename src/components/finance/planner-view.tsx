@@ -1,12 +1,24 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  AlertTriangle,
   ArrowDownLeft,
   ArrowUpRight,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Clock,
+  Download,
+  List,
   Repeat,
+  Wallet,
 } from "lucide-react";
+import {
+  dailyProjection,
+  filterPlannerItems,
+  plannerTotals,
+  toIcs,
+  type PlannerFilter,
+} from "@/lib/planner-rules";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -298,6 +310,8 @@ export function PlannerView({
             );
           })}
         </div>
+        </>
+        )}
       </section>
 
       <aside className="space-y-3">
@@ -365,6 +379,16 @@ export function PlannerView({
         composer={selected && renderDayComposer ? renderDayComposer(selected) : null}
       />
     </div>
+    </div>
+  );
+}
+
+function SummaryCard({ icon, label, value, tone = "", onClick }: { icon: ReactNode; label: string; value: string; tone?: string; onClick?: () => void }) {
+  return (
+    <button type="button" disabled={!onClick} onClick={onClick} className="rounded-2xl border border-border bg-card p-3 text-left shadow-[var(--shadow-card)] enabled:hover:border-[color:var(--brand-soft-strong)]">
+      <span className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[.12em] text-muted-foreground">{icon}{label}</span>
+      <span className={`mt-1 block font-display text-lg font-black tabular-nums ${tone}`}>{value}</span>
+    </button>
   );
 }
 
