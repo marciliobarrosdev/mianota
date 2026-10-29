@@ -8,6 +8,7 @@ import {
   interpretFinanceCommand,
   listFinanceChatHistory,
   undoFinanceCommand,
+  transcribeChatAudio,
 } from "@/lib/finance-command.functions";
 import {
   newId,
@@ -38,6 +39,7 @@ export function useMarciaFinanceChat(
   const cancelCommand = useServerFn(cancelFinanceCommand);
   const readHistory = useServerFn(listFinanceChatHistory);
   const undoCommand = useServerFn(undoFinanceCommand);
+  const transcribeAudio = useServerFn(transcribeChatAudio);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [phase, setPhase] = useState<ChatPhase>("idle");
   const [pending, setPending] = useState<ChatPendingTurn | null>(null);
@@ -211,6 +213,15 @@ export function useMarciaFinanceChat(
     [append, companyId, messages, undoCommand],
   );
 
+  const transcribe = useCallback(
+    async (audioDataUrl: string) => {
+      if (!companyId) throw new Error("Conta não informada.");
+      const result = await transcribeAudio({ data: { companyId, audioDataUrl } });
+      return result.text;
+    },
+    [companyId, transcribeAudio],
+  );
+
   const clear = useCallback(() => {
     if (busyRef.current) return;
     commandIdRef.current = null;
@@ -229,5 +240,6 @@ export function useMarciaFinanceChat(
     setListening,
     undo,
     clear,
+    transcribe,
   };
 }
