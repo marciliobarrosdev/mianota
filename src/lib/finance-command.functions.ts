@@ -892,3 +892,46 @@ export const listFinanceChatHistory = createServerFn({ method: "POST" })
     }
     return out.slice(-60);
   });
+
+/** Desfaz um lançamento criado pela MIA, só dentro da janela curta após a confirmação. */
+export const undoFinanceCommand = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { companyId: string; commandId: string }) => ({
+    companyId: String(input?.companyId || "").trim(),
+    commandId: String(input?.commandId || "")
+      .trim()
+      .slice(0, 36),
+  }))
+  .handler(async ({ context, data }) => {
+    await authorize(context, data.companyId);
+    const { canUndo } = await import("./marcia-chat-rules");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
+    const stored = await db
+      .from("marcia_ai_command")
+      .select("id,status,result,executed_at,user_id")
+      .eq("company_id", data.companyId)
+      .eq("id", data.commandId)
+      .maybeSingle();
+    if (stored.error) throw new Error(stored.error.message);
+    const command = stored.data;
+    if (!command || command.user_id !== context.userId) throw new Error("Pedido não encontrado.");
+    if (command.status !== "executed" || command.result?.undone)
+      throw new Error("Esse registro não pode mais ser desfeito.");
+    if (!canUndo(command.executed_at)) throw new Error("O prazo para desfazer já passou.");
+    const transactionId = command.result?.transactionId;
+    if (!transactionId) throw new Error("Só lançamentos podem ser desfeitos por aqui.");
+    const removed = await db
+      .from("fin_lancamento")
+      .delete()
+      .eq("company_id", data.companyId)
+      .eq("id", transactionId)
+      .eq("ai_command_id", data.commandId);
+    if (removed.error) throw new Error(removed.error.message);
+    await db
+      .from("marcia_ai_command")
+      .update({ result: { ...command.result, undone: true } })
+      .eq("company_id", data.companyId)
+      .eq("id", data.commandId);
+    return { ok: true };
+  });

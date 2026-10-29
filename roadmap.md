@@ -30,3 +30,11 @@
 - [x] Sininho com contador; aviso em massa no Master
 - [x] Envio dos avisos também pelo WhatsApp
 - [x] Relatório mensal em PDF (baixar, WhatsApp, automático dia 1)
+
+## Falar com MIA (/app/marcia)
+- [x] Resumo do mês ao lado, sugestões por contexto, atalhos, separadores por dia, voltar ao fim, limpar conversa
+- [x] Desfazer lançamento (10 min) e "Ver no extrato"; "Perguntar à MIA" nos avisos
+- [ ] Editar valores no cartão antes de confirmar
+- [ ] Gravação de áudio real no app
+- [ ] Vários lançamentos numa mensagem
+- [ ] Conversa unificada com WhatsApp

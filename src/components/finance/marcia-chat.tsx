@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import {
+  ArrowDown,
   Camera,
   Check,
   FileText,
@@ -10,6 +12,7 @@ import {
   Send,
   Sparkles,
   Square,
+  Undo2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -62,7 +65,10 @@ export function MarciaChat({
   placeholder,
   emptyState,
   composeText,
+  initialText,
 }: {
+  /** Texto inicial no campo (ex.: vindo de "Perguntar à MIA" em um aviso). */
+  initialText?: string;
   controller: MarciaChatController;
   assistantName: string;
   suggestions?: string[];
@@ -73,7 +79,7 @@ export function MarciaChat({
   composeText?: (text: string) => string;
 }) {
   const { messages, phase, pending, historyLoading } = controller;
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialText ?? "");
   const [attachment, setAttachment] = useState<ChatAttachment | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -84,10 +90,15 @@ export function MarciaChat({
   const listening = phase === "listening";
   const compact = variant === "compact";
 
+  const [awayFromEnd, setAwayFromEnd] = useState(false);
   useEffect(() => {
     const node = scrollRef.current;
     if (node) node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
   }, [messages.length, phase]);
+  function scrollToEnd() {
+    const node = scrollRef.current;
+    if (node) node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
+  }
 
   async function submit(text = input) {
     if (busy || listening) return;
@@ -170,6 +181,10 @@ export function MarciaChat({
     >
       <div
         ref={scrollRef}
+        onScroll={(event) => {
+          const el = event.currentTarget;
+          setAwayFromEnd(el.scrollHeight - el.scrollTop - el.clientHeight > 160);
+        }}
         className={`min-h-0 flex-1 space-y-3 overflow-y-auto ${compact ? "max-h-64 p-3" : "px-3 py-4 sm:px-6"}`}
         aria-live="polite"
       >
@@ -182,21 +197,41 @@ export function MarciaChat({
         ) : !messages.length ? (
           (emptyState ?? null)
         ) : (
-          messages.map((message) => (
+          messages.map((message, index) => (
+            <div key={message.id} className="space-y-3">
+              {dayKey(message.at) !== dayKey(messages[index - 1]?.at) && message.at && (
+                <div className="flex items-center gap-2 py-1 text-[10px] font-bold uppercase tracking-[.14em] text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" />
+                  {dayLabel(message.at)}
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              )}
             <Bubble
-              key={message.id}
               message={message}
               assistantName={assistantName}
               active={pending?.messageId === message.id && !busy}
               mode={pending?.messageId === message.id ? pending.mode : undefined}
               onConfirm={controller.confirm}
               onCancel={controller.cancel}
+              onUndo={controller.undo ? () => void controller.undo?.(message.id) : undefined}
               compact={compact}
             />
+            </div>
           ))
         )}
         {busy && <Thinking assistantName={assistantName} executing={phase === "executing"} />}
       </div>
+      {awayFromEnd && !compact && (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={scrollToEnd}
+            className="absolute -top-12 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold shadow-[var(--shadow-card)]"
+          >
+            <ArrowDown className="size-3.5" /> Voltar ao fim
+          </button>
+        </div>
+      )}
 
       {pending?.mode === "question" &&
         pending.quickReplies.length > 0 &&
@@ -349,7 +384,7 @@ export function MarciaChat({
             type="submit"
             size="icon"
             disabled={(!input.trim() && !attachment) || busy || listening}
-            className="size-9 shrink-0 rounded-xl bg-[color:var(--brand)] text-white hover:brightness-95"
+            className="size-9 shrink-0 rounded-xl bg-[color:var(--brand)] text-primary-foreground hover:brightness-95"
             aria-label="Enviar"
           >
             {busy ? <Loader2 className="animate-spin" /> : <Send className="size-4" />}
@@ -372,8 +407,10 @@ function Bubble({
   mode,
   onConfirm,
   onCancel,
+  onUndo,
   compact,
 }: {
+  onUndo?: () => void;
   message: ChatMessage;
   assistantName: string;
   active: boolean;
@@ -389,7 +426,7 @@ function Bubble({
   return (
     <div className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
       {!mine && !compact && (
-        <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-[color:var(--brand)] text-white">
+        <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-[color:var(--brand)] text-primary-foreground">
           <Sparkles className="size-3.5" />
         </div>
       )}
@@ -399,7 +436,7 @@ function Bubble({
         <div
           className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
             mine
-              ? "rounded-br-md bg-[color:var(--brand)] text-white"
+              ? "rounded-br-md bg-[color:var(--brand)] text-primary-foreground"
               : message.kind === "error"
                 ? "rounded-bl-md border border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-100"
                 : message.kind === "success"
@@ -461,7 +498,7 @@ function Bubble({
                     <Button
                       type="button"
                       size="sm"
-                      className="h-8 flex-1 rounded-lg bg-[color:var(--brand)] text-white"
+                      className="h-8 flex-1 rounded-lg bg-[color:var(--brand)] text-primary-foreground"
                       onClick={() => void onConfirm()}
                     >
                       <Check /> Confirmar
@@ -471,6 +508,28 @@ function Bubble({
               </div>
             )}
         </div>
+        {!mine && (message.link || (message.undoCommandId && onUndo)) && (
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {message.link && (
+              <Link
+                to={message.link.to as any}
+                className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-bold text-foreground hover:border-[color:var(--brand-soft-strong)]"
+              >
+                {message.link.label}
+              </Link>
+            )}
+            {message.undoCommandId && onUndo && (
+              <button
+                type="button"
+                disabled={message.undone}
+                onClick={onUndo}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-bold text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                <Undo2 className="size-3" /> {message.undone ? "Desfeito" : "Desfazer"}
+              </button>
+            )}
+          </div>
+        )}
         {time && (
           <span className="mt-1 px-1 text-[10px] text-muted-foreground">
             {mine ? "Você" : assistantName} · {time}
@@ -484,7 +543,7 @@ function Bubble({
 function Thinking({ assistantName, executing }: { assistantName: string; executing: boolean }) {
   return (
     <div className="flex items-center gap-2" role="status">
-      <div className="grid size-7 place-items-center rounded-full bg-[color:var(--brand)] text-white">
+      <div className="grid size-7 place-items-center rounded-full bg-[color:var(--brand)] text-primary-foreground">
         <Sparkles className="size-3.5 animate-pulse" />
       </div>
       <div className="flex items-center gap-2 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 text-xs text-muted-foreground">
@@ -497,4 +556,17 @@ function Thinking({ assistantName, executing }: { assistantName: string; executi
       </div>
     </div>
   );
+}
+
+function dayKey(at?: string) {
+  return at ? new Date(at).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }) : "";
+}
+
+function dayLabel(at: string) {
+  const key = dayKey(at);
+  const today = dayKey(new Date().toISOString());
+  const yesterday = dayKey(new Date(Date.now() - 86_400_000).toISOString());
+  if (key === today) return "Hoje";
+  if (key === yesterday) return "Ontem";
+  return new Date(at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }

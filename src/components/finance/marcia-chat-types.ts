@@ -18,6 +18,11 @@ export type ChatMessage = {
   attachment?: { name: string; size: number; kind: "image" | "pdf"; previewUrl?: string };
   preview?: Array<{ label: string; value: string }>;
   kind?: "question" | "confirm" | "answer" | "success" | "error";
+  /** Pedido que pode ser desfeito (lançamento recém-criado). */
+  undoCommandId?: string;
+  undone?: boolean;
+  /** Link para ver o registro em outra página. */
+  link?: { to: string; label: string };
 };
 
 export type ChatPhase = "idle" | "listening" | "understanding" | "executing";
@@ -37,6 +42,10 @@ export type MarciaChatController = {
   confirm: () => Promise<void>;
   cancel: () => Promise<void>;
   setListening: (listening: boolean) => void;
+  /** Desfaz um lançamento recém-confirmado (opcional). */
+  undo?: (messageId: string) => Promise<void>;
+  /** Limpa a conversa da tela (não apaga registros). */
+  clear?: () => void;
   /** Texto usado quando o navegador não oferece ditado (demonstração). */
   voiceFallback?: string;
 };
