@@ -310,7 +310,9 @@ FORMATO: {"intent":"...","type":null,"summary":null,"amountCents":null,"category
   const content = imageDataUrl
     ? [
         { type: "text" as const, text: prompt },
-        { type: "image_url" as const, image_url: { url: imageDataUrl, detail: "high" as const } },
+        imageDataUrl.startsWith("data:application/pdf")
+          ? ({ type: "file" as const, file: { filename: "comprovante.pdf", file_data: imageDataUrl } } as any)
+          : { type: "image_url" as const, image_url: { url: imageDataUrl, detail: "high" as const } },
       ]
     : prompt;
   const raw = await lovableAiChat(

@@ -75,10 +75,15 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
                       console.error("[support-whatsapp.audio]", error instanceof Error ? error.message : error);
                     }
                   }
-                  const imageDataUrl =
-                    type === "image" && message?.image?.id
-                      ? await getMetaMediaDataUrl(String(message.image.id)).catch(() => null)
-                      : null;
+                  const mediaId = type === "image" ? message?.image?.id : type === "document" ? message?.document?.id : null;
+                  let imageDataUrl: string | null = mediaId
+                    ? await getMetaMediaDataUrl(String(mediaId)).catch(() => null)
+                    : null;
+                  if (imageDataUrl) {
+                    const m = /^data:([^;]+);base64,/.exec(imageDataUrl);
+                    const mime = receiptMime(String(m?.[1] || message?.document?.mime_type || ""), type);
+                    imageDataUrl = mime ? imageDataUrl.replace(/^data:[^;]+;/, `data:${mime};`) : null;
+                  }
                   const monitored = await persistSupportInbound({
                     phone,
                     contactName: contacts.get(phone) || null,
@@ -176,14 +181,20 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           }
           if (phone && body) {
             let imageDataUrl: string | null = null;
-            if (type === "image" && channel.instance_name) {
+            if ((type === "image" || type === "document") && channel.instance_name) {
               const { evoGetMediaBase64 } = await import("@/lib/evolution.server");
               const media = await evoGetMediaBase64(String(channel.instance_name), data).catch(
-                () => null,
+                (error) => {
+                  console.error("[support-whatsapp.media]", error instanceof Error ? error.message : error);
+                  return null;
+                },
               );
               if (media?.base64) {
-                const mime = media.mimetype?.startsWith("image/") ? media.mimetype : "image/jpeg";
-                imageDataUrl = `data:${mime};base64,${media.base64}`;
+                const declared = String(
+                  media.mimetype || message?.documentMessage?.mimetype || message?.imageMessage?.mimetype || "",
+                ).split(";")[0].trim();
+                const mime = receiptMime(declared, type);
+                if (mime) imageDataUrl = `data:${mime};base64,${media.base64}`;
               }
             }
             const { processCentralFinanceWhatsapp } =
@@ -278,4 +289,13 @@ function evolutionBody(message: any, type: string) {
               ? "Vídeo recebido"
               : ""),
   ).trim();
+}
+
+// Só imagens e PDFs seguem para a IA ler o comprovante.
+function receiptMime(declared: string, type: string) {
+  const mime = declared.toLowerCase();
+  if (mime === "application/pdf") return mime;
+  if (/^image\/(jpeg|jpg|png|webp|gif)$/.test(mime)) return mime === "image/jpg" ? "image/jpeg" : mime;
+  if (type === "image") return "image/jpeg";
+  return null;
 }
