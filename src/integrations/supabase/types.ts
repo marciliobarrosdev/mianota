@@ -1823,6 +1823,33 @@ export type Database = {
           },
         ]
       }
+      free_plan_usage: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          email: string
+          plan_id: string | null
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          email: string
+          plan_id?: string | null
+          source?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          email?: string
+          plan_id?: string | null
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       google_integration: {
         Row: {
           access_token: string | null
