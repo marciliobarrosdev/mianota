@@ -284,10 +284,44 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_model_catalog: {
+        Row: {
+          active: boolean
+          label: string
+          model_id: string
+          provider: string
+          sort: number
+          supports_audio: boolean
+          supports_pdf: boolean
+          supports_vision: boolean
+        }
+        Insert: {
+          active?: boolean
+          label: string
+          model_id: string
+          provider: string
+          sort?: number
+          supports_audio?: boolean
+          supports_pdf?: boolean
+          supports_vision?: boolean
+        }
+        Update: {
+          active?: boolean
+          label?: string
+          model_id?: string
+          provider?: string
+          sort?: number
+          supports_audio?: boolean
+          supports_pdf?: boolean
+          supports_vision?: boolean
+        }
+        Relationships: []
+      }
       ai_provider_config: {
         Row: {
           id: boolean
           last_error: string | null
+          last_test_ms: number | null
           mode: string
           model: string | null
           optimized: boolean
@@ -299,6 +333,7 @@ export type Database = {
         Insert: {
           id?: boolean
           last_error?: string | null
+          last_test_ms?: number | null
           mode?: string
           model?: string | null
           optimized?: boolean
@@ -310,6 +345,7 @@ export type Database = {
         Update: {
           id?: boolean
           last_error?: string | null
+          last_test_ms?: number | null
           mode?: string
           model?: string | null
           optimized?: boolean
