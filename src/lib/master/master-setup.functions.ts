@@ -368,7 +368,7 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         detail: pendingDeletions
           ? `${pendingDeletions} pedido(s) aguardando`
           : "Nenhum pedido pendente",
-        to: "/master/assinantes",
+        to: "/master/painel",
         action: "Revisar pedidos",
       },
       {
