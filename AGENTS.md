@@ -22,3 +22,4 @@
 - src/lib is grouped by domain folders (finance, ai, whatsapp, master, billing, common, auth); only utils.ts stays at root — why: shadcn imports @/lib/utils.
 - Subscriber photos use 256px data URLs — why: public buckets are blocked.
 - Identity rules map lowercase form types to uppercase storage — why: preserve the company constraint.
+- Sensitive Master actions (admins, integration keys, suspensions, billing reprocess) are logged via `writeMasterAudit` (`src/lib/master/master-audit.server.ts`) into super-admin-read-only `master_audit_log`; it never throws — why: one security trail that cannot break the action.
