@@ -179,6 +179,8 @@ export function AppShell({
         isAdmin={isAdmin}
         isSuperAdmin={isSuperAdmin}
         signOut={signOut}
+        userName={userName}
+        email={email}
       />
       <div className="flex min-h-screen">
         <Sidebar
