@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { slugify } from "@/lib/common/tenant";
 import { normalizeValidBrazilianPhone } from "@/lib/common/phone";
+import { normalizeAvatarValue } from "@/lib/master/subscriber-avatar-rules";
 import { freePlanAlreadyUsed, provisionTrialDays } from "@/lib/billing/subscriber-provision-rules";
 
 async function assertSuper(supabase: any, _userId: string) {
@@ -138,7 +139,7 @@ export const listMasterSubscriptions = createServerFn({ method: "POST" })
     const { data, error } = await supabaseAdmin
       .from("subscription")
       .select(
-        "*, plan:plan(nome,preco_cents,moeda,intervalo), company:company(nome,status_cobranca,email_corporativo)",
+        "*, plan:plan(nome,preco_cents,moeda,intervalo), company:company(nome,status_cobranca,email_corporativo,logo_url)",
       )
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -247,7 +248,7 @@ type SubscriberExtra = {
   tipoPessoa: string; cnpjCpf: string; razaoSocial: string; nomeFantasia: string; nome: string;
   telefone: string | null; responsavelNome: string; inscricaoEstadual: string; emailCorporativo: string;
   site: string; cep: string; rua: string; numero: string; complemento: string; bairro: string;
-  cidade: string; estado: string;
+  cidade: string; estado: string; logoUrl?: string | null;
 };
 
 async function saveSubscriberIdentity(admin: any, confirmedCompanyId: string, data: SubscriberExtra, ownerId?: string | null) {
@@ -263,6 +264,7 @@ async function saveSubscriberIdentity(admin: any, confirmedCompanyId: string, da
     telefone: data.telefone,
     cep: n(data.cep), rua: n(data.rua), numero: n(data.numero), complemento: n(data.complemento),
     bairro: n(data.bairro), cidade: n(data.cidade), estado: n(data.estado),
+    ...(data.logoUrl !== undefined ? { logo_url: data.logoUrl } : {}),
   }).eq("id", confirmedCompanyId);
   if (identityError) throw new Error("Assinante criado, mas não foi possível salvar os dados cadastrais. Confira o cadastro antes de tentar novamente.");
   if (ownerId && (data.responsavelNome || data.telefone)) {
@@ -298,7 +300,9 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
       bairro?: string;
       cidade?: string;
       estado?: string;
+      logoUrl?: string | null;
     }) => {
+      const logoUrl = normalizeAvatarValue(d.logoUrl);
       const tipoPessoa = d.tipoPessoa ?? "pf";
       if (tipoPessoa !== "pf" && tipoPessoa !== "pj") throw new Error("Tipo de pessoa inválido");
       const cnpjCpf = String(d.cnpjCpf ?? "").replace(/\D/g, "");
@@ -348,6 +352,7 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
         cep, estado,
         rua: txt(d.rua), numero: txt(d.numero, 20), complemento: txt(d.complemento),
         bairro: txt(d.bairro), cidade: txt(d.cidade),
+        logoUrl,
       };
     },
   )
@@ -804,4 +809,74 @@ export const getCompanyDetails = createServerFn({ method: "POST" })
         comandosIa: aiCommandCount ?? 0,
       },
     };
+  });
+
+export const updateCompanyProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    companyId: string; nome: string; tipoPessoa: "pf" | "pj"; cnpjCpf?: string; razaoSocial?: string;
+    responsavelNome?: string; telefone?: string | null; inscricaoEstadual?: string; emailCorporativo?: string;
+    site?: string; cep?: string; rua?: string; numero?: string; complemento?: string; bairro?: string;
+    cidade?: string; estado?: string; segmento?: string; logoUrl?: string | null;
+  }) => {
+    const companyId = String(d.companyId ?? "");
+    if (!/^[0-9a-f-]{36}$/i.test(companyId)) throw new Error("Assinante inválido");
+    const tipoPessoa = d.tipoPessoa;
+    if (tipoPessoa !== "pf" && tipoPessoa !== "pj") throw new Error("Tipo de pessoa inválido");
+    const txt = (v: unknown, max = 200) => {
+      const t = String(v ?? "").trim();
+      if (t.length > max) throw new Error("Campo muito longo");
+      return t;
+    };
+    const nome = txt(d.nome);
+    if (nome.length < 2) throw new Error("Informe o nome (mínimo 2 letras).");
+    const cnpjCpf = String(d.cnpjCpf ?? "").replace(/\D/g, "");
+    if (cnpjCpf && (cnpjCpf.length !== (tipoPessoa === "pf" ? 11 : 14) || /^(\d)\1+$/.test(cnpjCpf))) throw new Error(tipoPessoa === "pf" ? "CPF inválido" : "CNPJ inválido");
+    const rawPhone = txt(d.telefone, 40);
+    const telefone = rawPhone ? normalizeValidBrazilianPhone(rawPhone) : null;
+    if (rawPhone && !telefone) throw new Error("WhatsApp inválido");
+    const emailCorporativo = txt(d.emailCorporativo).toLowerCase();
+    if (emailCorporativo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailCorporativo)) throw new Error("E-mail da empresa inválido");
+    const cep = txt(d.cep, 20).replace(/\D/g, "");
+    if (cep && cep.length !== 8) throw new Error("CEP inválido");
+    const estado = txt(d.estado, 2).toUpperCase();
+    if (estado && !/^[A-Z]{2}$/.test(estado)) throw new Error("Estado inválido (use a sigla, ex.: SP)");
+    return {
+      companyId, nome, tipoPessoa, cnpjCpf, razaoSocial: txt(d.razaoSocial), nomeFantasia: nome,
+      responsavelNome: txt(d.responsavelNome), telefone, inscricaoEstadual: txt(d.inscricaoEstadual, 40),
+      emailCorporativo, site: txt(d.site), cep, estado, rua: txt(d.rua), numero: txt(d.numero, 20),
+      complemento: txt(d.complemento), bairro: txt(d.bairro), cidade: txt(d.cidade),
+      segmento: txt(d.segmento, 80), logoUrl: normalizeAvatarValue(d.logoUrl),
+    };
+  })
+  .handler(async ({ context, data }) => {
+    await assertSuper(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+    const { error } = await admin.from("company").update({
+      nome: data.nome,
+      tipo_pessoa: data.tipoPessoa,
+      cnpj_cpf: data.cnpjCpf || null,
+      razao_social: data.tipoPessoa === "pj" ? data.razaoSocial || null : null,
+      nome_fantasia: data.tipoPessoa === "pj" ? data.nome : null,
+      inscricao_estadual: data.tipoPessoa === "pj" ? data.inscricaoEstadual || null : null,
+      email_corporativo: data.emailCorporativo || null,
+      site: data.site || null,
+      telefone: data.telefone,
+      cep: data.cep || null, rua: data.rua || null, numero: data.numero || null,
+      complemento: data.complemento || null, bairro: data.bairro || null,
+      cidade: data.cidade || null, estado: data.estado || null,
+      segmento: data.segmento || null,
+      ...(data.logoUrl !== undefined ? { logo_url: data.logoUrl } : {}),
+    }).eq("id", data.companyId);
+    if (error) throw new Error(`Não foi possível salvar: ${error.message}`);
+    if (data.responsavelNome) {
+      const { data: owner } = await admin.from("company_user").select("user_id")
+        .eq("company_id", data.companyId).eq("role", "owner").limit(1).maybeSingle();
+      if (owner?.user_id) {
+        await admin.from("profiles").update({ nome: data.responsavelNome, nome_completo: data.responsavelNome })
+          .eq("user_id", owner.user_id);
+      }
+    }
+    return { ok: true };
   });
