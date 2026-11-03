@@ -981,7 +981,7 @@ export const releaseCompanyPlan = createServerFn({ method: "POST" })
     await applyEvent({
       provider: "manual", companyId: data.companyId, eventType: "purchase_approved",
       rawEventName: "liberacao_super_admin", buyerEmail: email, buyerName: company.nome ?? null, buyerPhone: null,
-      externalSubscriptionId: null, externalCustomerId: null, productRef: plan.id, amountCents: null, periodEnd: until,
+      externalSubscriptionId: null, externalCustomerId: null, productRef: plan.slug, amountCents: null, periodEnd: until,
     } as any, key);
     // Garante plano exato mesmo se o mapeamento por referência não casar.
     const { error: subError } = await admin.from("subscription").update({ plan_id: plan.id, status: "active", current_period_end: until })
