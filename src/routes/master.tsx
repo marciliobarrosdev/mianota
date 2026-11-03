@@ -71,7 +71,7 @@ const sections = [
     label: "Implantação",
     items: [
       { to: "/master/checklist", label: "Comece aqui", icon: Rocket },
-      { to: "/master/implantacao", label: "Personalizar o clone", icon: ListChecks },
+      { to: "/master/implantacao", label: "Sua marca", icon: ListChecks },
     ],
   },
   {

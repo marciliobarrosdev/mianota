@@ -2,6 +2,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { describeIntegration } from "@/lib/common/integration-secrets.server";
+import {
+  isRecent,
+  setupProgress,
+  setupStatus,
+  timeAgo,
+  type SetupGroup,
+  type SetupStatus,
+} from "@/lib/master/master-setup-rules";
 
 async function assertSuperAdmin(supabase: any) {
   const { data, error } = await supabase.rpc("is_super_admin");
@@ -14,10 +22,19 @@ export type MasterSetupCheck = {
     | "plans"
     | "trial"
     | "payments"
+    | "infinitepay"
+    | "free_plan"
     | "support"
     | "meta_template"
+    | "subscriber_messages"
     | "ai_credits"
+    | "push"
+    | "notices"
+    | "monthly_report"
+    | "deletions"
     | "first_company";
+  group: SetupGroup;
+  status: SetupStatus;
   title: string;
   description: string;
   ready: boolean;
@@ -39,7 +56,7 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         db
           .from("plan")
           .select(
-            "id,nome,ativo,trial_days,creditos_trial,checkout_mode,checkout_url,stripe_price_id",
+            "id,nome,ativo,trial_days,creditos_trial,checkout_mode,checkout_url,stripe_price_id,is_free,free_days,preco_cents",
           )
           .eq("ativo", true),
         db.from("company").select("id", { count: "exact", head: true }),
@@ -107,7 +124,84 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
       !metaActive || String(supportChannel?.meta_template_status || "").toUpperCase() === "APPROVED";
     const companyCount = companiesResult.count ?? 0;
 
-    const checks: MasterSetupCheck[] = [
+    const safe = async <T,>(fn: () => Promise<T>, fallback: T): Promise<T> => {
+      try {
+        return await fn();
+      } catch {
+        return fallback;
+      }
+    };
+    const [infinitepay, lastPayment, aiConfig, pushDevices, lastNotice, lastReport, pendingDeletions, lastSubscriberMessage] =
+      await Promise.all([
+        safe(() => describeIntegration("infinitepay"), { configured: false } as { configured: boolean }),
+        safe(async () => {
+          const { data } = await db
+            .from("billing_event_log")
+            .select("created_at,error,processed")
+            .eq("provider", "infinitepay")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          return data as { created_at: string; error: string | null } | null;
+        }, null),
+        safe(async () => {
+          const { data } = await db.from("ai_provider_config").select("*").limit(1).maybeSingle();
+          return data as any;
+        }, null),
+        safe(async () => {
+          const { count } = await db
+            .from("marcia_push_subscription")
+            .select("id", { count: "exact", head: true })
+            .eq("active", true);
+          return count ?? 0;
+        }, 0),
+        safe(async () => {
+          const { data } = await db
+            .from("marcia_notification")
+            .select("created_at")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          return (data?.created_at as string | undefined) ?? null;
+        }, null),
+        safe(async () => {
+          const { data } = await db
+            .from("marcia_notification")
+            .select("created_at")
+            .eq("type", "system.monthly_report")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          return (data?.created_at as string | undefined) ?? null;
+        }, null),
+        safe(async () => {
+          const { count } = await db
+            .from("account_deletion_request")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "pending");
+          return count ?? 0;
+        }, 0),
+        safe(async () => {
+          const { data } = await db
+            .from("fin_whatsapp_identity")
+            .select("last_used_at")
+            .not("last_used_at", "is", null)
+            .order("last_used_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          return (data?.last_used_at as string | undefined) ?? null;
+        }, null),
+      ]);
+    const freePlans = plans.filter((p: any) => p.is_free);
+    const usesInfinitePay = plans.some(
+      (p: any) => !p.is_free && p.checkout_mode !== "stripe" && /infinitepay/i.test(String(p.checkout_url || "")),
+    );
+    const aiMode = String(aiConfig?.mode || "lovable");
+    const vapidReady = Boolean(
+      (process.env.VAPID_PUBLIC_KEY || "").trim() && (process.env.VAPID_PRIVATE_KEY || "").trim(),
+    );
+
+    const raw: Omit<MasterSetupCheck, "group" | "status">[] = [
       {
         id: "access",
         title: "Proteja o acesso de proprietário",
@@ -179,14 +273,103 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         action: "Configurar template",
       },
       {
-        id: "ai_credits",
-        title: "Revise IA e créditos",
-        description: "Entenda créditos dos assinantes, seu custo de IA e o provedor ativo.",
-        ready: true,
+        id: "infinitepay",
+        title: "InfinitePay recebendo pagamentos",
+        description: "Tag, chave e links salvos; o webhook confirma cada pagamento.",
+        ready: infinitepay.configured,
+        optional: !usesInfinitePay,
+        detail: !infinitepay.configured
+          ? "Faltam dados da InfinitePay"
+          : lastPayment
+            ? `Último aviso de pagamento ${timeAgo(lastPayment.created_at)}${lastPayment.error ? ` · erro: ${lastPayment.error}` : ""}`
+            : "Configurada · nenhum pagamento recebido ainda",
+        to: "/master/pagamentos",
+        action: "Abrir pagamentos",
+      },
+      {
+        id: "free_plan",
+        title: "Plano gratuito ou trial",
+        description: "Opcional: um plano grátis com limite de dias para atrair novos assinantes.",
+        ready: freePlans.length > 0,
         optional: true,
-        detail: "Lovable AI gerenciada é o padrão recomendado",
+        detail: freePlans.length
+          ? `${freePlans.map((p: any) => `${p.nome} (${p.free_days ?? 0} dias)`).join(", ")}`
+          : "Nenhum plano gratuito ativo",
+        to: "/master/planos",
+        action: "Configurar plano",
+      },
+      {
+        id: "subscriber_messages",
+        title: "Assinantes falando com a MIA",
+        description: "Mostra se algum número vinculado já mandou mensagem pelo WhatsApp.",
+        ready: Boolean(lastSubscriberMessage),
+        optional: true,
+        detail: lastSubscriberMessage
+          ? `Última mensagem recebida ${timeAgo(lastSubscriberMessage)}`
+          : "Nenhuma mensagem de assinante ainda",
+        to: "/master/conversas",
+        action: "Ver conversas",
+      },
+      {
+        id: "ai_credits",
+        title: "MIA respondendo (IA testada)",
+        description: "Provedor de IA escolhido e teste do modelo feito com sucesso.",
+        ready: aiMode === "lovable" ? aiConfig?.test_ok !== false : aiConfig?.test_ok === true,
+        optional: aiMode === "lovable",
+        detail:
+          aiMode === "lovable"
+            ? `Lovable AI${aiConfig?.model ? ` · ${aiConfig.model}` : ""}${aiConfig?.tested_at ? ` · testado ${timeAgo(aiConfig.tested_at)}` : ""}`
+            : aiConfig?.test_ok
+              ? `${aiMode === "openai" ? "OpenAI" : "Anthropic"} · ${aiConfig.model} · testado ${timeAgo(aiConfig.tested_at)}`
+              : `${aiMode === "openai" ? "OpenAI" : "Anthropic"} sem teste aprovado${aiConfig?.last_error ? ` · ${aiConfig.last_error}` : ""}`,
         to: "/master/ia-creditos",
-        action: "Abrir IA e créditos",
+        action: "Testar IA",
+      },
+      {
+        id: "push",
+        title: "Notificações no navegador",
+        description: "Chaves VAPID configuradas para enviar avisos aos aparelhos.",
+        ready: vapidReady,
+        optional: false,
+        detail: vapidReady
+          ? `${pushDevices} aparelho(s) ativo(s)`
+          : "Chaves VAPID ausentes no servidor",
+        to: "/master/painel",
+        action: "Ver painel",
+      },
+      {
+        id: "notices",
+        title: "Avisos automáticos rodando",
+        description: "Contas a vencer, orçamento e resumos gerados nas últimas 48 horas.",
+        ready: companyCount === 0 || isRecent(lastNotice, 48),
+        optional: companyCount === 0,
+        detail: lastNotice ? `Último aviso gerado ${timeAgo(lastNotice)}` : "Nenhum aviso gerado ainda",
+        to: "/master/painel",
+        action: "Ver painel",
+      },
+      {
+        id: "monthly_report",
+        title: "Relatório mensal em PDF",
+        description: "Enviado automaticamente no dia 1 para quem ativou.",
+        ready: Boolean(lastReport),
+        optional: true,
+        detail: lastReport
+          ? `Último relatório ${timeAgo(lastReport)}`
+          : "Ainda não enviado (primeiro envio no dia 1)",
+        to: "/master/painel",
+        action: "Ver painel",
+      },
+      {
+        id: "deletions",
+        title: "Pedidos de exclusão de conta",
+        description: "Pedidos de assinantes aguardando sua decisão.",
+        ready: pendingDeletions === 0,
+        optional: true,
+        detail: pendingDeletions
+          ? `${pendingDeletions} pedido(s) aguardando`
+          : "Nenhum pedido pendente",
+        to: "/master/painel",
+        action: "Revisar pedidos",
       },
       {
         id: "first_company",
@@ -195,20 +378,39 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         ready: companyCount > 0,
         optional: false,
         detail: companyCount
-          ? `${companyCount} assinante(s) cadastrada(s)`
-          : "Nenhum assinante cadastrada",
+          ? `${companyCount} assinante(s) cadastrado(s)`
+          : "Nenhum assinante cadastrado",
         to: "/master/novo-assinante",
         action: "Criar assinante de teste",
       },
     ];
 
-    const completed = checks.filter((check) => check.ready).length;
-    const total = checks.length;
+    const GROUP_OF: Record<MasterSetupCheck["id"], SetupGroup> = {
+      plans: "vender",
+      trial: "vender",
+      payments: "vender",
+      infinitepay: "vender",
+      free_plan: "vender",
+      support: "atender",
+      meta_template: "atender",
+      subscriber_messages: "atender",
+      ai_credits: "atender",
+      push: "avisar",
+      notices: "avisar",
+      monthly_report: "avisar",
+      access: "operar",
+      deletions: "operar",
+      first_company: "operar",
+    };
+    const checks: MasterSetupCheck[] = raw.map((c) => ({
+      ...c,
+      group: GROUP_OF[c.id],
+      status: setupStatus(c.ready, c.optional),
+    }));
+    const progress = setupProgress(checks);
     return {
-      completed,
-      total,
-      percent: Math.round((completed / total) * 100),
-      readyToLaunch: completed === total,
+      ...progress,
+      checkedAt: new Date().toISOString(),
       checks,
       counts: {
         companies: companyCount,
