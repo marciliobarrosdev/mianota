@@ -20,4 +20,5 @@
 - Statement splits live in `fin_lancamento_split` (sum must equal the entry, validated in `setTransactionSplits`) and tags in `fin_lancamento.tags`; category totals (charts, budgets, PDF) count split parts instead of the entry category; bank imports (OFX/CSV parsed client-side by `bank-statement-rules.ts`) write `fonte: importacao` with `metadata.import_batch` for batch undo — why: one rule for every category total and safe re-imports.
 - Month overview comparisons/alerts/tips come from pure rules in `src/lib/finance/overview-rules.ts`; bill actions reuse `plannerItemAction` — why: no new server path, demo mirrors it.
 - src/lib is grouped by domain folders (finance, ai, whatsapp, master, billing, common, auth); only utils.ts stays at root — why: shadcn imports @/lib/utils.
-- Subscriber photos: 256px data URL in `company.logo_url` (rules in `subscriber-avatar-rules.ts`), rendered by `SubscriberAvatar` — why: public buckets are blocked.
+- Subscriber photos use 256px data URLs — why: public buckets are blocked.
+- Identity rules map lowercase form types to uppercase storage — why: preserve the company constraint.
