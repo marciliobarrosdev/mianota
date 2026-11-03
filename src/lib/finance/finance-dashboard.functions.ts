@@ -566,27 +566,14 @@ function nextOccurrence(date: string, frequency: string): string {
   return toIsoDate(d);
 }
 
-export const getFinancePlanner = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { companyId: string; first: string; last: string }) => {
-    const companyId = String(input?.companyId || "").trim();
-    if (!companyId) throw new Error("Conta não informada.");
-    const range = sanitizeRange(input?.first, input?.last);
-    if (!range) throw new Error("Período inválido.");
-    return { companyId, first: range.from, last: range.to };
-  })
-  .handler(async ({ context, data }): Promise<FinancePlannerItem[]> => {
-    await authorize(context, data.companyId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const db = supabaseAdmin as any;
-    const { first, last } = data;
+export async function buildPlannerItems(db: any, companyId: string, first: string, last: string): Promise<FinancePlannerItem[]> {
     const [entries, recurrences, categories] = await Promise.all([
       db
         .from("fin_lancamento")
         .select(
           "id,descricao,valor_cents,tipo,status,vencimento,pago_em,competencia,ocorrido_em,categoria_id,forma_pagamento,fonte,observacao,recorrencia_id,metadata",
         )
-        .eq("company_id", data.companyId)
+        .eq("company_id", companyId)
         .or(
           `and(vencimento.gte.${first},vencimento.lte.${last}),and(competencia.gte.${first},competencia.lte.${last})`,
         )
@@ -594,10 +581,10 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
       db
         .from("fin_recorrencia")
         .select("id,descricao,valor_cents,tipo,proxima_data,frequencia,termina_em,categoria_id")
-        .eq("company_id", data.companyId)
+        .eq("company_id", companyId)
         .eq("ativo", true)
         .lte("proxima_data", last),
-      db.from("fin_categoria").select("id,nome").eq("company_id", data.companyId),
+      db.from("fin_categoria").select("id,nome").eq("company_id", companyId),
     ]);
     const failed = [entries, recurrences, categories].find((r) => r.error)?.error;
     if (failed) throw new Error(failed.message);
@@ -667,6 +654,22 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
     return items.sort(
       (a, b) => a.date.localeCompare(b.date) || String(a.time || "99").localeCompare(String(b.time || "99")),
     );
+}
+
+export const getFinancePlanner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { companyId: string; first: string; last: string }) => {
+    const companyId = String(input?.companyId || "").trim();
+    if (!companyId) throw new Error("Conta não informada.");
+    const range = sanitizeRange(input?.first, input?.last);
+    if (!range) throw new Error("Período inválido.");
+    return { companyId, first: range.from, last: range.to };
+  })
+  .handler(async ({ context, data }): Promise<FinancePlannerItem[]> => {
+    await authorize(context, data.companyId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
+    return buildPlannerItems(db, data.companyId, data.first, data.last);
   });
 
 const PAYMENT_METHODS = new Set(["pix", "cartao", "dinheiro", "transferencia", "boleto", "outro"]);
