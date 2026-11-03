@@ -183,6 +183,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
               phone,
               message: body,
               imageDataUrl,
+              messageRef: messageId ? outboundRef : null,
             });
             await deliver({
               db,
