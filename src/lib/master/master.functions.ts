@@ -147,7 +147,8 @@ export const listMasterSubscriptions = createServerFn({ method: "POST" })
 
 export const listCompanies = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { search?: string; page?: number; tipoPessoa?: "pf" | "pj" | "" }) => ({
+  .inputValidator((d: { search?: string; page?: number; tipoPessoa?: "pf" | "pj" | ""; status?: string }) => ({
+    status: ["ativo", "trial", "suspenso", "pendente"].includes(d.status ?? "") ? (d.status as string) : "",
     tipoPessoa: d.tipoPessoa === "pf" || d.tipoPessoa === "pj" ? d.tipoPessoa : "",
     search: (d.search ?? "").trim().toLowerCase(),
     page: Math.max(0, d.page ?? 0),
@@ -162,6 +163,8 @@ export const listCompanies = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .range(data.page * pageSize, data.page * pageSize + pageSize - 1);
     if (data.tipoPessoa) q = q.eq("tipo_pessoa", data.tipoPessoa);
+    if (data.status === "pendente") q = q.in("status_cobranca", ["pendente", "checkout_pending"]);
+    else if (data.status) q = q.eq("status_cobranca", data.status);
     if (data.search) q = q.ilike("nome", `%${data.search}%`);
     const { data: rows, count, error } = await q;
     if (error) throw error;

@@ -14,10 +14,12 @@ import {
   Search,
   CreditCard,
   Building2,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listMasterSubscriptions } from "@/lib/master/master.functions";
 import { toast } from "sonner";
+import { daysUntil, downloadCsv, renewalBuckets, revenueStats, toCsv } from "@/lib/master/subscriber-rules";
 
 export const Route = createFileRoute("/master/assinaturas")({
   head: brandedRouteHead("Assinaturas"),
@@ -36,35 +38,18 @@ type Row = {
   paddle_subscription_id: string | null;
   next_billing_amount_cents: number | null;
   created_at: string;
+  updated_at?: string | null;
   plan: { nome: string; preco_cents: number; moeda: string; intervalo: string } | null;
   company: { nome: string; status_cobranca: string; email_corporativo: string | null } | null;
 };
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  trialing: {
-    label: "Trial",
-    cls: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300",
-  },
-  active: {
-    label: "Ativa",
-    cls: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
-  },
-  past_due: {
-    label: "Inadimplente",
-    cls: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
-  },
-  canceled: {
-    label: "Cancelada",
-    cls: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300",
-  },
-  paused: {
-    label: "Pausada",
-    cls: "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-  },
-  incomplete: {
-    label: "Incompleta",
-    cls: "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-  },
+  trialing: { label: "Trial", cls: "bg-secondary text-secondary-foreground" },
+  active: { label: "Ativa", cls: "bg-primary/15 text-primary" },
+  past_due: { label: "Inadimplente", cls: "bg-destructive/15 text-destructive" },
+  canceled: { label: "Cancelada", cls: "bg-muted text-muted-foreground" },
+  paused: { label: "Pausada", cls: "bg-muted text-muted-foreground" },
+  incomplete: { label: "Incompleta", cls: "bg-muted text-muted-foreground" },
 };
 
 function AssinaturasPage() {
@@ -74,6 +59,7 @@ function AssinaturasPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [planFilter, setPlanFilter] = useState<string>("all");
 
   async function load() {
     setLoading(true);
@@ -95,6 +81,7 @@ function AssinaturasPage() {
     const s = q.trim().toLowerCase();
     return rows.filter((r) => {
       if (filter !== "all" && r.status !== filter) return false;
+      if (planFilter !== "all" && r.plan?.nome !== planFilter) return false;
       if (!s) return true;
       return (
         r.company?.nome?.toLowerCase().includes(s) ||
@@ -102,22 +89,41 @@ function AssinaturasPage() {
         r.paddle_subscription_id?.toLowerCase().includes(s)
       );
     });
-  }, [rows, q, filter]);
+  }, [rows, q, filter, planFilter]);
+
+  const planNames = useMemo(
+    () => [...new Set(rows.map((r) => r.plan?.nome).filter(Boolean) as string[])].sort(),
+    [rows],
+  );
 
   const stats = useMemo(() => {
-    const mrr = rows
-      .filter((r) => r.status === "active")
-      .reduce((s, r) => s + (r.plan?.preco_cents ?? 0), 0);
+    const rev = revenueStats(rows as any);
     const trial = rows.filter((r) => r.status === "trialing").length;
-    const active = rows.filter((r) => r.status === "active").length;
-    const past = rows.filter((r) => r.status === "past_due").length;
-    return { mrr, trial, active, past };
+    return { ...rev, trial };
   }, [rows]);
+
+  const renewals = useMemo(() => renewalBuckets(rows), [rows]);
+
+  function exportCsv() {
+    const csv = toCsv(
+      ["Assinante", "E-mail", "Plano", "Valor", "Status", "Próxima cobrança", "Criada"],
+      filtered.map((r) => [
+        r.company?.nome ?? "",
+        r.company?.email_corporativo ?? "",
+        r.plan?.nome ?? "",
+        r.plan ? (r.plan.preco_cents / 100).toFixed(2).replace(".", ",") : "",
+        STATUS[r.status]?.label ?? r.status,
+        r.current_period_end ? new Date(r.current_period_end).toLocaleDateString("pt-BR") : "",
+        new Date(r.created_at).toLocaleDateString("pt-BR"),
+      ]),
+    );
+    downloadCsv(`assinaturas-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-black uppercase tracking-[.16em] text-violet-500">
+        <p className="text-xs font-black uppercase tracking-[.16em] text-primary">
           receita recorrente
         </p>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Assinaturas</h1>
@@ -128,7 +134,7 @@ function AssinaturasPage() {
 
       <Card className="grid gap-4 p-4 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="flex gap-3">
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-500/10 text-violet-600">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <CheckCircle2 className="size-5" />
           </div>
           <div>
@@ -153,12 +159,34 @@ function AssinaturasPage() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="MRR estimado" value={formatBRL(stats.mrr)} hint="apenas ativas" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Stat label="Receita mensal (MRR)" value={formatBRL(stats.mrr)} hint="apenas ativas" />
         <Stat label="Ativas" value={stats.active.toString()} />
         <Stat label="Em trial" value={stats.trial.toString()} />
-        <Stat label="Inadimplentes" value={stats.past.toString()} alert={stats.past > 0} />
+        <Stat label="Novas pagantes no mês" value={stats.newPaid.toString()} />
+        <Stat label="Canceladas no mês" value={stats.canceledMonth.toString()} />
+        <Stat
+          label="Conversão para pago"
+          value={stats.conversionPct === null ? "—" : `${stats.conversionPct}%`}
+          hint="ativas ÷ já pagaram"
+        />
       </div>
+
+      {(renewals.overdue.length > 0 || renewals.expiringSoon.length > 0) && (
+        <div className="grid gap-3 md:grid-cols-2">
+          <RenewalList
+            title="Venceu sem pagar"
+            hint="A InfinitePay não renova sozinha: envie o link do plano."
+            rows={renewals.overdue}
+            alert
+          />
+          <RenewalList
+            title="Vence nos próximos 7 dias"
+            hint="Lembre o assinante antes de vencer."
+            rows={renewals.expiringSoon}
+          />
+        </div>
+      )}
 
       <Card className="p-4">
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
@@ -171,6 +199,22 @@ function AssinaturasPage() {
               className="pl-9"
             />
           </div>
+          <select
+            aria-label="Plano"
+            className="h-9 rounded-md border bg-background px-2 text-sm"
+            value={planFilter}
+            onChange={(e) => setPlanFilter(e.target.value)}
+          >
+            <option value="all">Todos os planos</option>
+            {planNames.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <Button variant="outline" size="sm" onClick={exportCsv} disabled={!filtered.length}>
+            <Download className="size-4" /> CSV
+          </Button>
           <div className="flex gap-1.5 flex-wrap">
             {(["all", "active", "trialing", "past_due", "canceled"] as const).map((s) => (
               <button
@@ -244,7 +288,7 @@ function AssinaturasPage() {
                       <td className="px-4 py-3">
                         <Badge className={st.cls + " font-medium"}>{st.label}</Badge>
                         {r.cancel_at_period_end && (
-                          <div className="text-[10px] text-amber-600 mt-1">
+                          <div className="text-[10px] text-destructive mt-1">
                             cancela no fim do período
                           </div>
                         )}
@@ -254,7 +298,7 @@ function AssinaturasPage() {
                           ? new Date(r.current_period_end).toLocaleDateString("pt-BR")
                           : "—"}
                         {r.trial_ends_at && r.status === "trialing" && (
-                          <div className="text-[10px] text-blue-600">
+                          <div className="text-[10px] text-muted-foreground">
                             trial até {new Date(r.trial_ends_at).toLocaleDateString("pt-BR")}
                           </div>
                         )}
@@ -284,6 +328,35 @@ function AssinaturasPage() {
   );
 }
 
+function RenewalList({ title, hint, rows, alert }: { title: string; hint: string; rows: Row[]; alert?: boolean }) {
+  return (
+    <Card className={`p-4 ${alert ? "border-destructive/40" : ""}`}>
+      <p className="text-sm font-bold">{title} <span className="text-muted-foreground">({rows.length})</span></p>
+      <p className="text-xs text-muted-foreground">{hint}</p>
+      {rows.length === 0 ? (
+        <p className="mt-3 text-xs text-muted-foreground">Nenhuma.</p>
+      ) : (
+        <ul className="mt-3 divide-y text-sm">
+          {rows.slice(0, 6).map((r) => {
+            const d = daysUntil(r.current_period_end);
+            return (
+              <li key={r.id} className="flex items-center justify-between gap-2 py-2">
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{r.company?.nome ?? "—"}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">{r.plan?.nome ?? "—"} · {r.company?.email_corporativo ?? "sem e-mail"}</div>
+                </div>
+                <span className={`shrink-0 text-xs font-semibold ${alert ? "text-destructive" : "text-muted-foreground"}`}>
+                  {d === null ? "—" : d < 0 ? `há ${-d} dia(s)` : d === 0 ? "hoje" : `em ${d} dia(s)`}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
 function Stat({
   label,
   value,
@@ -296,10 +369,10 @@ function Stat({
   alert?: boolean;
 }) {
   return (
-    <Card className={`p-4 ${alert ? "border-amber-300 bg-amber-500/[.04]" : ""}`}>
+    <Card className={`p-4 ${alert ? "border-destructive/40" : ""}`}>
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-1 flex items-center gap-2 text-2xl font-bold">
-        {value} {alert && <CircleAlert className="size-4 text-amber-600" />}
+        {value} {alert && <CircleAlert className="size-4 text-destructive" />}
       </div>
       {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
     </Card>
