@@ -178,7 +178,7 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
           const { count } = await db
             .from("account_deletion_request")
             .select("id", { count: "exact", head: true })
-            .eq("status", "pendente");
+            .eq("status", "pending");
           return count ?? 0;
         }, 0),
         safe(async () => {
