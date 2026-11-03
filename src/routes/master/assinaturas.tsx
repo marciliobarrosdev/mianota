@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -265,7 +266,7 @@ function AssinaturasPage() {
                     <tr key={r.id} className="hover:bg-muted/30">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2 min-w-0">
-                          <Building2 className="size-4 text-muted-foreground shrink-0" />
+                          <SubscriberAvatar name={r.company?.nome} src={r.company?.logo_url} size={28} />
                           <div className="min-w-0">
                             <div className="font-medium truncate">{r.company?.nome ?? "—"}</div>
                             {r.company?.email_corporativo && (
@@ -341,9 +342,12 @@ function RenewalList({ title, hint, rows, alert }: { title: string; hint: string
             const d = daysUntil(r.current_period_end);
             return (
               <li key={r.id} className="flex items-center justify-between gap-2 py-2">
-                <div className="min-w-0">
+                <div className="min-w-0 flex items-center gap-2">
+                  <SubscriberAvatar name={r.company?.nome} src={r.company?.logo_url} size={24} />
+                  <div className="min-w-0">
                   <div className="truncate font-medium">{r.company?.nome ?? "—"}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{r.plan?.nome ?? "—"} · {r.company?.email_corporativo ?? "sem e-mail"}</div>
+                  </div>
                 </div>
                 <span className={`shrink-0 text-xs font-semibold ${alert ? "text-destructive" : "text-muted-foreground"}`}>
                   {d === null ? "—" : d < 0 ? `há ${-d} dia(s)` : d === 0 ? "hoje" : `em ${d} dia(s)`}

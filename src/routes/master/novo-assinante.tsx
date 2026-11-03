@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Plus, Copy, Check } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
+import { SubscriberAvatarInput } from "@/components/master/subscriber-avatar";
 import { createCompanyWithOwner, listPlansBasic } from "@/lib/master/master.functions";
 
 export const Route = createFileRoute("/master/novo-assinante")({
@@ -55,6 +56,7 @@ function NovaEmpresa() {
   const [planId, setPlanId] = useState<string>("");
   const [trialDays, setTrialDays] = useState<number>(3);
   const [extra, setExtra] = useState(EMPTY_EXTRA);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const setX = (k: keyof typeof EMPTY_EXTRA) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -94,7 +96,7 @@ function NovaEmpresa() {
     setCreated(null);
     try {
       const r = await create({
-        data: { nome, tipoPessoa, cnpjCpf: documento, razaoSocial, nomeFantasia: tipoPessoa === "pj" ? nome : "", ownerEmail: cleanEmail, planId: planId || null, trialDays, password: password || null, ...extra },
+        data: { nome, tipoPessoa, cnpjCpf: documento, razaoSocial, nomeFantasia: tipoPessoa === "pj" ? nome : "", ownerEmail: cleanEmail, planId: planId || null, trialDays, password: password || null, logoUrl, ...extra },
       });
       if (r.warning) toast.warning(r.warning, { duration: 12000 });
       else toast.success("Assinante criado e liberada com trial");
@@ -108,6 +110,7 @@ function NovaEmpresa() {
       setDocumento("");
       setRazaoSocial("");
       setExtra(EMPTY_EXTRA);
+      setLogoUrl(null);
     } catch (e: any) {
       toast.error(e?.message || "Falha");
     } finally {
@@ -127,6 +130,7 @@ function NovaEmpresa() {
 
       <Card className="p-5">
         <form onSubmit={submit} className="space-y-5">
+          <SubscriberAvatarInput value={logoUrl} onChange={setLogoUrl} name={nome} />
           <div className="grid md:grid-cols-2 gap-4">
             <div><Label>Tipo de pessoa</Label><select className="w-full rounded-md border p-2 bg-background" value={tipoPessoa} onChange={e => {setTipoPessoa(e.target.value as "pf" | "pj"); setDocumento("");}}><option value="pf">Pessoa física</option><option value="pj">Pessoa jurídica</option></select></div>
             <div><Label>{tipoPessoa === "pf" ? "CPF (opcional)" : "CNPJ (opcional)"}</Label><Input value={documento} onChange={e => setDocumento((tipoPessoa === "pf" ? maskCpf : maskCnpj)(e.target.value))} /></div>

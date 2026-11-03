@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
 import { useServerFn } from "@tanstack/react-start";
 import {
   CalendarDays,
@@ -230,7 +231,7 @@ function MobileHeader({
   return (
     <header className="sticky top-0 z-40 flex h-[62px] items-center gap-3 border-b border-[color:var(--hairline)] bg-white/80 px-4 backdrop-blur-xl dark:bg-[color:var(--panel)]/80 md:hidden">
       <BrandLogo compact />
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="truncate font-display text-[15px] font-extrabold leading-none">
           {branding.name}
         </div>
@@ -239,6 +240,7 @@ function MobileHeader({
         </div>
       </div>
       <div className="ml-auto flex items-center gap-1">
+        {company && <SubscriberAvatar name={company.nome} src={(company as any).logo_url} size={30} />}
         <NotificationBell companyId={company?.id} />
         <ThemeToggle />
         <Sheet>
@@ -350,8 +352,9 @@ function Sidebar({
           <div className="truncate font-display text-[17px] font-extrabold tracking-[-.03em]">
             {branding.name}
           </div>
-          <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-            {company?.nome || "Sua empresa"}
+          <div className="mt-1 flex items-center gap-1.5 min-w-0">
+            {company && <SubscriberAvatar name={company.nome} src={(company as any).logo_url} size={18} />}
+            <span className="truncate text-[11px] text-muted-foreground">{company?.nome || "Sua empresa"}</span>
           </div>
         </div>
       </div>

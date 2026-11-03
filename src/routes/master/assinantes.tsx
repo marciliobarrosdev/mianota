@@ -47,6 +47,9 @@ import {
 import { MoreHorizontal, Download } from "lucide-react";
 import { daysUntil, downloadCsv, toCsv } from "@/lib/master/subscriber-rules";
 import { adminGrantCredits } from "@/lib/billing/credits.functions";
+import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
+import { SubscriberEditDialog } from "@/components/master/subscriber-edit-dialog";
+import { Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/master/assinantes")({
   head: brandedRouteHead("Assinantes"),
@@ -62,6 +65,7 @@ function EmpresasPage() {
   const details = useServerFn(getCompanyDetails);
   const grantCredits = useServerFn(adminGrantCredits);
   const [detail, setDetail] = useState<any | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -319,9 +323,12 @@ function EmpresasPage() {
           <ul className="divide-y">
             {rows.map((c) => (
               <li key={c.id} className="grid grid-cols-12 px-4 py-3 items-center text-sm">
-                <div className="col-span-3 min-w-0">
-                  <div className="font-medium truncate">{c.nome}</div>
-                  <div className="text-xs text-muted-foreground truncate">{c.slug}</div>
+                <div className="col-span-3 min-w-0 flex items-center gap-2.5">
+                  <SubscriberAvatar name={c.nome} src={c.logo_url} size={34} />
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{c.nome}</div>
+                    <div className="text-xs text-muted-foreground truncate">{c.slug}</div>
+                  </div>
                 </div>
                 <div className="col-span-2">
                   <StatusBadge s={c.status_cobranca} />
@@ -350,6 +357,7 @@ function EmpresasPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openDetails(c.id)}><Eye className="size-3.5" /> Ver ficha</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEditId(c.id)}><Pencil className="size-3.5" /> Editar assinante</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openTrial(c)}><CalendarClock className="size-3.5" /> Dar ou renovar trial</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => doGrantCredits(c)}><Sparkles className="size-3.5" /> Créditos de IA</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => doResetPassword(c)}><KeyRound className="size-3.5" /> Redefinir senha</DropdownMenuItem>
@@ -452,6 +460,16 @@ function EmpresasPage() {
             </div>
           ) : detail?.company ? (
             <div className="space-y-5 text-sm">
+              <div className="flex items-center gap-3">
+                <SubscriberAvatar name={detail.company.nome} src={detail.company.logo_url} size={56} />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold truncate">{detail.company.nome}</div>
+                  <div className="text-xs text-muted-foreground truncate">{detail.company.slug}</div>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => { const id = detail.company.id; setDetail(null); setEditId(id); }}>
+                  <Pencil className="size-3.5 mr-1" /> Editar
+                </Button>
+              </div>
               <Section title="Assinante">
                 <Field k={detail.company.tipo_pessoa === "pj" ? "Nome do negócio" : "Nome"} v={detail.company.nome} />
                 <Field k="Tipo de pessoa" v={detail.company.tipo_pessoa === "pj" ? "Pessoa jurídica" : "Pessoa física"} />
@@ -541,6 +559,8 @@ function EmpresasPage() {
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <SubscriberEditDialog companyId={editId} onClose={() => setEditId(null)} onSaved={() => void reload()} />
     </div>
   );
 }
