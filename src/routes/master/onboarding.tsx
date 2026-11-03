@@ -1,9 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
+  filterQueue,
+  isWaitingTooLong,
+  queueCsv,
+  waitingHours,
+  type QueuePeriod,
+} from "@/lib/master/onboarding-queue-rules";
+import {
   CheckCircle2,
+  Download,
   FlaskConical,
   LayoutDashboard,
   Link2,
@@ -84,6 +92,23 @@ function OnboardingQueuePage() {
   const [data, setData] = useState<Data | null>(null);
   const [channel, setChannel] = useState<Channel | null>(null);
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState("");
+  const [period, setPeriod] = useState<QueuePeriod>("all");
+  const visible = useMemo(
+    () => filterQueue((data?.rows ?? []) as Row[], search, period),
+    [data, search, period],
+  );
+  const longWaits = visible.filter((row) => isWaitingTooLong(row)).length;
+
+  function exportCsv() {
+    const csv = queueCsv(visible, (s) => STATUS[s]?.label ?? s);
+    const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ativacoes-pos-compra.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const refresh = useCallback(async () => {
     try {
@@ -155,10 +180,12 @@ function OnboardingQueuePage() {
           })}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/40 px-3 py-2.5 text-sm">
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm ${channel && !channel.activeProvider ? "border border-destructive/40 bg-destructive/10" : "bg-muted/40"}`}
+        >
           <div className="flex items-center gap-2">
             <CheckCircle2
-              className={`size-4 ${channel?.activeProvider ? "text-emerald-600" : "text-amber-600"}`}
+              className={`size-4 ${channel?.activeProvider ? "text-success" : "text-destructive"}`}
             />
             <span>
               Canal ativo:{" "}
@@ -205,18 +232,52 @@ function OnboardingQueuePage() {
         ))}
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nome, e-mail ou telefone"
+          className="max-w-xs"
+        />
+        {(
+          [
+            ["all", "Tudo"],
+            ["today", "Hoje"],
+            ["7d", "7 dias"],
+            ["30d", "30 dias"],
+          ] as const
+        ).map(([value, label]) => (
+          <Button
+            key={value}
+            size="sm"
+            variant={period === value ? "default" : "outline"}
+            onClick={() => setPeriod(value)}
+          >
+            {label}
+          </Button>
+        ))}
+        <Button size="sm" variant="outline" onClick={exportCsv} disabled={!visible.length}>
+          <Download className="size-4" /> CSV
+        </Button>
+        {longWaits > 0 && (
+          <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive">
+            {longWaits} esperando há mais de 24h
+          </span>
+        )}
+      </div>
+
       <SimulationCard />
 
       {!data ? (
         <Loader2 className="size-6 animate-spin text-primary" />
-      ) : data.rows.length === 0 ? (
+      ) : visible.length === 0 ? (
         <Card className="p-6 text-sm text-muted-foreground">
-          Nenhuma compra neste filtro. Quando uma compra for aprovada na Stripe, Kiwify, Cakto ou
-          PerfectPay, ela aparece aqui.
+          Nenhuma compra neste filtro. Quando uma compra for aprovada (InfinitePay, Stripe, Kiwify,
+          Cakto ou PerfectPay), ela aparece aqui.
         </Card>
       ) : (
         <div className="space-y-2">
-          {data.rows.map((row: Row) => (
+          {visible.map((row: Row) => (
             <OnboardingRow key={row.id} row={row} onChanged={refresh} />
           ))}
         </div>
@@ -248,6 +309,7 @@ function OnboardingRow({ row, onChanged }: { row: Row; onChanged: () => void }) 
   );
   const [preview, setPreview] = useState<unknown>(null);
   const status = STATUS[row.status] ?? { label: row.status, tone: "outline" as const };
+  const waiting = waitingHours(row);
   const locked = ["paired", "cancelled", "sending"].includes(row.status);
 
   async function act(kind: string, fn: () => Promise<unknown>) {
@@ -281,7 +343,16 @@ function OnboardingRow({ row, onChanged }: { row: Row; onChanged: () => void }) 
               ` · via ${row.channel_provider === "meta" ? "Meta" : "QR Code"}`}
           </p>
         </div>
-        <Badge variant={status.tone}>{status.label}</Badge>
+        <div className="flex items-center gap-2">
+          {waiting !== null && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${isWaitingTooLong(row) ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}
+            >
+              {waiting < 24 ? `há ${waiting}h` : `há ${Math.floor(waiting / 24)} dia(s)`}
+            </span>
+          )}
+          <Badge variant={status.tone}>{status.label}</Badge>
+        </div>
       </div>
       {row.status_detail && <p className="text-sm text-muted-foreground">{row.status_detail}</p>}
       {row.last_error && row.status === "failed" && (
