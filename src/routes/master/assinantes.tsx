@@ -80,7 +80,7 @@ function EmpresasPage() {
   async function reload() {
     setLoading(true);
     try {
-      const r = await list({ data: { search, page, tipoPessoa } });
+      const r = await list({ data: { search, page, tipoPessoa, status: statusFilter } });
       setRows(r.rows);
       setTotal(r.total);
       setPageSize(r.pageSize);
@@ -94,7 +94,28 @@ function EmpresasPage() {
 
   useEffect(() => {
     void reload();
-  }, [page, tipoPessoa]);
+  }, [page, tipoPessoa, statusFilter]);
+
+  function exportCsv() {
+    const csv = toCsv(
+      ["Nome", "Slug", "E-mail", "Status", "Trial até", "Criada", "Última atividade"],
+      rows.map((c) => [
+        c.nome,
+        c.slug,
+        c.email_corporativo ?? "",
+        c.status_cobranca,
+        c.trial_ate ? new Date(c.trial_ate).toLocaleDateString("pt-BR") : "",
+        new Date(c.created_at).toLocaleDateString("pt-BR"),
+        c.ultima_atividade ? new Date(c.ultima_atividade).toLocaleDateString("pt-BR") : "",
+      ]),
+    );
+    downloadCsv(`assinantes-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+  }
+
+  function pickStatus(v: string) {
+    setStatusFilter((cur) => (cur === v ? "" : v));
+    setPage(0);
+  }
 
   function impersonate(companyId: string) {
     try {
@@ -212,7 +233,7 @@ function EmpresasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[.16em] text-violet-500">
+          <p className="text-xs font-black uppercase tracking-[.16em] text-primary">
             sua base de clientes
           </p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight md:text-3xl">Assinantes</h1>
@@ -228,16 +249,11 @@ function EmpresasPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <CompanyStat icon={<Building2 />} label="Total" value={stats.total} />
-        <CompanyStat icon={<UsersRound />} label="Ativas" value={stats.active} tone="green" />
-        <CompanyStat icon={<Sparkles />} label="Em trial" value={stats.trial} tone="violet" />
-        <CompanyStat icon={<Pause />} label="Suspensas" value={stats.suspended} />
-        <CompanyStat
-          icon={<CircleAlert />}
-          label="Pedem atenção"
-          value={stats.attention}
-          tone="amber"
-        />
+        <button type="button" className="text-left" onClick={() => pickStatus("")}><CompanyStat icon={<Building2 />} label="Total" value={stats.total} active={statusFilter === ""} /></button>
+        <button type="button" className="text-left" onClick={() => pickStatus("ativo")}><CompanyStat icon={<UsersRound />} label="Ativas" value={stats.active} tone="green" active={statusFilter === "ativo"} /></button>
+        <button type="button" className="text-left" onClick={() => pickStatus("trial")}><CompanyStat icon={<Sparkles />} label="Em trial" value={stats.trial} tone="violet" active={statusFilter === "trial"} /></button>
+        <button type="button" className="text-left" onClick={() => pickStatus("suspenso")}><CompanyStat icon={<Pause />} label="Suspensas" value={stats.suspended} active={statusFilter === "suspenso"} /></button>
+        <button type="button" className="text-left" onClick={() => pickStatus("pendente")}><CompanyStat icon={<CircleAlert />} label="Pagamento pendente / trial acabando" value={stats.attention} tone="amber" active={statusFilter === "pendente"} /></button>
       </div>
 
       <Card className="grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
@@ -258,7 +274,7 @@ function EmpresasPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-display text-lg font-black">Lista de assinantes</h2>
-          <p className="text-xs text-muted-foreground">{total} resultado(s) para a busca atual</p>
+          <p className="text-xs text-muted-foreground">{total} resultado(s){statusFilter ? ` · filtro: ${statusFilter}` : ""}</p>
         </div>
         <form
           className="flex gap-2"
@@ -277,6 +293,9 @@ function EmpresasPage() {
           />
           <Button type="submit" variant="outline">
             Buscar
+          </Button>
+          <Button type="button" variant="outline" onClick={exportCsv} disabled={!rows.length}>
+            <Download className="size-4" /> CSV
           </Button>
         </form>
       </div>
@@ -309,6 +328,7 @@ function EmpresasPage() {
                 </div>
                 <div className="col-span-2 text-xs text-muted-foreground">
                   {c.trial_ate ? new Date(c.trial_ate).toLocaleDateString("pt-BR") : "—"}
+                  {c.trial_ate && c.status_cobranca === "trial" && (() => { const d = daysUntil(c.trial_ate); return d === null ? null : <div className={d <= 3 ? "font-semibold text-destructive" : ""}>{d < 0 ? "vencido" : `${d} dia(s)`}</div>; })()}
                 </div>
                 <div className="col-span-2 text-xs text-muted-foreground">
                   {new Date(c.created_at).toLocaleDateString("pt-BR")}
@@ -319,53 +339,27 @@ function EmpresasPage() {
                     : "—"}
                 </div>
                 <div className="col-span-2 flex justify-end gap-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openDetails(c.id)}
-                    title="Ver detalhes"
-                  >
-                    <Eye className="size-3.5" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => doResetPassword(c)}
-                    title="Redefinir senha do responsável"
-                  >
-                    <KeyRound className="size-3.5" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => doGrantCredits(c)}
-                    title="Créditos de IA"
-                  >
-                    <Sparkles className="size-3.5" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openTrial(c)}
-                    title="Dar ou renovar trial"
-                  >
-                    <CalendarClock className="size-3.5" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => toggleSuspend(c)}
-                    title={c.status_cobranca === "suspenso" ? "Reativar" : "Suspender"}
-                  >
-                    {c.status_cobranca === "suspenso" ? (
-                      <Play className="size-3.5" />
-                    ) : (
-                      <Pause className="size-3.5" />
-                    )}
-                  </Button>
                   <Button size="sm" onClick={() => impersonate(c.id)} title="Entrar como">
                     <LogIn className="size-3.5 mr-1" /> Entrar
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" aria-label="Mais ações">
+                        <MoreHorizontal className="size-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openDetails(c.id)}><Eye className="size-3.5" /> Ver ficha</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openTrial(c)}><CalendarClock className="size-3.5" /> Dar ou renovar trial</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => doGrantCredits(c)}><Sparkles className="size-3.5" /> Créditos de IA</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => doResetPassword(c)}><KeyRound className="size-3.5" /> Redefinir senha</DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/master/conversas"><ArrowRight className="size-3.5" /> Abrir Conversas</Link></DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => toggleSuspend(c)} className={c.status_cobranca === "suspenso" ? "" : "text-destructive"}>
+                        {c.status_cobranca === "suspenso" ? <><Play className="size-3.5" /> Reativar</> : <><Pause className="size-3.5" /> Suspender</>}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </li>
             ))}
