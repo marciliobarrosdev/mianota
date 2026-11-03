@@ -1,3 +1,4 @@
+import { useFinanceSummary } from "@/hooks/use-finance-summary";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -47,6 +48,7 @@ function PlannerPage() {
   );
   const [items, setItems] = useState<FinancePlannerItem[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const summary = useFinanceSummary(companyId, items);
   const [error, setError] = useState("");
   const range = useMemo(() => {
     // Inclui as semanas visíveis antes/depois do mês.
@@ -181,6 +183,7 @@ function PlannerPage() {
       ) : (
         <PlannerView
           items={items || []}
+          summary={summary}
           month={month}
           onMonthChange={setMonth}
           loading={loading}

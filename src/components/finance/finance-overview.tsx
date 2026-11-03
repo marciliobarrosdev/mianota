@@ -75,6 +75,7 @@ export function FinanceOverview({
   previous,
   actions,
   unreadCount,
+  summary,
 }: {
   data: FinanceOverviewData;
   period: FinancePeriod;
@@ -86,8 +87,28 @@ export function FinanceOverview({
   previous?: FinanceOverviewData | null;
   actions?: OverviewActions;
   unreadCount?: number;
+  summary?: import("@/lib/finance/summary-cards-rules").FinanceSummaryCards | null;
 }) {
   const { totals } = data;
+  const cards = summary
+    ? {
+        balance: summary.monthBalanceCents,
+        prevBalance: summary.previousMonthBalanceCents,
+        received: summary.receivedMtdCents,
+        prevReceived: summary.previousReceivedMtdCents,
+        spent: summary.spentMtdCents,
+        prevSpent: summary.previousSpentMtdCents,
+        leftover: summary.monthBalanceCents,
+      }
+    : {
+        balance: totals.netCents,
+        prevBalance: previous?.totals.netCents,
+        received: totals.receivedCents,
+        prevReceived: previous?.totals.receivedCents,
+        spent: totals.spentCents,
+        prevSpent: previous?.totals.spentCents,
+        leftover: totals.leftoverCents,
+      };
   const today = todayIso();
   const hour = Number(
     new Intl.DateTimeFormat("en-GB", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date()),
@@ -179,43 +200,35 @@ export function FinanceOverview({
         <Metric
           icon={Scale}
           label="Saldo do período"
-          value={money(totals.netCents)}
-          helper="entrou menos saiu"
-          tone={totals.netCents >= 0 ? "brand" : "rose"}
-          delta={delta(totals.netCents, previous?.totals.netCents)}
+          value={money(cards.balance)}
+          helper={summary ? "sobra do mês anterior + entrou − saiu" : "entrou menos saiu"}
+          tone={cards.balance >= 0 ? "brand" : "rose"}
+          delta={delta(cards.balance, cards.prevBalance)}
           highlight
         />
         <Metric
           icon={ArrowDownLeft}
           label="Entrou"
-          value={money(totals.receivedCents)}
-          helper={
-            totals.pendingIncomeCents
-              ? `+ ${money(totals.pendingIncomeCents)} a receber`
-              : "recebimentos confirmados"
-          }
+          value={money(cards.received)}
+          helper={summary ? "recebido do dia 1 até hoje" : "recebimentos confirmados"}
           tone="emerald"
-          delta={delta(totals.receivedCents, previous?.totals.receivedCents)}
+          delta={delta(cards.received, cards.prevReceived)}
         />
         <Metric
           icon={ArrowUpRight}
           label="Saiu"
-          value={money(totals.spentCents)}
-          helper={
-            totals.pendingExpenseCents
-              ? `+ ${money(totals.pendingExpenseCents)} a pagar`
-              : "pagamentos confirmados"
-          }
+          value={money(cards.spent)}
+          helper={summary ? "gasto do dia 1 até hoje" : "pagamentos confirmados"}
           tone="rose"
-          delta={delta(totals.spentCents, previous?.totals.spentCents)}
+          delta={delta(cards.spent, cards.prevSpent)}
           inverse
         />
         <Metric
           icon={PiggyBank}
           label="Sobra prevista"
-          value={money(totals.leftoverCents)}
-          helper={totals.leftoverCents >= 0 ? "após contas do período" : "faltará no período"}
-          tone={totals.leftoverCents >= 0 ? "cyan" : "amber"}
+          value={money(cards.leftover)}
+          helper={summary ? "sobra anterior + entradas − saídas até hoje" : totals.leftoverCents >= 0 ? "após contas do período" : "faltará no período"}
+          tone={cards.leftover >= 0 ? "cyan" : "amber"}
           highlight
         />
       </section>

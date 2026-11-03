@@ -1,3 +1,4 @@
+import { useFinanceSummary } from "@/hooks/use-finance-summary";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
@@ -74,6 +75,7 @@ function TransactionsPage() {
   const [period, setPeriod] = useState<FinancePeriod>(() => resolveFinancePeriod("this_month"));
   const [data, setData] = useState<Payload | null>(null);
   const [loading, setLoading] = useState(true);
+  const summary = useFinanceSummary(companyId, data);
   const [error, setError] = useState("");
   const [budgets, setBudgets] = useState<TxBudget[]>([]);
   const act = useServerFn(transactionAction);
@@ -211,6 +213,7 @@ function TransactionsPage() {
       ) : data ? (
         <TransactionsView
           items={data.items}
+          summary={summary}
           period={period}
           onPeriodChange={setPeriod}
           loading={loading}

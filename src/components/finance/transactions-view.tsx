@@ -114,6 +114,7 @@ export function TransactionsView({
   emptyState,
   actions,
   basePath = "/app",
+  summary,
 }: {
   items: FinanceTransactionDetail[];
   period: FinancePeriod;
@@ -122,6 +123,7 @@ export function TransactionsView({
   emptyState?: ReactNode;
   actions?: TransactionsActions;
   basePath?: "/app" | "/demo";
+  summary?: import("@/lib/finance/summary-cards-rules").FinanceSummaryCards | null;
 }) {
   const [filters, setFilters] = useState<TxFilters>(EMPTY_TX_FILTERS);
   const [sort, setSort] = useState<TxSort>("date_desc");
@@ -137,7 +139,10 @@ export function TransactionsView({
   const allTags = useMemo(() => Array.from(new Set(items.flatMap((i) => i.tags || []))).sort(), [items]);
   const payments = useMemo(() => Array.from(new Set(items.map((i) => i.paymentMethod || "nao_informado"))), [items]);
   const visible = useMemo(() => sortTx(filterTx(items, filters, today), sort), [items, filters, sort, today]);
-  const totals = useMemo(() => txTotals(visible), [visible]);
+  const listTotals = useMemo(() => txTotals(visible), [visible]);
+  const totals = summary
+    ? { incomeCents: summary.receivedMtdCents, expenseCents: summary.spentMtdCents, balanceCents: summary.last30BalanceCents, pendingCents: summary.overdueOpenCents, pendingCount: summary.overdueOpenCount }
+    : listTotals;
   const groups = useMemo(() => (sort.startsWith("date") ? groupTxByDay(visible) : [{ date: "", items: visible, netCents: 0, runningCents: 0 }]), [visible, sort]);
   const set = (patch: Partial<TxFilters>) => setFilters((c) => ({ ...c, ...patch }));
   const active = (Object.keys(EMPTY_TX_FILTERS) as (keyof TxFilters)[]).filter((k) => filters[k] !== EMPTY_TX_FILTERS[k]);
@@ -190,7 +195,7 @@ export function TransactionsView({
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <SummaryCard icon={<ArrowDownLeft className="size-4" />} label="Entradas" value={money(totals.incomeCents)} tone="text-emerald-700 dark:text-emerald-400" onClick={() => set({ type: filters.type === "receita" ? "all" : "receita" })} active={filters.type === "receita"} />
         <SummaryCard icon={<ArrowUpRight className="size-4" />} label="Saídas" value={money(totals.expenseCents)} tone="text-rose-700 dark:text-rose-400" onClick={() => set({ type: filters.type === "despesa" ? "all" : "despesa" })} active={filters.type === "despesa"} />
-        <SummaryCard icon={<Wallet className="size-4" />} label="Saldo do período" value={money(totals.balanceCents)} tone={totals.balanceCents >= 0 ? "text-[color:var(--brand-text)]" : "text-rose-700 dark:text-rose-400"} />
+        <SummaryCard icon={<Wallet className="size-4" />} label={summary ? "Saldo dos últimos 30 dias" : "Saldo do período"} value={money(totals.balanceCents)} tone={totals.balanceCents >= 0 ? "text-[color:var(--brand-text)]" : "text-rose-700 dark:text-rose-400"} />
         <SummaryCard icon={<Clock className="size-4" />} label="Pendentes" value={money(totals.pendingCents)} tone={totals.pendingCount ? "text-amber-700 dark:text-amber-400" : ""} onClick={() => set({ status: filters.status === "pendente" ? "all" : "pendente" })} active={filters.status === "pendente"} />
       </div>
 
