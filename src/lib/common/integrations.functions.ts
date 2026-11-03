@@ -97,6 +97,13 @@ export const saveIntegration = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await assertSuperAdmin(context.supabase);
     await saveIntegrationValues(data.provider, data.values, context.userId);
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    await writeMasterAudit({
+      actorId: context.userId,
+      action: "integration.save",
+      target: data.provider,
+      details: { fields: Object.keys(data.values).filter((k) => data.values[k]) },
+    });
     return describeIntegration(data.provider);
   });
 
@@ -106,6 +113,8 @@ export const deleteIntegration = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await assertSuperAdmin(context.supabase);
     await deleteIntegrationValues(data.provider);
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    await writeMasterAudit({ actorId: context.userId, action: "integration.delete", target: data.provider });
     return describeIntegration(data.provider);
   });
 

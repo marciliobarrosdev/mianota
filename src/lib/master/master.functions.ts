@@ -223,6 +223,12 @@ export const suspendCompany = createServerFn({ method: "POST" })
       .update({ status_cobranca: data.suspend ? "suspenso" : "ativo" })
       .eq("id", data.companyId);
     if (error) throw error;
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    await writeMasterAudit({
+      actorId: context.userId,
+      action: data.suspend ? "company.suspend" : "company.reactivate",
+      target: data.companyId,
+    });
     return { ok: true };
   });
 
@@ -661,12 +667,37 @@ export const setSuperAdminEmails = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await assertSuper(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.emails.length === 0) throw new Error("É preciso manter pelo menos um administrador.");
+    const [{ data: me }, { data: guard }, { data: prev }] = await Promise.all([
+      supabaseAdmin.auth.admin.getUserById(context.userId),
+      supabaseAdmin.from("remix_installation_guard").select("claimed_by").eq("id", true).maybeSingle(),
+      supabaseAdmin.from("app_config").select("super_admin_emails").eq("id", true).maybeSingle(),
+    ]);
+    const myEmail = me?.user?.email?.toLowerCase();
+    if (myEmail && !data.emails.includes(myEmail))
+      throw new Error("Você não pode remover o seu próprio acesso.");
+    if (guard?.claimed_by) {
+      const { data: owner } = await supabaseAdmin.auth.admin.getUserById(guard.claimed_by);
+      const ownerEmail = owner?.user?.email?.toLowerCase();
+      if (ownerEmail && !data.emails.includes(ownerEmail))
+        throw new Error("O dono da instalação não pode ser removido.");
+    }
     const { error } = await supabaseAdmin
       .from("app_config")
       .upsert({ id: true, super_admin_emails: data.emails });
     if (error) throw error;
     // A trigger do banco sincroniza as promoções e também revoga imediatamente
     // os super_admins removidos da allowlist, na mesma transação do upsert.
+    const before = ((prev?.super_admin_emails ?? []) as string[]).map((e) => e.toLowerCase());
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    await writeMasterAudit({
+      actorId: context.userId,
+      action: "admins.update",
+      details: {
+        added: data.emails.filter((e) => !before.includes(e)),
+        removed: before.filter((e) => !data.emails.includes(e)),
+      },
+    });
     return { ok: true };
   });
 
