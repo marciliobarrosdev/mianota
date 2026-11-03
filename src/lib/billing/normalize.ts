@@ -10,7 +10,7 @@ export type BillingEventType =
   | "unknown";
 
 export type NormalizedBillingEvent = {
-  provider: "kiwify" | "cakto" | "perfectpay" | "infinitepay";
+  provider: "kiwify" | "cakto" | "perfectpay" | "infinitepay" | "manual";
   /** Empresa já identificada pelo pedido (InfinitePay); dispensa busca por e-mail. */
   companyId?: string | null;
   eventType: BillingEventType;
