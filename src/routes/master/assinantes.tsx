@@ -550,7 +550,9 @@ function CompanyStat({
   label,
   value,
   tone = "default",
+  active = false,
 }: {
+  active?: boolean;
   icon: React.ReactNode;
   label: string;
   value: number;
@@ -558,12 +560,12 @@ function CompanyStat({
 }) {
   const colors = {
     default: "bg-muted text-muted-foreground",
-    green: "bg-emerald-500/10 text-emerald-700",
-    violet: "bg-violet-500/10 text-violet-600",
+    green: "bg-primary/10 text-primary",
+    violet: "bg-secondary text-secondary-foreground",
     amber: "bg-amber-500/10 text-amber-700",
   };
   return (
-    <Card className="flex items-center gap-3 p-4">
+    <Card className={`flex h-full items-center gap-3 p-4 transition hover:border-primary/50 ${active ? "border-primary ring-1 ring-primary" : ""}`}>
       <div
         className={`grid size-9 shrink-0 place-items-center rounded-xl [&>svg]:size-4 ${colors[tone]}`}
       >
