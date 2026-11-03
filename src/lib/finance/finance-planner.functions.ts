@@ -95,7 +95,7 @@ export const plannerItemAction = createServerFn({ method: "POST" })
       if (upErr) throw new Error(upErr.message);
       undo.push({ table: "fin_lancamento", id: row.id, before });
     } else {
-      const { data: rec, error } = await db.from("fin_recorrencia").select("id,descricao,valor_cents,tipo,categoria_id,conta_id,proxima_data,termina_em,ativo").eq("id", data.recurrenceId).eq("company_id", data.companyId).maybeSingle();
+      const { data: rec, error } = await db.from("fin_recorrencia").select("id,descricao,valor_cents,tipo,categoria_id,conta_id,proxima_data,termina_em,ativo,forma_pagamento").eq("id", data.recurrenceId).eq("company_id", data.companyId).maybeSingle();
       if (error || !rec) throw new Error("Conta recorrente não encontrada.");
       if (data.scope === "all" && data.action !== "pay") {
         const patch: Record<string, any> = {};
@@ -128,6 +128,7 @@ export const plannerItemAction = createServerFn({ method: "POST" })
             valor_cents: edits.valor_cents || rec.valor_cents,
             categoria_id: edits.categoria_id !== undefined ? edits.categoria_id : rec.categoria_id,
             conta_id: rec.conta_id,
+            forma_pagamento: rec.forma_pagamento || null,
             recorrencia_id: rec.id,
             status,
             vencimento: target,
@@ -226,6 +227,7 @@ const RecInput = z.object({
   startDate: iso,
   endDate: iso.nullish(),
   repeat: z.boolean(),
+  paymentMethod: z.enum(["pix", "cartao", "dinheiro", "transferencia", "boleto", "salario", "outro"], { message: "Informe a forma de pagamento." }),
 });
 
 /** Nova conta no calendário: avulsa ou recorrente. */
@@ -243,8 +245,8 @@ export const createPlannerBill = createServerFn({ method: "POST" })
       if (!cat) throw new Error("Categoria inválida.");
     }
     const { error } = data.repeat
-      ? await db.from("fin_recorrencia").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, frequencia: data.frequency, proxima_data: data.startDate, termina_em: data.endDate || null, ativo: true })
-      : await db.from("fin_lancamento").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, status: "pendente", vencimento: data.startDate, competencia: data.startDate, ocorrido_em: `${data.startDate}T12:00:00.000Z`, fonte: "manual", created_by: context.userId });
+      ? await db.from("fin_recorrencia").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, frequencia: data.frequency, proxima_data: data.startDate, termina_em: data.endDate || null, ativo: true, forma_pagamento: data.paymentMethod })
+      : await db.from("fin_lancamento").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, status: "pendente", forma_pagamento: data.paymentMethod, vencimento: data.startDate, competencia: data.startDate, ocorrido_em: `${data.startDate}T12:00:00.000Z`, fonte: "manual", created_by: context.userId });
     if (error) throw new Error(error.message);
     await refreshNotices(db, data.companyId, context.userId);
     return { ok: true };

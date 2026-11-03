@@ -1,3 +1,4 @@
+import { PAYMENT_METHOD_OPTION_LABELS } from "@/lib/finance/payment-method-rules";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, ChevronDown, Plus, Trash2, Upload, X } from "lucide-react";
@@ -212,11 +213,12 @@ export function ImportStatementDialog({
   categories: { id: string; name: string; type: string }[];
   accounts: { id: string; name: string }[];
   preview: (rows: StatementRow[]) => Promise<ImportPreviewRow[]>;
-  onImport: (input: { fileName: string; accountId: string | null; rows: (StatementRow & { categoryId: string | null })[] }) => Promise<void>;
+  onImport: (input: { fileName: string; accountId: string | null; paymentMethod: string; rows: (StatementRow & { categoryId: string | null })[] }) => Promise<void>;
 }) {
   const [fileName, setFileName] = useState("");
   const [rows, setRows] = useState<(ImportPreviewRow & { include: boolean })[]>([]);
   const [accountId, setAccountId] = useState("none");
+  const [payMethod, setPayMethod] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -280,6 +282,16 @@ export function ImportStatementDialog({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="min-w-48 flex-1">
+                <Label>Forma de pagamento *</Label>
+                <Select value={payMethod} onValueChange={setPayMethod}>
+                  <SelectTrigger className="mt-1" aria-invalid={!payMethod}><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PAYMENT_METHOD_OPTION_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {!payMethod && <p className="mt-1 text-destructive">Informe a forma de pagamento</p>}
+              </div>
               <div className="text-muted-foreground"><strong className="text-foreground">{fileName}</strong> · {rows.length} linhas{dups ? ` · ${dups} já existem (desmarcadas)` : ""}</div>
             </div>
             <div className="max-h-[50vh] overflow-auto rounded-xl border border-border">
@@ -316,11 +328,11 @@ export function ImportStatementDialog({
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={reset}>Trocar arquivo</Button>
                 <Button
-                  disabled={busy || !chosen.length || chosen.some((r) => !r.description.trim())}
+                  disabled={busy || !payMethod || !chosen.length || chosen.some((r) => !r.description.trim())}
                   onClick={async () => {
                     setBusy(true);
                     try {
-                      await onImport({ fileName, accountId: accountId === "none" ? null : accountId, rows: chosen.map(({ include: _i, duplicate: _d, ...r }) => ({ ...r, description: r.description.trim() })) });
+                      await onImport({ fileName, accountId: accountId === "none" ? null : accountId, paymentMethod: payMethod, rows: chosen.map(({ include: _i, duplicate: _d, ...r }) => ({ ...r, description: r.description.trim() })) });
                       reset();
                       onOpenChange(false);
                     } finally {

@@ -1803,6 +1803,7 @@ export type Database = {
           conta_id: string | null
           created_at: string
           descricao: string
+          forma_pagamento: Database["public"]["Enums"]["fin_forma"] | null
           frequencia: string
           id: string
           proxima_data: string
@@ -1818,6 +1819,7 @@ export type Database = {
           conta_id?: string | null
           created_at?: string
           descricao: string
+          forma_pagamento?: Database["public"]["Enums"]["fin_forma"] | null
           frequencia: string
           id?: string
           proxima_data: string
@@ -1833,6 +1835,7 @@ export type Database = {
           conta_id?: string | null
           created_at?: string
           descricao?: string
+          forma_pagamento?: Database["public"]["Enums"]["fin_forma"] | null
           frequencia?: string
           id?: string
           proxima_data?: string
@@ -4964,6 +4967,7 @@ export type Database = {
         | "dinheiro"
         | "transferencia"
         | "outro"
+        | "salario"
       fin_status: "pendente" | "pago" | "atrasado" | "cancelado"
       fin_tipo: "receita" | "despesa"
       stage_tipo: "normal" | "ganho" | "perda"
@@ -5112,6 +5116,7 @@ export const Constants = {
         "dinheiro",
         "transferencia",
         "outro",
+        "salario",
       ],
       fin_status: ["pendente", "pago", "atrasado", "cancelado"],
       fin_tipo: ["receita", "despesa"],

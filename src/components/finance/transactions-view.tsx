@@ -646,6 +646,7 @@ function EditDialog({
   const [date, setDate] = useState(item.date);
   const [categoryId, setCategoryId] = useState(item.categoryId || "none");
   const [paymentMethod, setPaymentMethod] = useState(item.paymentMethod || "none");
+  const [payError, setPayError] = useState(false);
   const [note, setNote] = useState(item.note || "");
   const [learn, setLearn] = useState(true);
   const [tags, setTags] = useState<string[]>(item.tags || []);
@@ -656,6 +657,7 @@ function EditDialog({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!amountCents || !description.trim()) return;
+    if (paymentMethod === "none") { setPayError(true); return; }
     onSave({
       description: description.trim(),
       merchant: merchant.trim() || null,
@@ -696,14 +698,15 @@ function EditDialog({
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
             </div>
             <div className="space-y-1">
-              <Label>Forma de pagamento</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label>Forma de pagamento *</Label>
+              <Select value={paymentMethod} onValueChange={(v) => { setPaymentMethod(v); setPayError(false); }}>
+                <SelectTrigger aria-invalid={payError}><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Não informada</SelectItem>
+                  {paymentMethod === "none" && <SelectItem value="none" disabled>Selecione</SelectItem>}
                   {Object.entries(PAYMENT_METHOD_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {payError && <p className="text-xs text-destructive">Informe a forma de pagamento</p>}
             </div>
             <div className="space-y-1 sm:col-span-2">
               <Label>Categoria</Label>

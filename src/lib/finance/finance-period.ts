@@ -144,11 +144,12 @@ export function summarizeFinanceDay(
 }
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  pix: "Pix",
-  cartao: "Cartão",
+  pix: "PIX",
+  cartao: "Cartão de Crédito",
   dinheiro: "Dinheiro",
   transferencia: "Transferência",
   boleto: "Boleto",
+  salario: "Salário",
   outro: "Outro",
 };
 

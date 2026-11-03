@@ -1,3 +1,4 @@
+import { intentNeedsPayment, isPaymentMethod, parsePaymentMethod, PAYMENT_QUESTION_WHATSAPP, paymentMethodLabel } from "@/lib/finance/payment-method-rules";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOVABLE_AI_MODEL } from "@/lib/ai/lovable-ai-config";
 
@@ -20,7 +21,7 @@ type Draft = {
   categoryName?: string | null;
   accountId?: string | null;
   accountName?: string | null;
-  paymentMethod?: "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto" | "outro" | null;
+  paymentMethod?: "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto" | "salario" | "outro" | null;
   paymentStatus?: "paid" | "pending" | null;
   date?: string | null;
   frequency?: "semanal" | "quinzenal" | "mensal" | "anual" | null;
@@ -94,7 +95,7 @@ function normalize(value: unknown): Draft {
     accountId: uuid(raw.accountId),
     accountName: text(raw.accountName, 120),
     paymentMethod:
-      method && ["pix", "cartao", "dinheiro", "transferencia", "boleto", "outro"].includes(method)
+      method && isPaymentMethod(method)
         ? (method as Draft["paymentMethod"])
         : null,
     paymentStatus: status === "paid" || status === "pending" ? status : null,
@@ -174,6 +175,12 @@ function resolve(draft: Draft, context: FinanceContext) {
 }
 
 function missing(draft: Draft) {
+  const base = missingBase(draft);
+  if (intentNeedsPayment(draft.intent) && !isPaymentMethod(draft.paymentMethod)) base.push("payment");
+  return base;
+}
+
+function missingBase(draft: Draft): string[] {
   if (draft.intent === "unknown") return ["intent"];
   if (draft.intent === "query_summary") return [];
   if (draft.intent === "create_budget")
@@ -207,6 +214,7 @@ function missing(draft: Draft) {
 }
 
 function question(field: string, context: FinanceContext) {
+  if (field === "payment") return PAYMENT_QUESTION_WHATSAPP;
   if (field === "intent")
     return "O que você quer fazer: registrar um gasto, uma receita, criar um orçamento ou uma meta?";
   if (field === "summary")
@@ -246,7 +254,7 @@ function preview(draft: Draft) {
       : "",
     draft.categoryName ? `Categoria: ${draft.categoryName}` : "",
     draft.accountName ? `Conta: ${draft.accountName}` : "",
-    draft.paymentMethod ? `Pagamento: ${draft.paymentMethod}` : "",
+    draft.paymentMethod ? `Pagamento: ${paymentMethodLabel(draft.paymentMethod)}` : "",
     draft.frequency ? `Frequência: ${draft.frequency}` : "",
     draft.date ? `Data: ${new Date(`${draft.date}T12:00:00`).toLocaleDateString("pt-BR")}` : "",
   ].filter(Boolean);
@@ -300,6 +308,7 @@ REGRAS:
 - pedido de saldo/resumo/quanto gastei = query_summary.
 - Em imagem, leia estabelecimento, total e data quando estiverem legíveis. Se não estiver seguro, deixe null.
 - categoryId/accountId só podem vir do CONTEXTO REAL.
+- paymentMethod é obrigatório em gastos, receitas, contas e recorrências: use somente pix, cartao (cartão de crédito), dinheiro, transferencia, boleto, salario ou outro. Preencha apenas se a pessoa disser ou o comprovante mostrar; nunca invente — deixe null para a MIA perguntar.
 - accountName só pode receber o nome exato de uma conta do CONTEXTO REAL. Marca de cartão ou banco citada apenas como meio de pagamento não é uma conta cadastrada: use paymentMethod e deixe accountName/accountId nulos.
 - Se a pessoa pedir explicitamente uma conta que não existe no CONTEXTO REAL, preserve accountName e mantenha accountId nulo para o sistema perguntar antes de registrar.
 - Responda SOMENTE JSON válido.
@@ -457,6 +466,7 @@ async function execute(db: any, companyId: string, userId: string, command: any)
       conta_id: draft.accountId || null,
       frequencia: draft.frequency,
       proxima_data: nextDate,
+      forma_pagamento: draft.paymentMethod || null,
     });
     if (saved.error) throw new Error(saved.error.message);
     result = { message: `${draft.summary} foi programado para repetir ${draft.frequency}.` };
@@ -655,6 +665,8 @@ export async function handleFinanceWhatsapp(input: {
     const forced = rules.matchCategoryRule(input.message, profile.category_rules);
     if (forced && names.has(forced)) { interpreted.categoryId = forced; interpreted.categoryName = names.get(forced) || null; }
     draft = resolve(merge(previous, interpreted), context);
+    if (!isPaymentMethod(draft.paymentMethod))
+      draft.paymentMethod = parsePaymentMethod(input.message, { allowNumber: previous?.missing?.[0] === "payment" }) as any;
     if (!draft.date && ["record_expense", "record_income"].includes(draft.intent))
       draft.date = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
     if (!draft.type && draft.intent === "record_expense") draft.type = "despesa";

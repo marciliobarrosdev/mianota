@@ -7,6 +7,7 @@ import type { FinancePlannerItem } from "@/lib/finance/finance-dashboard.functio
 import type { PlannerExtras } from "@/lib/finance/finance-planner.functions";
 import { reportPeriod, shiftDate, type ReportPeriodKind } from "@/lib/finance/planner-rules";
 import { money } from "./finance-overview";
+import { PAYMENT_METHOD_OPTION_LABELS } from "@/lib/finance/payment-method-rules";
 
 export type PlannerActionRequest = {
   action: "pay" | "move" | "edit" | "delete";
@@ -186,23 +187,24 @@ export function RecurrencesPanel({ extras, onToggle }: { extras: PlannerExtras; 
 /** Formulário de nova conta (avulsa ou recorrente). */
 export function NewBillDialog({ open, onClose, categories, defaultDate, onCreate }: {
   open: boolean; onClose: () => void; categories: PlannerExtras["categories"]; defaultDate: string;
-  onCreate: (v: { title: string; amountCents: number; type: "receita" | "despesa"; categoryId: string | null; repeat: boolean; frequency: "semanal" | "quinzenal" | "mensal" | "anual"; startDate: string; endDate: string | null }) => Promise<void>;
+  onCreate: (v: { title: string; amountCents: number; type: "receita" | "despesa"; categoryId: string | null; repeat: boolean; frequency: "semanal" | "quinzenal" | "mensal" | "anual"; startDate: string; endDate: string | null; paymentMethod: string }) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [cents, setCents] = useState<number | null>(null);
   const [type, setType] = useState<"receita" | "despesa">("despesa");
   const [cat, setCat] = useState("");
   const [repeat, setRepeat] = useState(false);
+  const [pay, setPay] = useState("");
   const [frequency, setFrequency] = useState<"semanal" | "quinzenal" | "mensal" | "anual">("mensal");
   const [start, setStart] = useState(defaultDate);
   const [end, setEnd] = useState("");
   const [busy, setBusy] = useState(false);
   const submit = async () => {
-    if (!title.trim() || !cents) return;
+    if (!title.trim() || !cents || !pay) return;
     setBusy(true);
     try {
-      await onCreate({ title: title.trim(), amountCents: cents, type, categoryId: cat || null, repeat, frequency, startDate: start, endDate: repeat && end ? end : null });
-      setTitle(""); setCents(null); setRepeat(false); setEnd("");
+      await onCreate({ title: title.trim(), amountCents: cents, type, categoryId: cat || null, repeat, frequency, startDate: start, endDate: repeat && end ? end : null, paymentMethod: pay });
+      setTitle(""); setPay(""); setCents(null); setRepeat(false); setEnd("");
       onClose();
     } finally { setBusy(false); }
   };
@@ -230,6 +232,11 @@ export function NewBillDialog({ open, onClose, categories, defaultDate, onCreate
             <option value="">Sem categoria</option>
             {categories.filter((c) => c.type === type).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
+          <select className={field} value={pay} onChange={(e) => setPay(e.target.value)} aria-label="Forma de pagamento" required>
+            <option value="" disabled>Forma de pagamento *</option>
+            {Object.entries(PAYMENT_METHOD_OPTION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          {!pay && title.trim() && cents ? <p className="text-xs text-destructive">Informe a forma de pagamento</p> : null}
           <label className="flex items-center gap-2 text-sm font-bold">
             <input type="checkbox" checked={repeat} onChange={(e) => setRepeat(e.target.checked)} /> Repetir
           </label>

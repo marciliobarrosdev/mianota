@@ -1,0 +1,1 @@
+ALTER TYPE public.fin_forma ADD VALUE IF NOT EXISTS 'salario';

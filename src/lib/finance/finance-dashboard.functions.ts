@@ -580,7 +580,7 @@ export async function buildPlannerItems(db: any, companyId: string, first: strin
         .limit(3000),
       db
         .from("fin_recorrencia")
-        .select("id,descricao,valor_cents,tipo,proxima_data,frequencia,termina_em,categoria_id")
+        .select("id,descricao,valor_cents,tipo,proxima_data,frequencia,termina_em,categoria_id,forma_pagamento")
         .eq("company_id", companyId)
         .eq("ativo", true)
         .lte("proxima_data", last),
@@ -640,7 +640,7 @@ export async function buildPlannerItems(db: any, companyId: string, first: strin
             kind: "recorrencia",
             recurring: true,
             category: (categoryName.get(row.categoria_id) as string) || null,
-            paymentMethod: null,
+            paymentMethod: row.forma_pagamento || null,
             source: "recorrencia",
             note: `Repete ${row.frequencia || "mensal"}`,
             entryId: null,
@@ -672,7 +672,7 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
     return buildPlannerItems(db, data.companyId, data.first, data.last);
   });
 
-const PAYMENT_METHODS = new Set(["pix", "cartao", "dinheiro", "transferencia", "boleto", "outro"]);
+const PAYMENT_METHODS = new Set(["pix", "cartao", "dinheiro", "transferencia", "boleto", "salario", "outro"]);
 
 export const addFinanceTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -702,6 +702,7 @@ export const addFinanceTransaction = createServerFn({ method: "POST" })
       if (!description) throw new Error("Descrição não informada.");
       if (!Number.isSafeInteger(amountCents) || amountCents <= 0)
         throw new Error("Informe um valor válido.");
+      if (!PAYMENT_METHODS.has(String(input?.paymentMethod))) throw new Error("Informe a forma de pagamento.");
       return { ...input, companyId, description, amountCents };
     },
   )

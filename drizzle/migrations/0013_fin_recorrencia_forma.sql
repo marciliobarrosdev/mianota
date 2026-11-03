@@ -1,0 +1,1 @@
+ALTER TABLE public.fin_recorrencia ADD COLUMN IF NOT EXISTS forma_pagamento public.fin_forma;
