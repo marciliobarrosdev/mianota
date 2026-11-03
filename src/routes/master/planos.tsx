@@ -332,11 +332,11 @@ function PlanosPage() {
           Nenhum plano cadastrado.
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {plans.map((p) => (
             <Card
               key={p.id}
-              className={`p-5 flex flex-col gap-3 relative ${!p.ativo ? "opacity-60" : ""}`}
+              className={`p-5 flex h-full flex-col gap-3 relative ${!p.ativo ? "opacity-60" : ""}`}
             >
               {p.destaque && (
                 <div className="absolute -top-2 right-4 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">

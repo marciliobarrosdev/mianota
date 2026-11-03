@@ -29,6 +29,11 @@ import {
   testIntegration,
 } from "@/lib/common/integrations.functions";
 import { getMasterSetupProgress } from "@/lib/master/master-setup.functions";
+import {
+  checkoutStatus,
+  type CheckoutPlan,
+  type CheckoutStatus,
+} from "@/lib/billing/payment-checkout-rules";
 
 export const Route = createFileRoute("/master/pagamentos")({
   head: brandedRouteHead("Pagamentos"),
@@ -67,6 +72,16 @@ function PaymentsPage() {
 
   const stripe = integrations?.items.find((item) => item.provider === "stripe");
   const fieldStatus = (field: string) => stripe?.fields.find((item) => item.field === field);
+  const paymentPlans: CheckoutPlan[] = setup?.paymentPlans ?? [];
+  const stripeStatus = checkoutStatus("stripe", stripe, paymentPlans);
+  const ipStatus = checkoutStatus(
+    "infinitepay",
+    integrations?.items.find((item) => item.provider === "infinitepay"),
+    paymentPlans,
+  );
+  const activeNames = [ipStatus.active && "InfinitePay", stripeStatus.active && "Stripe"].filter(
+    Boolean,
+  ) as string[];
 
   async function saveStripe() {
     if (!Object.values(values).some((value) => value.trim())) {
@@ -134,7 +149,22 @@ function PaymentsPage() {
         />
       </section>
 
-      <InfinitePayCard integrations={integrations} onChanged={load} />
+      <div
+        className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${activeNames.length ? "border-success/40 bg-success/10" : "bg-muted/40"}`}
+      >
+        <Check className={`size-4 ${activeNames.length ? "text-success" : "text-muted-foreground"}`} />
+        {activeNames.length ? (
+          <span>
+            Recebendo pagamentos agora por: <strong>{activeNames.join(" e ")}</strong>
+          </span>
+        ) : (
+          <span className="text-muted-foreground">
+            Nenhum checkout está 100% ativo. Salve, teste e vincule a um plano ativo.
+          </span>
+        )}
+      </div>
+
+      <InfinitePayCard integrations={integrations} onChanged={load} plans={paymentPlans} />
 
       <section className="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
         <Card className="p-5 sm:p-6">
@@ -157,6 +187,7 @@ function PaymentsPage() {
                         ? "Salvo, falta testar"
                         : "Não configurado"}
                   </Badge>
+                  <ActiveCheckoutBadge status={stripeStatus} />
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Cartão dentro do fluxo, assinatura recorrente e liberação automática.
@@ -349,12 +380,23 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ActiveCheckoutBadge({ status }: { status: CheckoutStatus }) {
+  if (!status.active) return <Badge variant="secondary">{status.label}</Badge>;
+  return (
+    <Badge className="border-transparent bg-success text-success-foreground hover:bg-success">
+      <Check className="mr-1 size-3" /> {status.label}
+    </Badge>
+  );
+}
+
 function InfinitePayCard({
   integrations,
   onChanged,
+  plans,
 }: {
   integrations: Integrations | null;
   onChanged: () => Promise<void>;
+  plans: CheckoutPlan[];
 }) {
   const save = useServerFn(saveIntegration);
   const test = useServerFn(testIntegration);
@@ -406,6 +448,7 @@ function InfinitePayCard({
             <Badge variant={ip?.testOk ? "default" : ip?.configured ? "outline" : "secondary"}>
               {ip?.testOk ? "Testado" : ip?.configured ? "Salvo, falta testar" : "Não configurado"}
             </Badge>
+            <ActiveCheckoutBadge status={checkoutStatus("infinitepay", ip, plans)} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Pix e cartão pelo checkout da InfinitePay. Link 1 = Plano Basic, Link 2 = Plano Pro. Os
