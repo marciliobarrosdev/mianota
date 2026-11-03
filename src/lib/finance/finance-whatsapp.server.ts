@@ -308,6 +308,7 @@ REGRAS:
 - pedido de saldo/resumo/quanto gastei = query_summary.
 - Em imagem, leia estabelecimento, total e data quando estiverem legíveis. Se não estiver seguro, deixe null.
 - categoryId/accountId só podem vir do CONTEXTO REAL.
+- paymentMethod é obrigatório em gastos, receitas, contas e recorrências: use somente pix, cartao (cartão de crédito), dinheiro, transferencia, boleto, salario ou outro. Preencha apenas se a pessoa disser ou o comprovante mostrar; nunca invente — deixe null para a MIA perguntar.
 - accountName só pode receber o nome exato de uma conta do CONTEXTO REAL. Marca de cartão ou banco citada apenas como meio de pagamento não é uma conta cadastrada: use paymentMethod e deixe accountName/accountId nulos.
 - Se a pessoa pedir explicitamente uma conta que não existe no CONTEXTO REAL, preserve accountName e mantenha accountId nulo para o sistema perguntar antes de registrar.
 - Responda SOMENTE JSON válido.

@@ -702,6 +702,7 @@ export const addFinanceTransaction = createServerFn({ method: "POST" })
       if (!description) throw new Error("Descrição não informada.");
       if (!Number.isSafeInteger(amountCents) || amountCents <= 0)
         throw new Error("Informe um valor válido.");
+      if (!PAYMENT_METHODS.has(String(input?.paymentMethod))) throw new Error("Informe a forma de pagamento.");
       return { ...input, companyId, description, amountCents };
     },
   )

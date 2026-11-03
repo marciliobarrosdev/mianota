@@ -120,7 +120,8 @@ export const transactionAction = createServerFn({ method: "POST" })
           }
         }
         if (data.categoryId !== undefined) patch.categoria_id = data.categoryId || null;
-        if (data.paymentMethod !== undefined) patch.forma_pagamento = data.paymentMethod || null;
+        if (data.paymentMethod === null) throw new Error("Informe a forma de pagamento.");
+        if (data.paymentMethod !== undefined) patch.forma_pagamento = data.paymentMethod;
         if (data.note !== undefined) patch.observacao = data.note || null;
         if (data.tags !== undefined) {
           const { normalizeTags } = await import("@/lib/finance/transactions-rules");

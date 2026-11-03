@@ -15,7 +15,7 @@ export type FinanceCommandIntent =
   | "unknown";
 
 type FinanceType = "receita" | "despesa";
-type PaymentMethod = "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto" | "outro";
+type PaymentMethod = "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto" | "salario" | "outro";
 type PaymentStatus = "paid" | "pending";
 
 export type FinanceCommandDraft = {
@@ -394,6 +394,7 @@ REGRAS INEGOCIÁVEIS:
 - "todo mês/semana/ano" significa create_recurring.
 - Se o usuário pedir saldo, resumo, quanto gastou ou quanto entrou, use query_summary e queryPeriod today|week|month|all.
 - categoryId e accountId só podem vir do CONTEXTO REAL.
+- paymentMethod é obrigatório em gastos, receitas, contas e recorrências: use somente pix, cartao (cartão de crédito), dinheiro, transferencia, boleto, salario ou outro. Preencha apenas se a pessoa disser ou o comprovante mostrar; nunca invente — deixe null para a MIA perguntar.
 - accountName só pode receber o nome exato de uma conta do CONTEXTO REAL. Marca de cartão ou banco citada apenas como meio de pagamento não é uma conta cadastrada: nesse caso, use paymentMethod e deixe accountName/accountId nulos.
 - Se a pessoa pedir explicitamente uma conta que não existe no CONTEXTO REAL, preserve accountName e mantenha accountId nulo para o sistema perguntar antes de registrar.
 - Ao receber imagem ou PDF, leia somente dados legíveis como estabelecimento, total e data. Se houver dúvida, deixe o campo null para perguntar ao usuário.
