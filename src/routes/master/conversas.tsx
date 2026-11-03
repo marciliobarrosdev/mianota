@@ -2,7 +2,21 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
+import { dayLabel, isNearBottom, startsNewDay } from "@/lib/whatsapp/support-inbox-rules";
+
+type CompanyInfo = {
+  nome?: string;
+  nome_fantasia?: string;
+  email?: string | null;
+  logo_url?: string | null;
+};
+function companyOf(item: { company: CompanyInfo | CompanyInfo[] | null }): CompanyInfo | null {
+  return Array.isArray(item.company) ? (item.company[0] ?? null) : item.company;
+}
+
 import {
+  ArrowDown,
   ArrowLeft,
   Building2,
   CheckCheck,
@@ -41,8 +55,7 @@ interface Conversation {
   unread_count: number;
   last_message_at: string | null;
   last_message_preview: string | null;
-  company:
-    { nome?: string; nome_fantasia?: string } | { nome?: string; nome_fantasia?: string }[] | null;
+  company: CompanyInfo | CompanyInfo[] | null;
 }
 
 interface Message {
@@ -100,10 +113,21 @@ function SupportInboxPage() {
     const timer = window.setInterval(() => void load(activeId, true), 8000);
     return () => window.clearInterval(timer);
   }, [activeId, load]);
+  const [hasNew, setHasNew] = useState(false);
+  const lastActive = useRef<string | null>(null);
+  function scrollToBottom() {
+    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
+    setHasNew(false);
+  }
   useEffect(() => {
-    requestAnimationFrame(() =>
-      threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight }),
-    );
+    const el = threadRef.current;
+    if (!el) return;
+    const switched = lastActive.current !== activeId;
+    lastActive.current = activeId;
+    if (switched || isNearBottom(el.scrollTop, el.clientHeight, el.scrollHeight, 200)) {
+      requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight }));
+      setHasNew(false);
+    } else setHasNew(true);
   }, [data?.messages.length, activeId]);
 
   const conversations = useMemo(() => {
@@ -205,7 +229,7 @@ function SupportInboxPage() {
         </div>
       )}
 
-      <section className="grid min-h-[690px] overflow-hidden rounded-[24px] border bg-card shadow-sm lg:grid-cols-[380px_1fr]">
+      <section className="grid h-[calc(100dvh-7rem)] min-h-[480px] grid-rows-1 overflow-hidden rounded-[24px] border bg-card shadow-sm lg:grid-cols-[380px_1fr]">
         <aside className={`${activeId ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r`}>
           <div className="border-b p-4 space-y-3">
             <div className="relative">
@@ -253,7 +277,7 @@ function SupportInboxPage() {
           </div>
         </aside>
 
-        <div className={`${activeId ? "flex" : "hidden lg:flex"} min-w-0 flex-col`}>
+        <div className={`${activeId ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col`}>
           {active ? (
             <>
               <header className="flex min-h-[76px] items-center gap-3 border-b px-4 md:px-5">
@@ -264,13 +288,20 @@ function SupportInboxPage() {
                 >
                   <ArrowLeft className="size-5" />
                 </button>
-                <div className="size-10 shrink-0 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
-                  {initials(active.contact_name || active.phone_e164)}
-                </div>
+                <SubscriberAvatar
+                  name={companyName(active) || active.contact_name || active.phone_e164}
+                  src={companyOf(active)?.logo_url}
+                  size={40}
+                />
                 <div className="min-w-0 flex-1">
                   <strong className="block truncate">
                     {active.contact_name || formatPhone(active.phone_e164)}
                   </strong>
+                  {companyOf(active)?.email && (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {companyOf(active)?.email}
+                    </span>
+                  )}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     <span>{formatPhone(active.phone_e164)}</span>
                     {companyName(active) && (
@@ -285,19 +316,46 @@ function SupportInboxPage() {
                 </div>
                 <StatusPicker status={active.status} onChange={setStatus} />
               </header>
-              <div
-                ref={threadRef}
-                className="min-h-0 flex-1 overflow-y-auto bg-muted/25 p-4 md:p-6"
-              >
-                <div className="mx-auto max-w-3xl space-y-3">
-                  {messages.length ? (
-                    messages.map((message) => <Bubble key={message.id} message={message} />)
-                  ) : (
-                    <div className="py-20 text-center text-sm text-muted-foreground">
-                      As mensagens desta conversa aparecerão aqui.
-                    </div>
-                  )}
+              <div className="relative min-h-0 flex-1">
+                <div
+                  ref={threadRef}
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    if (isNearBottom(el.scrollTop, el.clientHeight, el.scrollHeight))
+                      setHasNew(false);
+                  }}
+                  className="absolute inset-0 overflow-y-auto overscroll-contain bg-muted/25 p-4 md:p-6"
+                >
+                  <div className="mx-auto max-w-3xl space-y-3">
+                    {messages.length ? (
+                      messages.map((message, index) => (
+                        <div key={message.id} className="space-y-3">
+                          {startsNewDay(messages[index - 1]?.created_at, message.created_at) && (
+                            <div className="flex justify-center pt-2">
+                              <span className="rounded-full bg-card px-3 py-1 text-[11px] font-semibold text-muted-foreground shadow-sm">
+                                {dayLabel(message.created_at)}
+                              </span>
+                            </div>
+                          )}
+                          <Bubble message={message} />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-20 text-center text-sm text-muted-foreground">
+                        As mensagens desta conversa aparecerão aqui.
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {hasNew && (
+                  <button
+                    type="button"
+                    onClick={scrollToBottom}
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-lg"
+                  >
+                    Novas mensagens <ArrowDown className="size-3.5" />
+                  </button>
+                )}
               </div>
               <footer className="border-t bg-card p-3 md:p-4">
                 <div className="mx-auto max-w-3xl">
@@ -389,9 +447,11 @@ function ConversationRow({
       className={`w-full border-b p-4 text-left transition-colors ${active ? "bg-primary/7" : "hover:bg-muted/50"}`}
     >
       <div className="flex gap-3">
-        <div className="size-10 shrink-0 rounded-full bg-muted grid place-items-center text-sm font-bold">
-          {initials(item.contact_name || item.phone_e164)}
-        </div>
+        <SubscriberAvatar
+          name={companyName(item) || item.contact_name || item.phone_e164}
+          src={companyOf(item)?.logo_url}
+          size={40}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <strong className="truncate text-sm">
