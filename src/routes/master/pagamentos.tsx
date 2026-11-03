@@ -29,6 +29,11 @@ import {
   testIntegration,
 } from "@/lib/common/integrations.functions";
 import { getMasterSetupProgress } from "@/lib/master/master-setup.functions";
+import {
+  checkoutStatus,
+  type CheckoutPlan,
+  type CheckoutStatus,
+} from "@/lib/billing/payment-checkout-rules";
 
 export const Route = createFileRoute("/master/pagamentos")({
   head: brandedRouteHead("Pagamentos"),
@@ -375,12 +380,23 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ActiveCheckoutBadge({ status }: { status: CheckoutStatus }) {
+  if (!status.active) return <Badge variant="secondary">{status.label}</Badge>;
+  return (
+    <Badge className="border-transparent bg-success text-success-foreground hover:bg-success">
+      <Check className="mr-1 size-3" /> {status.label}
+    </Badge>
+  );
+}
+
 function InfinitePayCard({
   integrations,
   onChanged,
+  plans,
 }: {
   integrations: Integrations | null;
   onChanged: () => Promise<void>;
+  plans: CheckoutPlan[];
 }) {
   const save = useServerFn(saveIntegration);
   const test = useServerFn(testIntegration);
