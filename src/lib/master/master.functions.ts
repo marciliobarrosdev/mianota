@@ -914,3 +914,82 @@ export const updateCompanyProfile = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/** Liberação do Super Administrador: ativa um plano na hora, sem cobrança. */
+export const releaseCompanyPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { companyId: string; planId: string; days?: number; confirmed: boolean; note?: string }) => ({
+    companyId: String(d.companyId),
+    planId: String(d.planId),
+    days: Number(d.days ?? 30),
+    confirmed: d.confirmed === true,
+    note: String(d.note ?? "").trim().slice(0, 500),
+  }))
+  .handler(async ({ context, data }) => {
+    await assertSuper(context.supabase, context.userId);
+    const { releaseConfirmationError, releaseDays, releaseUntil } = await import("@/lib/master/manual-release-rules");
+    const confirmError = releaseConfirmationError(data.confirmed);
+    if (confirmError) throw new Error(confirmError);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = supabaseAdmin as any;
+
+    const { data: plan, error: planError } = await admin
+      .from("plan").select("id, nome, slug, ativo, is_free, free_days").eq("id", data.planId).maybeSingle();
+    if (planError) throw new Error(planError.message);
+    if (!plan || !plan.ativo) throw new Error("Selecione um plano ativo.");
+
+    const { data: company } = await admin.from("company").select("id, nome, trial_ate").eq("id", data.companyId).maybeSingle();
+    if (!company) throw new Error("Assinante não encontrado.");
+    const { data: owner } = await admin.from("company_user").select("user_id")
+      .eq("company_id", data.companyId).eq("role", "owner").limit(1).maybeSingle();
+    if (!owner?.user_id) throw new Error("Assinante sem usuário responsável.");
+    const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(owner.user_id);
+    const email = (authUser?.user?.email ?? "").trim().toLowerCase();
+    if (!email) throw new Error("O responsável deste assinante não tem e-mail cadastrado.");
+
+    const days = releaseDays(plan, data.days);
+
+    if (plan.is_free) {
+      const { data: used, error: usedError } = await admin.from("free_plan_usage").select("email")
+        .or(`email.eq.${email},user_id.eq.${owner.user_id}`).limit(1);
+      if (usedError) throw new Error(usedError.message);
+      if (freePlanAlreadyUsed(used ?? [])) throw new Error("Esta conta já usou o plano gratuito. Escolha um plano pago.");
+      const until = releaseUntil(days, null);
+      const { error: subError } = await admin.from("subscription").upsert({
+        company_id: data.companyId, plan_id: plan.id, provider: "manual", buyer_email: email,
+        status: "trialing", current_period_end: until, updated_at: new Date().toISOString(),
+      }, { onConflict: "company_id" });
+      if (subError) throw new Error(subError.message);
+      const { error: cErr } = await admin.from("company").update({ status_cobranca: "trial", trial_ate: until }).eq("id", data.companyId);
+      if (cErr) throw new Error(cErr.message);
+      await admin.rpc("topup_plan_credits", { _company_id: data.companyId, _plan_slug: plan.slug });
+      const { error: markError } = await admin.from("free_plan_usage").insert({
+        email, user_id: owner.user_id, company_id: data.companyId, plan_id: plan.id, source: "master",
+      });
+      if (markError && markError.code !== "23505") throw new Error(markError.message);
+      const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+      await writeMasterAudit({ actorId: context.userId, action: "company.release_plan", target: data.companyId,
+        details: { plan: plan.slug, days, until, note: data.note || null, super_admin_release: true } });
+      return { ok: true, plan: plan.nome as string, until };
+    }
+
+    const { data: sub } = await admin.from("subscription").select("current_period_end, status")
+      .eq("company_id", data.companyId).maybeSingle();
+    const until = releaseUntil(days, sub?.status === "active" ? sub.current_period_end : null);
+    const { applyEvent } = await import("@/lib/billing/apply.server");
+    const key = `manual:${data.companyId}:${crypto.randomUUID()}`;
+    await applyEvent({
+      provider: "manual", companyId: data.companyId, eventType: "purchase_approved",
+      rawEventName: "liberacao_super_admin", buyerEmail: email, buyerName: company.nome ?? null, buyerPhone: null,
+      externalSubscriptionId: null, externalCustomerId: null, productRef: plan.id, amountCents: null, periodEnd: until,
+    } as any, key);
+    // Garante plano exato mesmo se o mapeamento por referência não casar.
+    const { error: subError } = await admin.from("subscription").update({ plan_id: plan.id, status: "active", current_period_end: until })
+      .eq("company_id", data.companyId);
+    if (subError) throw new Error(subError.message);
+    await admin.from("company").update({ status_cobranca: "ativo" }).eq("id", data.companyId);
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    await writeMasterAudit({ actorId: context.userId, action: "company.release_plan", target: data.companyId,
+      details: { plan: plan.slug, days, until, note: data.note || null, super_admin_release: true, event_key: key } });
+    return { ok: true, plan: plan.nome as string, until };
+  });
