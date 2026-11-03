@@ -50,6 +50,8 @@ import { adminGrantCredits } from "@/lib/billing/credits.functions";
 import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
 import { SubscriberEditDialog } from "@/components/master/subscriber-edit-dialog";
 import { Pencil } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
+import { ReleasePlanDialog } from "@/components/master/release-plan-dialog";
 import { personTypeForForm } from "@/lib/master/subscriber-identity-rules";
 
 export const Route = createFileRoute("/master/assinantes")({
@@ -378,6 +380,7 @@ function EmpresasPage() {
         )}
       </Card>
 
+      <ReleasePlanDialog company={releaseCompany} onClose={() => setReleaseCompany(null)} onDone={reload} />
       <Dialog open={!!trialCompany} onOpenChange={(open) => !open && setTrialCompany(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
