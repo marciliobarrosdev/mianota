@@ -78,6 +78,13 @@
       "when": 1793717804932,
       "tag": "0010_security_page_audit_and_event_key",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793725377510,
+      "tag": "0011_ai_openrouter_gemini",
+      "breakpoints": true
     }
   ]
 }

@@ -231,6 +231,7 @@ export async function processCentralFinanceWhatsapp(input: CentralInbound) {
       phone,
       message: input.message,
       imageDataUrl: input.imageDataUrl || null,
+      messageRef: input.providerMessageId ? ref : null,
     });
     await deliver(db, input, companyId, result.userId || userId, result.reply, ref, true);
     return { status: result.authorized ? "ok" : "not_linked" };
