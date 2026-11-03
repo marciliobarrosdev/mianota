@@ -434,6 +434,7 @@ export type Database = {
           buyer_email: string | null
           created_at: string
           error: string | null
+          event_key: string | null
           event_type: string | null
           external_id: string | null
           id: string
@@ -446,6 +447,7 @@ export type Database = {
           buyer_email?: string | null
           created_at?: string
           error?: string | null
+          event_key?: string | null
           event_type?: string | null
           external_id?: string | null
           id?: string
@@ -458,6 +460,7 @@ export type Database = {
           buyer_email?: string | null
           created_at?: string
           error?: string | null
+          event_key?: string | null
           event_type?: string | null
           external_id?: string | null
           id?: string
@@ -3232,6 +3235,36 @@ export type Database = {
             referencedColumns: ["company_id", "id"]
           },
         ]
+      }
+      master_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          target: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          target?: string | null
+        }
+        Relationships: []
       }
       mensagens: {
         Row: {
