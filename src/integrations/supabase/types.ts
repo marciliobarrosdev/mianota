@@ -1803,6 +1803,7 @@ export type Database = {
           conta_id: string | null
           created_at: string
           descricao: string
+          forma_pagamento: Database["public"]["Enums"]["fin_forma"] | null
           frequencia: string
           id: string
           proxima_data: string
@@ -1818,6 +1819,7 @@ export type Database = {
           conta_id?: string | null
           created_at?: string
           descricao: string
+          forma_pagamento?: Database["public"]["Enums"]["fin_forma"] | null
           frequencia: string
           id?: string
           proxima_data: string
@@ -1833,6 +1835,7 @@ export type Database = {
           conta_id?: string | null
           created_at?: string
           descricao?: string
+          forma_pagamento?: Database["public"]["Enums"]["fin_forma"] | null
           frequencia?: string
           id?: string
           proxima_data?: string
