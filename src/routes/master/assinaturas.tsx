@@ -102,7 +102,7 @@ function AssinaturasPage() {
     return { ...rev, trial };
   }, [rows]);
 
-  const renewals = useMemo(() => renewalBuckets(rows as any), [rows]);
+  const renewals = useMemo(() => renewalBuckets(rows), [rows]);
 
   function exportCsv() {
     const csv = toCsv(

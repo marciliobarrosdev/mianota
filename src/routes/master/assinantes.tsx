@@ -562,7 +562,7 @@ function CompanyStat({
     default: "bg-muted text-muted-foreground",
     green: "bg-primary/10 text-primary",
     violet: "bg-secondary text-secondary-foreground",
-    amber: "bg-amber-500/10 text-amber-700",
+    amber: "bg-destructive/10 text-destructive",
   };
   return (
     <Card className={`flex h-full items-center gap-3 p-4 transition hover:border-primary/50 ${active ? "border-primary ring-1 ring-primary" : ""}`}>
