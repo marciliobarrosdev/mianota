@@ -71,6 +71,13 @@
       "when": 1793309651000,
       "tag": "0009_restrict_plan_authenticated_read",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793717804932,
+      "tag": "0010_security_page_audit_and_event_key",
+      "breakpoints": true
     }
   ]
 }
