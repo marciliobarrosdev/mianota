@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
+import { subscriberDisplayName } from "@/lib/common/subscriber-display-rules";
 import { useServerFn } from "@tanstack/react-start";
 import {
   CalendarDays,
@@ -109,7 +110,7 @@ export function AppShell({
   const primary = branding.primary;
   const isAdmin = membership?.role === "owner" || membership?.role === "admin";
   const mainItems = getMainItems(branding.assistantName);
-  const userName = (email || "Você").split("@")[0];
+  const userName = subscriberDisplayName(company as any, email);
   const roleLabel =
     membership?.role === "owner"
       ? "Dono"
@@ -198,9 +199,9 @@ export function AppShell({
               {company && <CreditsBadge companyId={company.id} />}
               <NotificationBell companyId={company?.id} className="border border-border bg-card" />
               <ThemeToggle />
-              <div className="grid size-9 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-sm font-extrabold text-[color:var(--brand-text)] ring-1 ring-[color:var(--brand-soft-strong)]">
-                {userName.slice(0, 1).toUpperCase()}
-              </div>
+              <span title={email ? `${userName} · ${email}` : userName}>
+                <SubscriberAvatar name={userName} src={(company as any)?.logo_url} size={36} />
+              </span>
             </div>
           </div>
           <div className="mx-auto w-full max-w-[1440px] px-4 pb-28 pt-5 sm:px-6 md:pb-10 md:pt-7 lg:px-9">
@@ -218,7 +219,11 @@ function MobileHeader({
   isAdmin,
   isSuperAdmin,
   signOut,
+  userName,
+  email,
 }: {
+  userName: string;
+  email?: string | null;
   company: CompanyRow | null;
   isAdmin: boolean;
   isSuperAdmin?: boolean;
@@ -303,6 +308,13 @@ function MobileHeader({
               )}
             </nav>
             <div className="mt-6 border-t border-[color:var(--hairline)] pt-4">
+              <div className="mb-2 flex items-center gap-3 rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--panel-2)] p-2.5">
+                <SubscriberAvatar name={userName} src={(company as any)?.logo_url} size={36} className="shrink-0" />
+                <div className="min-w-0">
+                  <div className="truncate text-[13px] font-bold">{userName}</div>
+                  <div className="truncate text-[10px] text-muted-foreground" title={email ?? undefined}>{email}</div>
+                </div>
+              </div>
               <SheetClose asChild>
                 <button
                   type="button"
@@ -396,13 +408,11 @@ function Sidebar({
             />
           ))}
         <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--panel-2)] p-2.5">
-          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-[color:var(--brand-soft)] text-sm font-extrabold text-[color:var(--brand-text)]">
-            {userName.slice(0, 1).toUpperCase()}
-          </div>
+          <SubscriberAvatar name={userName} src={(company as any)?.logo_url} size={36} className="shrink-0" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-bold">{userName}</div>
-            <div className="truncate text-[10px] text-muted-foreground" title={email ?? undefined}>
-              {roleLabel}
+            <div className="truncate text-[10px] text-muted-foreground" title={email ?? roleLabel}>
+              {email || roleLabel}
             </div>
           </div>
           <button
