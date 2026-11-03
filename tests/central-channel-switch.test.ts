@@ -70,7 +70,7 @@ describe("RPC switch_central_channel endurecida", () => {
 });
 
 describe("backend testa o destino ao vivo antes da RPC", () => {
-  const src = readFileSync(join(import.meta.dir, "..", "src", "lib", "master-onboarding.functions.ts"), "utf8");
+  const src = readFileSync(join(import.meta.dir, "..", "src", "lib", "master", "master-onboarding.functions.ts"), "utf8");
   const handler = src.slice(src.indexOf("export const switchCentralChannel"), src.indexOf("export const saveMetaTemplateConfig"));
   test("Evolution exige estado open e Meta exige teste aprovado antes da RPC", () => {
     const rpc = handler.indexOf('rpc("switch_central_channel"');

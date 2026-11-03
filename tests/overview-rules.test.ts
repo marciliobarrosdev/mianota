@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildOverviewAlerts, greeting, pctChange, previousPeriod } from "../src/lib/overview-rules";
+import { buildOverviewAlerts, greeting, pctChange, previousPeriod } from "@/lib/finance/overview-rules";
 
 const money = (c: number) => `R$${(c / 100).toFixed(2)}`;
 

@@ -17,12 +17,12 @@ expect(
   "Checklist deve explicar a autoconferência",
 );
 expect(
-  "src/lib/master-setup.functions.ts",
+  "src/lib/master/master-setup.functions.ts",
   /plansWithCheckout/,
   "Checklist deve conferir checkout por plano",
 );
 expect(
-  "src/lib/master-setup.functions.ts",
+  "src/lib/master/master-setup.functions.ts",
   /platform_support_channel/,
   "Checklist deve conferir o WhatsApp de suporte",
 );

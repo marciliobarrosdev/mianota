@@ -6,7 +6,7 @@ const app = read("../src/routes/app.tsx");
 const entrar = read("../src/routes/entrar.tsx");
 const master = read("../src/routes/master.tsx");
 const superadmin = read("../src/routes/superadmin.tsx");
-const installationClient = read("../src/lib/remix-installation-client.ts");
+const installationClient = read("../src/lib/common/remix-installation-client.ts");
 
 const indexOf = (source, needle) => {
   const index = source.indexOf(needle);

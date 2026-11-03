@@ -35,19 +35,19 @@ export const Route = createFileRoute("/api/public/push/dispatch")({
           .select("push_categories,quiet_start,quiet_end,reminder_lead_days,daily_summary,whatsapp_enabled,whatsapp_categories")
           .eq("user_id", n.recipient_user_id)
           .maybeSingle();
-        const { shouldSendPush } = await import("@/lib/notification-rules");
+        const { shouldSendPush } = await import("@/lib/finance/notification-rules");
         const hour = Number(
           new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", hour: "numeric", hourCycle: "h23" }).format(new Date()),
         );
-        const { dispatchNotificationWhatsapp } = await import("@/lib/notification-whatsapp.server");
+        const { dispatchNotificationWhatsapp } = await import("@/lib/finance/notification-whatsapp.server");
         const whatsapp = await dispatchNotificationWhatsapp(admin, n, pref, hour).catch(() => "error");
         if (!shouldSendPush(n, pref, hour)) return Response.json({ sent: 0, skipped: "preference", whatsapp });
 
-        const { sendPushToUser } = await import("@/lib/web-push.server");
+        const { sendPushToUser } = await import("@/lib/finance/web-push.server");
         const result = await sendPushToUser(admin, n.company_id, n.recipient_user_id, {
           title: n.title,
           body: n.body,
-          url: (await import("@/lib/notification-rules")).notificationTarget(n),
+          url: (await import("@/lib/finance/notification-rules")).notificationTarget(n),
           tag: n.id,
           notificationId: n.id,
         });

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Mic, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LoadingBlocks } from "@/components/marcia/page-kit";
+import { LoadingBlocks } from "@/components/mia/page-kit";
 
 export function FinanceLoading() {
   return <LoadingBlocks count={5} />;

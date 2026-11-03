@@ -46,14 +46,14 @@ import {
   Wallet,
 } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
-import { listAuditLog, exportLgpd } from "@/lib/security.functions";
-import { patchCachedAppCompany } from "@/lib/app-access-cache";
-import { PageHeader } from "@/components/marcia/page-kit";
+import { listAuditLog, exportLgpd } from "@/lib/master/security.functions";
+import { patchCachedAppCompany } from "@/lib/common/app-access-cache";
+import { PageHeader } from "@/components/mia/page-kit";
 import { useBrand } from "@/contexts/brand-context";
-import { saveSubscriberContact } from "@/lib/subscriber-profile.functions";
-import { saveAssistantProfile } from "@/lib/assistant-profile.functions";
-import { downloadMonthlyReport } from "@/lib/monthly-report.functions";
-import { sendTestPush } from "@/lib/push.functions";
+import { saveSubscriberContact } from "@/lib/billing/subscriber-profile.functions";
+import { saveAssistantProfile } from "@/lib/ai/assistant-profile.functions";
+import { downloadMonthlyReport } from "@/lib/finance/monthly-report.functions";
+import { sendTestPush } from "@/lib/finance/push.functions";
 import {
   getAccountOverview,
   getChannelStatus,
@@ -61,9 +61,9 @@ import {
   requestAccountDeletion,
   cancelAccountDeletion,
   exportTransactionsCsv,
-} from "@/lib/settings.functions";
-import { useMarciaNotifications } from "@/hooks/use-marcia-notifications";
-import { normalizeAssistantProfile, type AssistantProfile } from "@/lib/assistant-profile-rules";
+} from "@/lib/finance/settings.functions";
+import { useMarciaNotifications } from "@/hooks/use-mia-notifications";
+import { normalizeAssistantProfile, type AssistantProfile } from "@/lib/ai/assistant-profile-rules";
 import {
   auditGroup,
   auditLabel,
@@ -72,8 +72,8 @@ import {
   passwordStrength,
   planValidity,
   type SettingsTab,
-} from "@/lib/settings-rules";
-import { PHONE_INPUT_PROPS, brazilianPhoneError, maskBrazilianPhoneInput } from "@/lib/phone";
+} from "@/lib/finance/settings-rules";
+import { PHONE_INPUT_PROPS, brazilianPhoneError, maskBrazilianPhoneInput } from "@/lib/common/phone";
 
 export const Route = createFileRoute("/app/configuracoes")({
   head: brandedRouteHead("Configurações"),

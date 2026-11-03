@@ -16,7 +16,7 @@ import {
   Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { listMasterSubscriptions } from "@/lib/master.functions";
+import { listMasterSubscriptions } from "@/lib/master/master.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/master/assinaturas")({

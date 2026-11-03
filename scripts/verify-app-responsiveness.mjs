@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const router = read("src/router.tsx");
-const access = read("src/lib/app-access-cache.ts");
-const masterAccess = read("src/lib/master-access-cache.ts");
+const access = read("src/lib/common/app-access-cache.ts");
+const masterAccess = read("src/lib/master/master-access-cache.ts");
 const masterRoute = read("src/routes/master.tsx");
 const appRoute = read("src/routes/app.tsx");
 const conversations = read("src/routes/app/conversas.tsx");

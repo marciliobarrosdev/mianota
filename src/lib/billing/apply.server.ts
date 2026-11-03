@@ -154,7 +154,7 @@ export async function applyEvent(evt: NormalizedBillingEvent, eventKey: string) 
   });
   // Onboarding de WhatsApp: depois da ativação e dos créditos; nunca derruba a compra.
   if (evt.eventType === "purchase_approved" || evt.eventType === "subscription_renewed") {
-    const { notifyPaymentConfirmed } = await import("@/lib/notification-jobs.server");
+    const { notifyPaymentConfirmed } = await import("@/lib/finance/notification-jobs.server");
     await notifyPaymentConfirmed(supabase, companyId, evt.periodEnd ?? null, `${evt.provider}:${eventKey}`);
     await startOnboarding(evt, eventKey, companyId);
   }
@@ -167,7 +167,7 @@ async function startOnboarding(
   companyId: string | null,
 ) {
   try {
-    const { enqueuePurchaseOnboarding } = await import("@/lib/purchase-onboarding.server");
+    const { enqueuePurchaseOnboarding } = await import("@/lib/whatsapp/purchase-onboarding.server");
     await enqueuePurchaseOnboarding({
       source: evt.provider,
       eventKey: `${evt.provider}:${eventKey}`,

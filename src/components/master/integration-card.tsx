@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { isValidHttpUrl } from "@/lib/masks";
+import { isValidHttpUrl } from "@/lib/common/masks";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ import {
   getIntegrationsOverview,
   saveIntegration,
   testIntegration,
-} from "@/lib/integrations.functions";
+} from "@/lib/common/integrations.functions";
 import { brandedRouteHead } from "@/config/brand";
 
 type Overview = Awaited<ReturnType<typeof getIntegrationsOverview>>;

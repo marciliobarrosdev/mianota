@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { brandedRouteHead } from "@/config/brand";
-import { getMasterSetupProgress, type MasterSetupCheck } from "@/lib/master-setup.functions";
+import { getMasterSetupProgress, type MasterSetupCheck } from "@/lib/master/master-setup.functions";
 
 export const Route = createFileRoute("/master/checklist")({
   head: brandedRouteHead("Comece aqui"),

@@ -21,7 +21,7 @@ import {
 import { toast } from "sonner";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
-import { MarciaAiWorking, PageHeader } from "@/components/marcia/page-kit";
+import { MiaAiWorking, PageHeader } from "@/components/mia/page-kit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,14 +37,14 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/masks";
+import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
 import {
   PHONE_INPUT_PROPS,
   brazilianPhoneError,
   maskBrazilianPhoneInput,
   normalizeValidBrazilianPhone,
-} from "@/lib/phone";
-import { polishServiceDescription } from "@/lib/service-description.functions";
+} from "@/lib/common/phone";
+import { polishServiceDescription } from "@/lib/master/service-description.functions";
 
 type Service = {
   id: string;
@@ -1119,7 +1119,7 @@ function ServiceDialog({
               {organizing ? "Organizando…" : "Organizar com IA"}
             </Button>
           </div>
-          <MarciaAiWorking active={organizing} />
+          <MiaAiWorking active={organizing} />
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm font-bold">
               Duração (min)

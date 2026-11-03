@@ -31,7 +31,7 @@ import {
   getMasterWhatsappOverview,
   saveMetaSupportWhatsapp,
   startSupportQr,
-} from "@/lib/master-whatsapp.functions";
+} from "@/lib/whatsapp/master-whatsapp.functions";
 
 type Overview = Awaited<ReturnType<typeof getMasterWhatsappOverview>>;
 type Mode = "evolution" | "meta";

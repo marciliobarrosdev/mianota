@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getPlanUsage } from "@/lib/plan.functions";
+import { getPlanUsage } from "@/lib/billing/plan.functions";
 import {
   featuresFor,
   normalizePlanSlug,
   type PlanFeatures,
   type PlanSlug,
-} from "@/lib/plan-features";
+} from "@/lib/billing/plan-features";
 
 export type PlanUsageState = {
   loading: boolean;

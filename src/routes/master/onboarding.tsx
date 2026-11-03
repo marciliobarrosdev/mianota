@@ -21,7 +21,7 @@ import {
   brazilianPhoneError,
   isValidBrazilianPhone,
   maskBrazilianPhoneInput,
-} from "@/lib/phone";
+} from "@/lib/common/phone";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ import {
   retryOnboarding,
   simulatePurchaseMessage,
   updateOnboardingPhone,
-} from "@/lib/master-onboarding.functions";
+} from "@/lib/master/master-onboarding.functions";
 
 export const Route = createFileRoute("/master/onboarding")({
   head: brandedRouteHead("Ativação pós-compra"),

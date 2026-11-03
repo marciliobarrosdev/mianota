@@ -11,13 +11,13 @@ import {
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportLovableError } from "@/lib/common/lovable-error-reporting";
 import { PwaInstallGuide } from "@/components/pwa-install-guide";
 import { BrandProvider } from "@/components/brand-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { supportConfigured, supportWhatsappUrl, supportWhatsappDisplay } from "@/config/brand";
 import { brand, cloneBrandCssVariables, normalizeCloneBrand } from "@/config/brand";
-import { getPublicCloneBrand } from "@/lib/public-brand.functions";
+import { getPublicCloneBrand } from "@/lib/common/public-brand.functions";
 
 function NotFoundComponent() {
   return (

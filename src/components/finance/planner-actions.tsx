@@ -3,9 +3,9 @@ import { CalendarClock, Check, FileDown, Pencil, Plus, Repeat, Send, Target, Tra
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MoneyInput } from "@/components/money-input";
-import type { FinancePlannerItem } from "@/lib/finance-dashboard.functions";
-import type { PlannerExtras } from "@/lib/finance-planner.functions";
-import { reportPeriod, shiftDate, type ReportPeriodKind } from "@/lib/planner-rules";
+import type { FinancePlannerItem } from "@/lib/finance/finance-dashboard.functions";
+import type { PlannerExtras } from "@/lib/finance/finance-planner.functions";
+import { reportPeriod, shiftDate, type ReportPeriodKind } from "@/lib/finance/planner-rules";
 import { money } from "./finance-overview";
 
 export type PlannerActionRequest = {

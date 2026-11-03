@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { deleteByokKey, getAiOverview, saveAiMode, saveByokKey } from "@/lib/ai-config.functions";
+import { deleteByokKey, getAiOverview, saveAiMode, saveByokKey } from "@/lib/ai/ai-config.functions";
 
 export const Route = createFileRoute("/master/ia-creditos")({
   head: brandedRouteHead("IA e créditos"),

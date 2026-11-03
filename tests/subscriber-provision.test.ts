@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { provisionTrialDays, selectablePlans } from "../src/lib/subscriber-provision-rules";
+import { provisionTrialDays, selectablePlans } from "@/lib/billing/subscriber-provision-rules";
 
 describe("novo assinante", () => {
   it("mostra todos os planos ativos e esconde os inativos", () => {
@@ -17,7 +17,7 @@ describe("novo assinante", () => {
   });
 });
 
-import { freePlanAlreadyUsed } from "../src/lib/subscriber-provision-rules";
+import { freePlanAlreadyUsed } from "@/lib/billing/subscriber-provision-rules";
 describe("plano gratuito uma vez por conta", () => {
   it("bloqueia quem já usou", () => expect(freePlanAlreadyUsed([{ email: "a@b.com" }])).toBe(true));
   it("libera quem nunca usou", () => expect(freePlanAlreadyUsed([])).toBe(false));

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { EMAIL_INPUT_PROPS, normalizeEmail } from "@/lib/masks";
+import { EMAIL_INPUT_PROPS, normalizeEmail } from "@/lib/common/masks";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { ArrowLeft, Eye, EyeOff, KeyRound, Loader2, ShieldCheck, Sparkles } from "lucide-react";
@@ -8,12 +8,12 @@ import { superadminSupabase } from "@/lib/auth/superadmin-client";
 import { signOutRealm } from "@/lib/auth/realm-supabase";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
-import { ensureRemixBootstrap } from "@/lib/remix-bootstrap";
-import { clearMasterAccessCache } from "@/lib/master-access-cache";
+import { ensureRemixBootstrap } from "@/lib/common/remix-bootstrap";
+import { clearMasterAccessCache } from "@/lib/master/master-access-cache";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { readRemixInstallationClaimed } from "@/lib/remix-installation-client";
+import { readRemixInstallationClaimed } from "@/lib/common/remix-installation-client";
 
 const emailSchema = z.string().email("Informe um e-mail válido.");
 

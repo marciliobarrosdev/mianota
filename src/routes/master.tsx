@@ -26,8 +26,8 @@ import {
   clearMasterAccessCache,
   getCachedMasterAccess,
   type MasterAccessContext,
-} from "@/lib/master-access-cache";
-import { readRemixInstallationClaimed } from "@/lib/remix-installation-client";
+} from "@/lib/master/master-access-cache";
+import { readRemixInstallationClaimed } from "@/lib/common/remix-installation-client";
 
 export const Route = createFileRoute("/master")({
   ssr: false,

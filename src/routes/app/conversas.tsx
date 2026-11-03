@@ -19,10 +19,10 @@ import {
   Bot,
   Star,
 } from "lucide-react";
-import { sendCsat } from "@/lib/csat.functions";
+import { sendCsat } from "@/lib/master/csat.functions";
 import { toast } from "sonner";
 import { InitialsAvatar } from "@/components/ui/initials-avatar";
-import { sendWhatsappText, setContactIaActive } from "@/lib/evolution.functions";
+import { sendWhatsappText, setContactIaActive } from "@/lib/whatsapp/evolution.functions";
 
 export const Route = createFileRoute("/app/conversas")({
   head: brandedRouteHead("Conversas"),

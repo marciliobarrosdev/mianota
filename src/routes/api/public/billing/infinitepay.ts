@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/public/billing/infinitepay")({
         if (!orderNsu || !transactionNsu || !slug) return Response.json({ ok: true, ignored: true });
 
         try {
-          const { resolveIntegration } = await import("@/lib/integration-secrets.server");
+          const { resolveIntegration } = await import("@/lib/common/integration-secrets.server");
           const ip = await resolveIntegration("infinitepay");
           if (!ip.handle) throw new Error("InfinitePay não configurada");
 

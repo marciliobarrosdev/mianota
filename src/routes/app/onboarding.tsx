@@ -18,7 +18,7 @@ import { brandedRouteHead } from "@/config/brand";
 import { useMoneyField } from "@/components/money-input";
 import { useBrand } from "@/contexts/brand-context";
 import { Button } from "@/components/ui/button";
-import { finishFinanceOnboarding } from "@/lib/finance-dashboard.functions";
+import { finishFinanceOnboarding } from "@/lib/finance/finance-dashboard.functions";
 
 type Search = { checkout?: string };
 

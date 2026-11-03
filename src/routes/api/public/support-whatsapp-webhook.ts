@@ -13,7 +13,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           return new Response("MIAnota support webhook online", { status: 200 });
         }
         const { getOrCreateSupportChannel, secureCompare } =
-          await import("@/lib/master-whatsapp.server");
+          await import("@/lib/whatsapp/master-whatsapp.server");
         const channel = await getOrCreateSupportChannel();
         if (!(await secureCompare(String(channel.webhook_token), token))) {
           return new Response("invalid verify token", { status: 403 });
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           updateMetaDeliveryStatus,
           updateSupportChannel,
           verifyMetaSignature,
-        } = await import("@/lib/master-whatsapp.server");
+        } = await import("@/lib/whatsapp/master-whatsapp.server");
         const channel = await getOrCreateSupportChannel();
 
         try {
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
             if (!(await verifyMetaSignature(rawBody, request.headers.get("x-hub-signature-256")))) {
               return new Response("invalid signature", { status: 401 });
             }
-            const { shouldProcessInbound } = await import("@/lib/purchase-onboarding-rules");
+            const { shouldProcessInbound } = await import("@/lib/whatsapp/purchase-onboarding-rules");
             const metaActive = shouldProcessInbound(channel.active_provider, "meta");
             for (const entry of payload.entry ?? []) {
               for (const change of entry.changes ?? []) {
@@ -67,7 +67,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
                   if ((type === "audio" || type === "voice") && (message?.audio?.id || message?.voice?.id)) {
                     try {
                       const url = await getMetaMediaDataUrl(String(message?.audio?.id || message?.voice?.id));
-                      const { transcribeAudioBase64, dataUrlParts } = await import("@/lib/audio-transcribe.server");
+                      const { transcribeAudioBase64, dataUrlParts } = await import("@/lib/ai/audio-transcribe.server");
                       const parts = url ? dataUrlParts(url) : null;
                       const text = parts ? await transcribeAudioBase64(parts.base64, parts.mime) : "";
                       if (text) body = text;
@@ -93,7 +93,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
                     payload: message,
                   });
                   const { processCentralFinanceWhatsapp } =
-                    await import("@/lib/central-finance-whatsapp.server");
+                    await import("@/lib/whatsapp/central-finance-whatsapp.server");
                   await processCentralFinanceWhatsapp({
                     phone,
                     displayName: contacts.get(phone) || null,
@@ -143,10 +143,10 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
             .toUpperCase()
             .replace(".", "_");
           const { shouldProcessInbound, mapEvolutionAck } =
-            await import("@/lib/purchase-onboarding-rules");
+            await import("@/lib/whatsapp/purchase-onboarding-rules");
           if (event === "MESSAGES_UPDATE") {
             const updates = Array.isArray(payload?.data) ? payload.data : [payload?.data ?? {}];
-            const { applyDeliveryStatus } = await import("@/lib/purchase-onboarding.server");
+            const { applyDeliveryStatus } = await import("@/lib/whatsapp/purchase-onboarding.server");
             for (const update of updates) {
               const id = String(update?.keyId || update?.key?.id || "");
               const status = mapEvolutionAck(update?.status ?? update?.update?.status);
@@ -170,9 +170,9 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           let body = evolutionBody(message, type);
           if (type === "audio" && channel.instance_name && phone) {
             try {
-              const { evoGetMediaBase64 } = await import("@/lib/evolution.server");
+              const { evoGetMediaBase64 } = await import("@/lib/whatsapp/evolution.server");
               const media = await evoGetMediaBase64(String(channel.instance_name), data);
-              const { transcribeAudioBase64 } = await import("@/lib/audio-transcribe.server");
+              const { transcribeAudioBase64 } = await import("@/lib/ai/audio-transcribe.server");
               const text = await transcribeAudioBase64(media.base64, media.mimetype || message?.audioMessage?.mimetype || null);
               if (text) body = text;
             } catch (error) {
@@ -182,7 +182,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           if (phone && body) {
             let imageDataUrl: string | null = null;
             if ((type === "image" || type === "document") && channel.instance_name) {
-              const { evoGetMediaBase64 } = await import("@/lib/evolution.server");
+              const { evoGetMediaBase64 } = await import("@/lib/whatsapp/evolution.server");
               const media = await evoGetMediaBase64(String(channel.instance_name), data).catch(
                 (error) => {
                   console.error("[support-whatsapp.media]", error instanceof Error ? error.message : error);
@@ -198,8 +198,8 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
               }
             }
             const { processCentralFinanceWhatsapp } =
-              await import("@/lib/central-finance-whatsapp.server");
-            const { evoSendText } = await import("@/lib/evolution.server");
+              await import("@/lib/whatsapp/central-finance-whatsapp.server");
+            const { evoSendText } = await import("@/lib/whatsapp/evolution.server");
             const monitored = await persistSupportInbound({
               phone,
               contactName: String(data?.pushName || "") || null,
@@ -240,7 +240,7 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
 
 async function runOnboardingRecovery() {
   try {
-    const { processDueOnboardings } = await import("@/lib/purchase-onboarding.server");
+    const { processDueOnboardings } = await import("@/lib/whatsapp/purchase-onboarding.server");
     await processDueOnboardings(3);
   } catch (error) {
     console.error("[onboarding.recovery]", error instanceof Error ? error.message : "falha");

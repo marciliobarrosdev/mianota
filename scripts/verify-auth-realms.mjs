@@ -16,7 +16,7 @@ const master = read("src/routes/master.tsx");
 const entrar = read("src/routes/entrar.tsx");
 const app = read("src/routes/app.tsx");
 const appShell = read("src/components/app-shell.tsx");
-const bootstrap = read("src/lib/remix-bootstrap.ts");
+const bootstrap = read("src/lib/common/remix-bootstrap.ts");
 
 // 1) Cliente administrativo com armazenamento, persistência e refresh próprios.
 const keyMatch = adminClient.match(/SUPERADMIN_AUTH_STORAGE_KEY = "([^"]+)"/);

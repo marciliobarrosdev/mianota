@@ -4,7 +4,7 @@ import {
   resolveFinancePeriod,
   sanitizeRange,
   summarizeFinanceDay,
-} from "../src/lib/finance-period";
+} from "@/lib/finance/finance-period";
 
 const today = new Date(2026, 9, 20); // 20/10/2026
 

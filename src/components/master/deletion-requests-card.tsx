@@ -6,7 +6,7 @@ import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { listDeletionRequests, resolveDeletionRequest } from "@/lib/settings.functions";
+import { listDeletionRequests, resolveDeletionRequest } from "@/lib/finance/settings.functions";
 
 const LABEL: Record<string, string> = { pending: "Pendente", approved: "Aprovado", rejected: "Recusado", canceled: "Cancelado" };
 

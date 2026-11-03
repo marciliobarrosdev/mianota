@@ -6,7 +6,7 @@ import { Mic, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
-import { PageHeader } from "@/components/marcia/page-kit";
+import { PageHeader } from "@/components/mia/page-kit";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,19 +41,19 @@ import {
   undoTransactionAction,
   type TxBudget,
   type TxUndo,
-} from "@/lib/finance-transactions.functions";
-import { downloadPeriodReport } from "@/lib/finance-planner.functions";
+} from "@/lib/finance/finance-transactions.functions";
+import { downloadPeriodReport } from "@/lib/finance/finance-planner.functions";
 import {
   addFinanceTransaction,
   listFinanceTransactions,
   type FinanceTransactionDetail,
-} from "@/lib/finance-dashboard.functions";
+} from "@/lib/finance/finance-dashboard.functions";
 import {
   PAYMENT_METHOD_LABELS,
   resolveFinancePeriod,
   toIsoDate,
   type FinancePeriod,
-} from "@/lib/finance-period";
+} from "@/lib/finance/finance-period";
 
 export const Route = createFileRoute("/app/movimentacoes")({
   head: brandedRouteHead("Movimentações"),

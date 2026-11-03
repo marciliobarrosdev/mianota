@@ -25,7 +25,7 @@ import {
   getSupportInbox,
   sendSupportReply,
   updateSupportConversation,
-} from "@/lib/master-whatsapp.functions";
+} from "@/lib/whatsapp/master-whatsapp.functions";
 
 export const Route = createFileRoute("/master/conversas")({
   head: brandedRouteHead("Conversas dos assinantes"),

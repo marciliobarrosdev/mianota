@@ -1,5 +1,5 @@
 import { IntegrationSection } from "@/components/master/integration-card";
-import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/masks";
+import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,8 +24,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { brandedRouteHead } from "@/config/brand";
-import { getBillingWebhookInfo, listRecentBillingEvents } from "@/lib/billing.functions";
-import { getSuperAdminEmails, setSuperAdminEmails } from "@/lib/master.functions";
+import { getBillingWebhookInfo, listRecentBillingEvents } from "@/lib/billing/billing.functions";
+import { getSuperAdminEmails, setSuperAdminEmails } from "@/lib/master/master.functions";
 
 type Provider = "kiwify" | "cakto" | "perfectpay";
 type BillingEvent = {

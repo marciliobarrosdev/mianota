@@ -18,13 +18,13 @@ import { Button } from "@/components/ui/button";
 import {
   EmptyState,
   LoadingBlocks,
-  MarciaAssistantCard,
+  MiaAssistantCard,
   PageHeader,
   StatusPill,
-} from "@/components/marcia/page-kit";
-import { NewAppointmentDialog } from "@/components/marcia/new-appointment-dialog";
-import { AppointmentActionsDialog } from "@/components/marcia/appointment-actions-dialog";
-import { NewWorkOrderDialog } from "@/components/marcia/new-work-order-dialog";
+} from "@/components/mia/page-kit";
+import { NewAppointmentDialog } from "@/components/mia/new-appointment-dialog";
+import { AppointmentActionsDialog } from "@/components/mia/appointment-actions-dialog";
+import { NewWorkOrderDialog } from "@/components/mia/new-work-order-dialog";
 import {
   appointmentLabels,
   friendlyError,
@@ -33,9 +33,9 @@ import {
   money,
   shortTime,
   updateAppointmentStatus,
-  type MarciaAppointment,
-  type MarciaWorkOrder,
-} from "@/lib/marcia";
+  type MiaAppointment,
+  type MiaWorkOrder,
+} from "@/lib/ai/mia";
 
 export const Route = createFileRoute("/app/hoje")({
   beforeLoad: () => {
@@ -49,8 +49,8 @@ function TodayPage() {
   const branding = useBrand();
   const ctx = Route.useRouteContext();
   const companyId = ctx.company?.id;
-  const [appointments, setAppointments] = useState<MarciaAppointment[]>([]);
-  const [orders, setOrders] = useState<MarciaWorkOrder[]>([]);
+  const [appointments, setAppointments] = useState<MiaAppointment[]>([]);
+  const [orders, setOrders] = useState<MiaWorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -89,7 +89,7 @@ function TodayPage() {
     [appointments, orders],
   );
 
-  async function moveStatus(item: MarciaAppointment, status: "in_progress" | "completed") {
+  async function moveStatus(item: MiaAppointment, status: "in_progress" | "completed") {
     try {
       await updateAppointmentStatus(item.company_id, item.id, status);
       setAppointments((current) =>
@@ -113,7 +113,7 @@ function TodayPage() {
       />
 
       <div className="grid gap-4 xl:grid-cols-[1.15fr_.85fr]">
-        <MarciaAssistantCard
+        <MiaAssistantCard
           title={assistantTitle(stats.today, stats.openOrders)}
           text={assistantText(stats.today, stats.openOrders)}
         />
@@ -235,7 +235,7 @@ function AppointmentRow({
   onComplete,
   onRefresh,
 }: {
-  item: MarciaAppointment;
+  item: MiaAppointment;
   companyId: string;
   onStart: () => void;
   onComplete: () => void;

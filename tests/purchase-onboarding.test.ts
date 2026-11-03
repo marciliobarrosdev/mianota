@@ -17,7 +17,7 @@ import {
   activationPhoneMatches,
   buildEvolutionActivationText,
   respondingPhoneE164,
-} from "../src/lib/purchase-onboarding-rules";
+} from "@/lib/whatsapp/purchase-onboarding-rules";
 import { normalize } from "../src/lib/billing/normalize";
 
 // ---------- Simulação de backend e provedores (nenhuma mensagem real) ----------
@@ -31,14 +31,14 @@ mock.module("@/integrations/supabase/client.server", () => ({
     rpc: (...args: any[]) => (fake.client.rpc as any)(...args),
   },
 }));
-mock.module("../src/lib/evolution.server", () => ({
+mock.module("../src/lib/whatsapp/evolution.server", () => ({
   evoSendText: async (_instance: string, to: string, text: string) => {
     if (evolutionFails) throw new Error("Evolution API indisponível token=abcdef123456");
     sent.push({ provider: "evolution", to, body: text });
     return { key: { id: `evo-${sent.length}` } };
   },
 }));
-mock.module("../src/lib/master-whatsapp.server", () => ({
+mock.module("../src/lib/whatsapp/master-whatsapp.server", () => ({
   sendMetaPayload: async (payload: any) => {
     sent.push({ provider: "meta", to: payload.to, body: payload });
     return `wamid-${sent.length}`;
@@ -74,7 +74,7 @@ afterEach(() => {
 });
 
 async function service() {
-  return import("../src/lib/purchase-onboarding.server");
+  return import("@/lib/whatsapp/purchase-onboarding.server");
 }
 
 describe("canal central exclusivo", () => {

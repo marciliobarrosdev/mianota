@@ -12,15 +12,15 @@ import {
   Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StatusPill } from "@/components/marcia/page-kit";
+import { StatusPill } from "@/components/mia/page-kit";
 import { supabase } from "@/lib/auth/realm-supabase";
 import {
   friendlyError,
   money,
   shortDate,
   workOrderLabels,
-  type MarciaWorkOrder,
-} from "@/lib/marcia";
+  type MiaWorkOrder,
+} from "@/lib/ai/mia";
 
 export const Route = createFileRoute("/app/ordens/$orderId")({
   beforeLoad: () => {
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/app/ordens/$orderId")({
 
 function WorkOrderDetail() {
   const { orderId } = Route.useParams();
-  const [item, setItem] = useState<MarciaWorkOrder | null>(null);
+  const [item, setItem] = useState<MiaWorkOrder | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
     void (async () => {

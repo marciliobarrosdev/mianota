@@ -5,7 +5,7 @@ import {
   matchCategoryRule,
   normalizeAssistantProfile,
   personalizeReply,
-} from "../src/lib/assistant-profile-rules";
+} from "@/lib/ai/assistant-profile-rules";
 
 const CAT = "11111111-1111-1111-1111-111111111111";
 

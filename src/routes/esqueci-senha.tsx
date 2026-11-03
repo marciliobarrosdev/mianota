@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { brandedRouteHead } from "@/config/brand";
-import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/masks";
+import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
 
 export const Route = createFileRoute("/esqueci-senha")({
   ssr: false,

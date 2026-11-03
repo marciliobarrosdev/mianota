@@ -5,16 +5,16 @@ import { ptBR } from "date-fns/locale";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3, UserRound } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
 import { Button } from "@/components/ui/button";
-import { NewAppointmentDialog } from "@/components/marcia/new-appointment-dialog";
-import { AppointmentActionsDialog } from "@/components/marcia/appointment-actions-dialog";
-import { EmptyState, LoadingBlocks, PageHeader, StatusPill } from "@/components/marcia/page-kit";
+import { NewAppointmentDialog } from "@/components/mia/new-appointment-dialog";
+import { AppointmentActionsDialog } from "@/components/mia/appointment-actions-dialog";
+import { EmptyState, LoadingBlocks, PageHeader, StatusPill } from "@/components/mia/page-kit";
 import {
   appointmentLabels,
   friendlyError,
   listAppointments,
   shortTime,
-  type MarciaAppointment,
-} from "@/lib/marcia";
+  type MiaAppointment,
+} from "@/lib/ai/mia";
 
 export const Route = createFileRoute("/app/agenda")({
   beforeLoad: () => {
@@ -29,7 +29,7 @@ function AgendaPage() {
   const companyId = ctx.company?.id;
   const [week, setWeek] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDay, setSelectedDay] = useState(new Date());
-  const [appointments, setAppointments] = useState<MarciaAppointment[]>([]);
+  const [appointments, setAppointments] = useState<MiaAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(week, index)), [week]);
@@ -172,7 +172,7 @@ function DayColumn({
   reload,
 }: {
   day: Date;
-  items: MarciaAppointment[];
+  items: MiaAppointment[];
   companyId: string;
   reload: () => void;
 }) {
@@ -209,7 +209,7 @@ function CompactEvent({
   companyId,
   reload,
 }: {
-  item: MarciaAppointment;
+  item: MiaAppointment;
   companyId: string;
   reload: () => void;
 }) {
@@ -246,7 +246,7 @@ function MobileDay({
   reload,
 }: {
   day: Date;
-  items: MarciaAppointment[];
+  items: MiaAppointment[];
   companyId: string;
   reload: () => void;
 }) {

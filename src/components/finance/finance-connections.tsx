@@ -13,14 +13,14 @@ import {
   Smartphone,
   Sparkles,
 } from "lucide-react";
-import { PageHeader } from "@/components/marcia/page-kit";
+import { PageHeader } from "@/components/mia/page-kit";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useBrand } from "@/contexts/brand-context";
 import {
   getFinanceWhatsappChannel,
   getFinanceWhatsappIdentity,
-} from "@/lib/finance-whatsapp.functions";
+} from "@/lib/finance/finance-whatsapp.functions";
 
 export function FinanceConnections({ companyId }: { companyId?: string | null }) {
   const branding = useBrand();

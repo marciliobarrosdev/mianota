@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { Sparkles, AlertTriangle } from "lucide-react";
-import { getMyCredits } from "@/lib/credits.functions";
+import { getMyCredits } from "@/lib/billing/credits.functions";
 
 export function CreditsBadge({ companyId }: { companyId: string }) {
   const fetcher = useServerFn(getMyCredits);

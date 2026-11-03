@@ -12,29 +12,29 @@ import {
 } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
-import { MarciaChat } from "@/components/finance/marcia-chat";
-import { MarciaChatShell } from "@/components/finance/marcia-chat-shell";
-import { useMarciaFinanceChat } from "@/hooks/use-marcia-finance-chat";
+import { MiaChat } from "@/components/finance/mia-chat";
+import { MiaChatShell } from "@/components/finance/mia-chat-shell";
+import { useMarciaFinanceChat } from "@/hooks/use-mia-finance-chat";
 import { useFinanceDashboard } from "@/hooks/use-finance-dashboard";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { formatCentsBRL } from "@/lib/money";
-import { contextualSuggestions } from "@/lib/marcia-chat-rules";
-import type { FinanceDashboardSnapshot } from "@/lib/finance-dashboard.functions";
+import { formatCentsBRL } from "@/lib/common/money";
+import { contextualSuggestions } from "@/lib/ai/mia-chat-rules";
+import type { FinanceDashboardSnapshot } from "@/lib/finance/finance-dashboard.functions";
 
 export const Route = createFileRoute("/app/marcia")({
   head: brandedRouteHead("Falar com a MIA"),
   validateSearch: (s: Record<string, unknown>): { pergunta?: string } => ({
     pergunta: typeof s.pergunta === "string" ? s.pergunta.slice(0, 300) : undefined,
   }),
-  component: MarciaChatPage,
+  component: MiaChatPage,
 });
 
 function todayIso() {
   return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 }
 
-function MarciaChatPage() {
+function MiaChatPage() {
   const branding = useBrand();
   const ctx = Route.useRouteContext();
   const { pergunta } = Route.useSearch();
@@ -57,7 +57,7 @@ function MarciaChatPage() {
 
   return (
     <>
-      <MarciaChatShell
+      <MiaChatShell
         assistantName={branding.assistantName}
         aside={summary}
         actions={
@@ -88,7 +88,7 @@ function MarciaChatPage() {
           </>
         }
       >
-        <MarciaChat
+        <MiaChat
           controller={controller}
           assistantName={branding.assistantName}
           suggestions={suggestions}
@@ -106,7 +106,7 @@ function MarciaChatPage() {
             </div>
           }
         />
-      </MarciaChatShell>
+      </MiaChatShell>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="right" className="w-[320px] overflow-y-auto">
           <SheetHeader>

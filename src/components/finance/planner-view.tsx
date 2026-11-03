@@ -15,7 +15,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { PlannerItemActions, BudgetsGoalsPanel, type PlannerActions } from "./planner-actions";
-import type { PlannerExtras } from "@/lib/finance-planner.functions";
+import type { PlannerExtras } from "@/lib/finance/finance-planner.functions";
 import {
   dailyProjection,
   filterPlannerItems,
@@ -25,7 +25,7 @@ import {
   shiftDate,
   weekDays,
   type PlannerFilter,
-} from "@/lib/planner-rules";
+} from "@/lib/finance/planner-rules";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,7 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { FinancePlannerItem } from "@/lib/finance-dashboard.functions";
+import type { FinancePlannerItem } from "@/lib/finance/finance-dashboard.functions";
 import {
   PAYMENT_METHOD_LABELS,
   financeDayStatus,
@@ -42,7 +42,7 @@ import {
   summarizeFinanceDay,
   toIsoDate,
   type FinanceDayStatus,
-} from "@/lib/finance-period";
+} from "@/lib/finance/finance-period";
 import { money } from "./finance-overview";
 
 const WEEK = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];

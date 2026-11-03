@@ -33,15 +33,15 @@ import {
   YAxis,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import type { FinanceDashboardSnapshot } from "@/lib/finance-dashboard.functions";
-import { formatPeriodLabel, type FinancePeriod } from "@/lib/finance-period";
+import type { FinanceDashboardSnapshot } from "@/lib/finance/finance-dashboard.functions";
+import { formatPeriodLabel, type FinancePeriod } from "@/lib/finance/finance-period";
 import { PeriodFilter } from "./period-filter";
 import {
   buildOverviewAlerts,
   buildOverviewInsights,
   greeting,
   pctChange,
-} from "@/lib/overview-rules";
+} from "@/lib/finance/overview-rules";
 import type { FinanceLinks } from "./finance-links";
 
 export const money = (valueCents: number) =>

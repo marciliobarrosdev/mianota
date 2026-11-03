@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MoneyInput } from "@/components/money-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { FinanceTransactionDetail } from "@/lib/finance-dashboard.functions";
-import { dailyFlow, expensesByCategory, normalizeTags, validateSplits, type TxLike } from "@/lib/transactions-rules";
-import { parseStatement, type StatementRow } from "@/lib/bank-statement-rules";
+import type { FinanceTransactionDetail } from "@/lib/finance/finance-dashboard.functions";
+import { dailyFlow, expensesByCategory, normalizeTags, validateSplits, type TxLike } from "@/lib/finance/transactions-rules";
+import { parseStatement, type StatementRow } from "@/lib/finance/bank-statement-rules";
 import { money } from "./finance-overview";
 
 const PALETTE = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--brand)", "var(--muted-foreground)"];

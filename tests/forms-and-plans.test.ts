@@ -1,18 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { formatCentsBRL, moneyError, parseBRLToCents, sanitizeMoneyTyping } from "../src/lib/money";
+import { formatCentsBRL, moneyError, parseBRLToCents, sanitizeMoneyTyping } from "@/lib/common/money";
 import {
   brazilianPhoneError,
   isValidBrazilianPhone,
   maskBrazilianPhoneInput,
   normalizeValidBrazilianPhone,
-} from "../src/lib/phone";
-import { emailError, isValidEmail, isValidHttpUrl, normalizeEmail } from "../src/lib/masks";
+} from "@/lib/common/phone";
+import { emailError, isValidEmail, isValidHttpUrl, normalizeEmail } from "@/lib/common/masks";
 import {
   PLAN_SLUGS,
   resolveSignupPlan,
   validateCheckoutCompanyInput,
-} from "../src/lib/plan-selection";
+} from "@/lib/billing/plan-selection";
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -107,7 +107,7 @@ describe("cadastro sempre vinculado a um plano", () => {
     expect(validateCheckoutCompanyInput({ nome: "Ana", plano_slug: "pro" }).plano_slug).toBe("pro");
   });
   test("createCheckoutCompany valida o plano antes de qualquer criação e sem padrão starter", () => {
-    const source = read("src/lib/checkout.functions.ts");
+    const source = read("src/lib/billing/checkout.functions.ts");
     expect(source).not.toContain('"starter"');
     expect(source.indexOf("resolveSignupPlan(")).toBeGreaterThan(0);
     expect(source.indexOf("resolveSignupPlan(")).toBeLessThan(
