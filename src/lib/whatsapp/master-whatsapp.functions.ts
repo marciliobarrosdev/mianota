@@ -254,7 +254,7 @@ export const getSupportInbox = createServerFn({ method: "POST" })
     if (companyIds.length) {
       const companyRows = await db
         .from("company")
-        .select("id,nome,nome_fantasia,email,logo_url")
+        .select("id,nome,nome_fantasia,email:email_corporativo,logo_url")
         .in("id", companyIds);
       if (companyRows.error) throw new Error(companyRows.error.message);
       companies = companyRows.data ?? [];
