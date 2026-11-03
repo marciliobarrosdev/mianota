@@ -548,6 +548,8 @@ export async function handleFinanceWhatsapp(input: {
   phone: string;
   message: string;
   imageDataUrl?: string | null;
+  /** Id estável da mensagem recebida: reenvios do webhook não cobram crédito de novo. */
+  messageRef?: string | null;
 }) {
   if (!(await whatsappFinanceEnabled(input.db, input.companyId))) {
     return {
@@ -623,7 +625,7 @@ export async function handleFinanceWhatsapp(input: {
     }
   }
 
-  const creditRef = `whatsapp-finance:${crypto.randomUUID()}`;
+  const creditRef = `whatsapp-finance:${input.messageRef || crypto.randomUUID()}`;
   const consumed = await input.db.rpc("consume_ai_credit", {
     _company_id: input.companyId,
     _ref: creditRef,
