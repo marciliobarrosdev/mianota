@@ -4964,6 +4964,7 @@ export type Database = {
         | "dinheiro"
         | "transferencia"
         | "outro"
+        | "salario"
       fin_status: "pendente" | "pago" | "atrasado" | "cancelado"
       fin_tipo: "receita" | "despesa"
       stage_tipo: "normal" | "ganho" | "perda"
@@ -5112,6 +5113,7 @@ export const Constants = {
         "dinheiro",
         "transferencia",
         "outro",
+        "salario",
       ],
       fin_status: ["pendente", "pago", "atrasado", "cancelado"],
       fin_tipo: ["receita", "despesa"],
