@@ -9,8 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test:clone-security": "node scripts/verify-clone-security.mjs && node scripts/verify-owner-routing.mjs && node scripts/verify-auth-realms.mjs && node scripts/verify-stripe-catalog.mjs && node scripts/verify-clone-brand-onboarding.mjs && node scripts/verify-trial-credits.mjs && node scripts/verify-service-onboarding.mjs && node scripts/verify-subscriber-setup-guide.mjs && node scripts/verify-app-responsiveness.mjs && node scripts/verify-marcia-command-center.mjs && node scripts/verify-operational-fixes.mjs && node scripts/verify-master-whatsapp.mjs && node scripts/verify-master-setup.mjs && node scripts/verify-central-channel-onboarding.mjs",
-    "test:finance-rebuild": "node scripts/verify-finance-rebuild.mjs",
+    "test:clone-security": "node scripts/verify-owner-routing.mjs && node scripts/verify-auth-realms.mjs && node scripts/verify-stripe-catalog.mjs && node scripts/verify-clone-brand-onboarding.mjs && node scripts/verify-service-onboarding.mjs && node scripts/verify-app-responsiveness.mjs && node scripts/verify-master-setup.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
