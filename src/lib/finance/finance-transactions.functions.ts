@@ -298,7 +298,7 @@ export const previewStatementImport = createServerFn({ method: "POST" })
 /** Grava as linhas revisadas como pagas, origem "importação", num lote que pode ser desfeito. */
 export const importStatement = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ companyId: uuid, accountId: uuid.nullable(), fileName: z.string().max(200), rows: z.array(ImportRow).min(1).max(1000) }).parse(d))
+  .inputValidator((d) => z.object({ companyId: uuid, accountId: uuid.nullable(), fileName: z.string().max(200), paymentMethod: PAYMENT, rows: z.array(ImportRow).min(1).max(1000) }).parse(d))
   .handler(async ({ data, context }) => {
     const db = await access(context, data.companyId);
     if (data.accountId) {
@@ -312,7 +312,7 @@ export const importStatement = createServerFn({ method: "POST" })
       company_id: data.companyId, tipo: r.type, descricao: r.description, valor_cents: r.amountCents,
       categoria_id: r.categoryId && valid.has(r.categoryId) ? r.categoryId : null, conta_id: data.accountId,
       status: "pago", vencimento: r.date, pago_em: r.date, competencia: r.date, ocorrido_em: `${r.date}T12:00:00.000Z`,
-      fonte: "importacao", created_by: context.userId,
+      fonte: "importacao", forma_pagamento: data.paymentMethod, created_by: context.userId,
       metadata: { import_batch: batch, import_file: data.fileName, ...(r.fitid ? { fitid: r.fitid } : {}) },
     }));
     for (let i = 0; i < payload.length; i += 200) {

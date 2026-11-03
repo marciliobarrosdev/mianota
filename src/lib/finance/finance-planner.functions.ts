@@ -226,6 +226,7 @@ const RecInput = z.object({
   startDate: iso,
   endDate: iso.nullish(),
   repeat: z.boolean(),
+  paymentMethod: z.enum(["pix", "cartao", "dinheiro", "transferencia", "boleto", "salario", "outro"], { message: "Informe a forma de pagamento." }),
 });
 
 /** Nova conta no calendário: avulsa ou recorrente. */
@@ -243,8 +244,8 @@ export const createPlannerBill = createServerFn({ method: "POST" })
       if (!cat) throw new Error("Categoria inválida.");
     }
     const { error } = data.repeat
-      ? await db.from("fin_recorrencia").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, frequencia: data.frequency, proxima_data: data.startDate, termina_em: data.endDate || null, ativo: true })
-      : await db.from("fin_lancamento").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, status: "pendente", vencimento: data.startDate, competencia: data.startDate, ocorrido_em: `${data.startDate}T12:00:00.000Z`, fonte: "manual", created_by: context.userId });
+      ? await db.from("fin_recorrencia").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, frequencia: data.frequency, proxima_data: data.startDate, termina_em: data.endDate || null, ativo: true, forma_pagamento: data.paymentMethod })
+      : await db.from("fin_lancamento").insert({ company_id: data.companyId, descricao: data.title, valor_cents: data.amountCents, tipo: data.type, categoria_id: data.categoryId || null, status: "pendente", forma_pagamento: data.paymentMethod, vencimento: data.startDate, competencia: data.startDate, ocorrido_em: `${data.startDate}T12:00:00.000Z`, fonte: "manual", created_by: context.userId });
     if (error) throw new Error(error.message);
     await refreshNotices(db, data.companyId, context.userId);
     return { ok: true };

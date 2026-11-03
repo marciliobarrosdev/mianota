@@ -234,9 +234,9 @@ function TransactionsPage() {
           categories={data.categories}
           accounts={data.accounts}
           preview={(rows) => previewFn({ data: { companyId, rows } })}
-          onImport={async ({ fileName, accountId, rows }) => {
+          onImport={async ({ fileName, accountId, paymentMethod, rows }) => {
             try {
-              const r = await importFn({ data: { companyId, accountId, fileName, rows } });
+              const r = await importFn({ data: { companyId, accountId, fileName, paymentMethod: paymentMethod as any, rows } });
               await notifyChanged();
               toast.success(`${r.count} lançamento(s) importado(s).`, {
                 action: {
