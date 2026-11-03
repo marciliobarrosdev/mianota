@@ -1,23 +1,46 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Circle, Loader2, Palette, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BellRing,
+  Check,
+  Circle,
+  CreditCard,
+  Loader2,
+  MessagesSquare,
+  Palette,
+  PartyPopper,
+  RefreshCw,
+  Settings2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { brandedRouteHead } from "@/config/brand";
+import { useBrand } from "@/contexts/brand-context";
 import { getMasterSetupProgress, type MasterSetupCheck } from "@/lib/master/master-setup.functions";
+import { groupSetupChecks, timeAgo, type SetupGroup } from "@/lib/master/master-setup-rules";
 
 export const Route = createFileRoute("/master/checklist")({
-  head: brandedRouteHead("Comece aqui"),
+  head: brandedRouteHead("Comece aqui", "Checklist automático para colocar o MIAnota para vender, atender e avisar."),
   component: MasterChecklistPage,
 });
 
 type Setup = Awaited<ReturnType<typeof getMasterSetupProgress>>;
 
+const GROUP_ICON: Record<SetupGroup, typeof CreditCard> = {
+  vender: CreditCard,
+  atender: MessagesSquare,
+  avisar: BellRing,
+  operar: Settings2,
+};
+
 function MasterChecklistPage() {
+  const brand = useBrand();
   const getProgress = useServerFn(getMasterSetupProgress);
   const [data, setData] = useState<Setup | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,9 +50,7 @@ function MasterChecklistPage() {
     try {
       setData(await getProgress());
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Não foi possível conferir a instalação.",
-      );
+      toast.error(error instanceof Error ? error.message : "Não foi possível conferir a instalação.");
     } finally {
       setLoading(false);
     }
@@ -37,14 +58,18 @@ function MasterChecklistPage() {
 
   useEffect(() => void load(), [load]);
 
-  const next = useMemo(() => data?.checks.find((check) => !check.ready) ?? null, [data]);
+  const next = useMemo(
+    () => data?.checks.find((c) => c.status === "missing") ?? null,
+    [data],
+  );
+  const groups = useMemo(() => (data ? groupSetupChecks(data.checks) : []), [data]);
 
   if (!data && loading) {
     return (
       <div className="grid min-h-[55vh] place-items-center text-center">
         <div>
-          <Loader2 className="mx-auto size-7 animate-spin text-violet-500" />
-          <p className="mt-3 text-sm text-muted-foreground">Conferindo seu SaaS…</p>
+          <Loader2 className="mx-auto size-7 animate-spin text-primary" />
+          <p className="mt-3 text-sm text-muted-foreground">Conferindo seu {brand.name}…</p>
         </div>
       </div>
     );
@@ -52,142 +77,139 @@ function MasterChecklistPage() {
   if (!data) return null;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4">
-      <section className="rounded-2xl border bg-[#170c25] p-4 text-white shadow-[0_18px_45px_rgba(40,13,65,.16)] sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="mx-auto max-w-5xl space-y-6">
+      <Card className="overflow-hidden p-0">
+        <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-2xl font-black tracking-tight sm:text-3xl">
-                Comece aqui
-              </h1>
-              <Badge className="border-white/15 bg-white/10 text-violet-100 hover:bg-white/10">
-                implantação do proprietário
-              </Badge>
+              <h1 className="font-display text-2xl font-black tracking-tight sm:text-3xl">Comece aqui</h1>
+              <Badge variant="secondary">{brand.name}</Badge>
             </div>
-            <p className="mt-1.5 text-sm text-white/65">
-              Complete os itens na ordem. O primeiro pendente é sempre a sua próxima ação.
+            <p className="mt-1 text-sm text-muted-foreground">{brand.tagline}</p>
+            <p className="mt-3 text-sm">
+              Conferimos sua instalação automaticamente. Itens <strong>obrigatórios</strong> contam no
+              progresso; os opcionais aparecem como <strong>atenção</strong>.
             </p>
             {next ? (
-              <Button asChild size="sm" className="mt-4 bg-white text-[#170c25] hover:bg-white/90">
+              <Button asChild size="sm" className="mt-4">
                 <Link to={next.to as never}>
                   Próxima ação: {next.action} <ArrowRight className="size-4" />
                 </Link>
               </Button>
-            ) : (
-              <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-400/15 px-3 py-2 text-sm font-bold text-emerald-200">
-                <ShieldCheck className="size-5" /> Configuração essencial concluída
-              </div>
-            )}
+            ) : null}
           </div>
-          <div className="w-full rounded-xl border border-white/10 bg-white/[.07] p-4 backdrop-blur lg:w-[280px]">
+          <div className="w-full rounded-xl border bg-muted/40 p-4 lg:w-72">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[.16em] text-violet-200">
-                  prontidão
-                </p>
+                <p className="text-xs font-bold uppercase tracking-[.16em] text-muted-foreground">prontidão</p>
                 <p className="mt-1 font-display text-3xl font-black">{data.percent}%</p>
               </div>
-              <p className="pb-1 text-sm text-white/60">
-                {data.completed} de {data.total} itens
+              <p className="pb-1 text-sm text-muted-foreground">
+                {data.completed} de {data.total} obrigatórios
               </p>
             </div>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-black/30">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-violet-400 to-fuchsia-400 transition-all duration-700"
-                style={{ width: `${data.percent}%` }}
-              />
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${data.percent}%` }} />
             </div>
-            <Button
-              variant="ghost"
-              className="mt-2 h-8 w-full justify-between text-white hover:bg-white/10 hover:text-white"
-              onClick={() => void load()}
-              disabled={loading}
-            >
-              Conferir novamente
+            <Button variant="ghost" size="sm" className="mt-2 w-full justify-between" onClick={() => void load()} disabled={loading}>
+              Conferir novamente · {timeAgo(data.checkedAt)}
               <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
           </div>
         </div>
-      </section>
+      </Card>
 
-      <section>
-        <div className="mb-3">
-          <p className="text-xs font-black uppercase tracking-[.16em] text-violet-500">
-            checklist automático
-          </p>
-          <h2 className="mt-1 font-display text-xl font-black">Configuração essencial</h2>
-        </div>
-        <div className="grid gap-2">
-          {data.checks.map((check, index) => (
-            <SetupItem key={check.id} check={check} index={index + 1} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <Card className="p-4">
-          <div className="flex gap-3">
-            <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-violet-500/10 text-violet-500">
-              <Palette className="size-5" />
-            </div>
-            <div>
-              <p className="text-xs font-black uppercase tracking-[.14em] text-violet-500">
-                feito por prompt
-              </p>
-              <h3 className="mt-1 font-display text-lg font-black">Marca e landing page</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Nome, logo, cores, copy e dados legais são personalizados na Lovable com o prompt
-                preparado pelo agente da Academy — não neste painel.
-              </p>
-              <Button asChild variant="outline" className="mt-4">
-                <Link to="/master/implantacao">
-                  Ver orientação <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-            </div>
+      {data.readyToLaunch ? (
+        <Card className="flex items-center gap-4 border-success/40 bg-success/5 p-5">
+          <PartyPopper className="size-8 shrink-0 text-success" />
+          <div>
+            <h2 className="font-display text-lg font-black">Tudo pronto para vender!</h2>
+            <p className="text-sm text-muted-foreground">
+              Todos os itens obrigatórios estão concluídos. Publique o site e acompanhe pelo painel.
+            </p>
           </div>
+          <Button asChild variant="outline" className="ml-auto hidden sm:inline-flex">
+            <Link to="/master/painel">Ir para o painel</Link>
+          </Button>
         </Card>
-      </section>
+      ) : null}
+
+      {groups.map((group) => {
+        const Icon = GROUP_ICON[group.id];
+        return (
+          <section key={group.id}>
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="size-5" />
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-black">{group.title}</h2>
+                  <p className="text-xs text-muted-foreground">{group.description}</p>
+                </div>
+              </div>
+              <Badge variant={group.readyToLaunch ? "default" : "secondary"}>
+                {group.total ? `${group.completed}/${group.total}` : "opcional"}
+              </Badge>
+            </div>
+            <div className="grid gap-2">
+              {group.items.map((check) => (
+                <SetupItem key={check.id} check={check} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+
+      <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+        <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+          <Palette className="size-5" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-display text-lg font-black">Sua marca</h3>
+          <p className="text-sm text-muted-foreground">
+            Veja como o {brand.name} aparece e gere o prompt para alterar nome, cores e textos na Lovable.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link to="/master/implantacao">
+            Abrir <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </Card>
     </div>
   );
 }
 
-function SetupItem({ check, index }: { check: MasterSetupCheck; index: number }) {
+const STATUS = {
+  ready: { label: "Pronto", card: "border-success/40 bg-success/5", dot: "bg-success text-success-foreground", text: "text-success" },
+  missing: { label: "Falta", card: "border-primary/30", dot: "bg-primary/10 text-primary", text: "text-primary" },
+  attention: { label: "Atenção", card: "border-warning/40", dot: "bg-warning/15 text-warning", text: "text-warning" },
+} as const;
+
+function SetupItem({ check }: { check: MasterSetupCheck }) {
+  const s = STATUS[check.status];
   return (
-    <Card
-      className={`flex flex-col gap-3 p-3 sm:flex-row sm:items-center ${
-        check.ready ? "border-emerald-300/60 bg-emerald-500/[.035]" : "border-violet-200/70"
-      }`}
-    >
-      <div
-        className={`grid size-8 shrink-0 place-items-center rounded-full font-display text-xs font-black ${
-          check.ready
-            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
-            : "bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300"
-        }`}
-      >
-        {check.ready ? <Check className="size-5" /> : index}
+    <Card className={`flex flex-col gap-3 p-3 sm:flex-row sm:items-center ${s.card}`}>
+      <div className={`grid size-8 shrink-0 place-items-center rounded-full ${s.dot}`}>
+        {check.status === "ready" ? (
+          <Check className="size-4" />
+        ) : check.status === "attention" ? (
+          <AlertTriangle className="size-4" />
+        ) : (
+          <Circle className="size-4" />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-display text-sm font-black">{check.title}</h3>
-          <Badge variant={check.ready ? "default" : "secondary"}>
-            {check.ready ? "Pronto" : "Pendente"}
-          </Badge>
+          <Badge variant={check.status === "ready" ? "default" : "secondary"}>{s.label}</Badge>
+          {check.optional ? <span className="text-[11px] text-muted-foreground">opcional</span> : null}
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">{check.description}</p>
-        <p
-          className={`mt-1 text-xs font-semibold ${check.ready ? "text-emerald-700 dark:text-emerald-300" : "text-violet-600"}`}
-        >
-          {check.ready ? (
-            <Check className="mr-1 inline size-3.5" />
-          ) : (
-            <Circle className="mr-1 inline size-3.5" />
-          )}
-          {check.detail}
-        </p>
+        <p className={`mt-1 text-xs font-semibold ${s.text}`}>{check.detail}</p>
       </div>
-      <Button asChild variant={check.ready ? "ghost" : "outline"} size="sm" className="shrink-0">
+      <Button asChild variant={check.status === "ready" ? "ghost" : "outline"} size="sm" className="shrink-0">
         <Link to={check.to as never}>
           {check.action} <ArrowRight className="size-4" />
         </Link>
