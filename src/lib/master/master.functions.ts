@@ -164,7 +164,9 @@ export const listCompanies = createServerFn({ method: "POST" })
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(data.page * pageSize, data.page * pageSize + pageSize - 1);
-    if (data.tipoPessoa) q = q.eq("tipo_pessoa", personTypeForStorage(data.tipoPessoa));
+    if (data.tipoPessoa === "pf" || data.tipoPessoa === "pj") {
+      q = q.eq("tipo_pessoa", personTypeForStorage(data.tipoPessoa));
+    }
     if (data.status === "pendente") q = q.in("status_cobranca", ["pendente", "checkout_pending"]);
     else if (data.status) q = q.eq("status_cobranca", data.status);
     if (data.search) q = q.ilike("nome", `%${data.search}%`);
