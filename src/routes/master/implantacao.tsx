@@ -35,7 +35,7 @@ const WHERE = [
 
 const AFTER_IDS: MasterSetupCheck["id"][] = ["plans", "payments", "support", "first_company"];
 
-export function buildBrandPrompt(input: { name: string; tagline: string; color: string; audience: string; notes: string }) {
+function buildBrandPrompt(input: { name: string; tagline: string; color: string; audience: string; notes: string }) {
   return [
     `Atualize a identidade do sistema em todo o projeto, sem alterar regras, preços ou dados:`,
     `- Nome do sistema: "${input.name}"`,
