@@ -14,10 +14,19 @@ export type MasterSetupCheck = {
     | "plans"
     | "trial"
     | "payments"
+    | "infinitepay"
+    | "free_plan"
     | "support"
     | "meta_template"
+    | "subscriber_messages"
     | "ai_credits"
+    | "push"
+    | "notices"
+    | "monthly_report"
+    | "deletions"
     | "first_company";
+  group: SetupGroup;
+  status: SetupStatus;
   title: string;
   description: string;
   ready: boolean;
