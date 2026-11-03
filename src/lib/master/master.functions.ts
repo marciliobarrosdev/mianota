@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { slugify } from "@/lib/common/tenant";
 import { normalizeValidBrazilianPhone } from "@/lib/common/phone";
 import { normalizeAvatarValue } from "@/lib/master/subscriber-avatar-rules";
+import { personTypeForStorage } from "@/lib/master/subscriber-identity-rules";
 import { freePlanAlreadyUsed, provisionTrialDays } from "@/lib/billing/subscriber-provision-rules";
 
 async function assertSuper(supabase: any, _userId: string) {
@@ -163,7 +164,7 @@ export const listCompanies = createServerFn({ method: "POST" })
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(data.page * pageSize, data.page * pageSize + pageSize - 1);
-    if (data.tipoPessoa) q = q.eq("tipo_pessoa", data.tipoPessoa);
+    if (data.tipoPessoa) q = q.eq("tipo_pessoa", personTypeForStorage(data.tipoPessoa));
     if (data.status === "pendente") q = q.in("status_cobranca", ["pendente", "checkout_pending"]);
     else if (data.status) q = q.eq("status_cobranca", data.status);
     if (data.search) q = q.ilike("nome", `%${data.search}%`);
@@ -245,7 +246,7 @@ export const setCompanyTrial = createServerFn({ method: "POST" })
   });
 
 type SubscriberExtra = {
-  tipoPessoa: string; cnpjCpf: string; razaoSocial: string; nomeFantasia: string; nome: string;
+  tipoPessoa: "pf" | "pj"; cnpjCpf: string; razaoSocial: string; nomeFantasia: string; nome: string;
   telefone: string | null; responsavelNome: string; inscricaoEstadual: string; emailCorporativo: string;
   site: string; cep: string; rua: string; numero: string; complemento: string; bairro: string;
   cidade: string; estado: string; logoUrl?: string | null;
@@ -254,7 +255,7 @@ type SubscriberExtra = {
 async function saveSubscriberIdentity(admin: any, confirmedCompanyId: string, data: SubscriberExtra, ownerId?: string | null) {
   const n = (v: string) => v || null;
   const { error: identityError } = await admin.from("company").update({
-    tipo_pessoa: data.tipoPessoa,
+    tipo_pessoa: personTypeForStorage(data.tipoPessoa),
     cnpj_cpf: data.cnpjCpf || null,
     razao_social: data.tipoPessoa === "pj" ? data.razaoSocial || null : null,
     nome_fantasia: data.tipoPessoa === "pj" ? data.nomeFantasia || data.nome : null,
@@ -855,7 +856,7 @@ export const updateCompanyProfile = createServerFn({ method: "POST" })
     const admin = supabaseAdmin as any;
     const { error } = await admin.from("company").update({
       nome: data.nome,
-      tipo_pessoa: data.tipoPessoa,
+      tipo_pessoa: personTypeForStorage(data.tipoPessoa),
       cnpj_cpf: data.cnpjCpf || null,
       razao_social: data.tipoPessoa === "pj" ? data.razaoSocial || null : null,
       nome_fantasia: data.tipoPessoa === "pj" ? data.nome : null,
