@@ -10,6 +10,7 @@ import { EMAIL_INPUT_PROPS, maskCnpj, maskCpf } from "@/lib/common/masks";
 import { maskBrazilianPhoneInput, PHONE_INPUT_PROPS } from "@/lib/common/phone";
 import { getCompanyDetails, updateCompanyProfile } from "@/lib/master/master.functions";
 import { SubscriberAvatarInput } from "./subscriber-avatar";
+import { personTypeForForm } from "@/lib/master/subscriber-identity-rules";
 
 const EMPTY = {
   nome: "", tipoPessoa: "pf" as "pf" | "pj", cnpjCpf: "", razaoSocial: "", responsavelNome: "",
@@ -45,7 +46,7 @@ export function SubscriberEditDialog({
       .then((r: any) => {
         const c = r.company;
         const owner = (r.members ?? []).find((m: any) => m.role === "owner");
-        const tipo = c.tipo_pessoa === "pj" ? "pj" : "pf";
+        const tipo = personTypeForForm(c.tipo_pessoa);
         const doc = String(c.cnpj_cpf ?? "");
         const phone = String(c.telefone ?? owner?.profile?.telefone ?? "").replace(/^\+?55/, "");
         setForm({

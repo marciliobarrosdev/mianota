@@ -1,5 +1,9 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
+## Correção do cadastro de assinantes
+- [x] Corrigir formato do tipo de pessoa na criação, edição, filtros e ficha.
+- [ ] Verificar salvamento e reabertura pelo Master — depende de sessão autorizada do dono.
+
 - [x] Migração: canal ativo exclusivo + troca auditada, template Meta, fila de onboarding, ativação de uso único, config de IA
 - [x] Captura nome/telefone do comprador (Stripe + Kiwify/Cakto/PerfectPay) e phone_number_collection no checkout Stripe
 - [x] Onboarding pós-compra idempotente (Evolution texto "COMEÇAR código", Meta template com botão/payload + código fallback), dry-run

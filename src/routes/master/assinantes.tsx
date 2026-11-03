@@ -50,6 +50,7 @@ import { adminGrantCredits } from "@/lib/billing/credits.functions";
 import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
 import { SubscriberEditDialog } from "@/components/master/subscriber-edit-dialog";
 import { Pencil } from "lucide-react";
+import { personTypeForForm } from "@/lib/master/subscriber-identity-rules";
 
 export const Route = createFileRoute("/master/assinantes")({
   head: brandedRouteHead("Assinantes"),
@@ -471,14 +472,14 @@ function EmpresasPage() {
                 </Button>
               </div>
               <Section title="Assinante">
-                <Field k={detail.company.tipo_pessoa === "pj" ? "Nome do negócio" : "Nome"} v={detail.company.nome} />
-                <Field k="Tipo de pessoa" v={detail.company.tipo_pessoa === "pj" ? "Pessoa jurídica" : "Pessoa física"} />
+                <Field k={personTypeForForm(detail.company.tipo_pessoa) === "pj" ? "Nome do negócio" : "Nome"} v={detail.company.nome} />
+                <Field k="Tipo de pessoa" v={personTypeForForm(detail.company.tipo_pessoa) === "pj" ? "Pessoa jurídica" : "Pessoa física"} />
                 <Field k="Razão social" v={detail.company.razao_social} />
                 <Field k="Slug" v={detail.company.slug} />
                 <Field k="Status" v={detail.company.status_cobranca} />
                 <Field k="Email corporativo" v={detail.company.email_corporativo} />
                 <Field k="Telefone" v={detail.company.telefone} />
-                <Field k={detail.company.tipo_pessoa === "pj" ? "CNPJ" : "CPF"} v={detail.company.cnpj_cpf} />
+                <Field k={personTypeForForm(detail.company.tipo_pessoa) === "pj" ? "CNPJ" : "CPF"} v={detail.company.cnpj_cpf} />
                 <Field k="Endereço" v={[detail.company.rua, detail.company.numero, detail.company.complemento, detail.company.bairro, detail.company.cidade && `${detail.company.cidade}${detail.company.estado ? "/" + detail.company.estado : ""}`, detail.company.cep].filter(Boolean).join(", ") || null} />
                 <Field
                   k="Cidade/UF"
