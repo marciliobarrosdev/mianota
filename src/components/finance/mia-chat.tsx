@@ -29,8 +29,8 @@ import {
   formatBytes,
   type ChatAttachment,
   type ChatMessage,
-  type MarciaChatController,
-} from "./marcia-chat-types";
+  type MiaChatController,
+} from "@/components/finance/mia-chat-types";
 
 function readAttachment(file: File): Promise<ChatAttachment> {
   return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ function readAttachment(file: File): Promise<ChatAttachment> {
   });
 }
 
-export function MarciaChat({
+export function MiaChat({
   controller,
   assistantName,
   suggestions = [],
@@ -69,7 +69,7 @@ export function MarciaChat({
 }: {
   /** Texto inicial no campo (ex.: vindo de "Perguntar à MIA" em um aviso). */
   initialText?: string;
-  controller: MarciaChatController;
+  controller: MiaChatController;
   assistantName: string;
   suggestions?: string[];
   variant?: "full" | "compact";

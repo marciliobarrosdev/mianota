@@ -21,7 +21,7 @@ import {
 import { toast } from "sonner";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
-import { MarciaAiWorking, PageHeader } from "@/components/marcia/page-kit";
+import { MiaAiWorking, PageHeader } from "@/components/mia/page-kit";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -1119,7 +1119,7 @@ function ServiceDialog({
               {organizing ? "Organizando…" : "Organizar com IA"}
             </Button>
           </div>
-          <MarciaAiWorking active={organizing} />
+          <MiaAiWorking active={organizing} />
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm font-bold">
               Duração (min)

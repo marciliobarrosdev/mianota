@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { PageHeader } from "@/components/marcia/page-kit";
+import { PageHeader } from "@/components/mia/page-kit";
 
 function DemoCta({ label = "Criar meu acesso" }: { label?: string }) {
   return (

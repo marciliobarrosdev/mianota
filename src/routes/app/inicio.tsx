@@ -11,7 +11,7 @@ import { RefreshCw } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
 import { Button } from "@/components/ui/button";
-import { LoadingBlocks } from "@/components/marcia/page-kit";
+import { LoadingBlocks } from "@/components/mia/page-kit";
 import { FinanceOverview } from "@/components/finance/finance-overview";
 import { financeLinks } from "@/components/finance/finance-links";
 import { useFinanceDashboard } from "@/hooks/use-finance-dashboard";

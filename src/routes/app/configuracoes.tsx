@@ -48,7 +48,7 @@ import {
 import { brandedRouteHead } from "@/config/brand";
 import { listAuditLog, exportLgpd } from "@/lib/master/security.functions";
 import { patchCachedAppCompany } from "@/lib/common/app-access-cache";
-import { PageHeader } from "@/components/marcia/page-kit";
+import { PageHeader } from "@/components/mia/page-kit";
 import { useBrand } from "@/contexts/brand-context";
 import { saveSubscriberContact } from "@/lib/billing/subscriber-profile.functions";
 import { saveAssistantProfile } from "@/lib/ai/assistant-profile.functions";
@@ -62,7 +62,7 @@ import {
   cancelAccountDeletion,
   exportTransactionsCsv,
 } from "@/lib/finance/settings.functions";
-import { useMarciaNotifications } from "@/hooks/use-marcia-notifications";
+import { useMarciaNotifications } from "@/hooks/use-mia-notifications";
 import { normalizeAssistantProfile, type AssistantProfile } from "@/lib/ai/assistant-profile-rules";
 import {
   auditGroup,

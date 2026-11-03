@@ -2,7 +2,7 @@ import { supabase } from "@/lib/auth/realm-supabase";
 
 const db = supabase as any;
 
-export type MarciaCustomer = {
+export type MiaCustomer = {
   id: string;
   company_id: string;
   name: string;
@@ -13,7 +13,7 @@ export type MarciaCustomer = {
   created_at?: string;
 };
 
-export type MarciaProfessional = {
+export type MiaProfessional = {
   id: string;
   company_id: string;
   name: string;
@@ -22,7 +22,7 @@ export type MarciaProfessional = {
   active: boolean;
 };
 
-export type MarciaService = {
+export type MiaService = {
   id: string;
   company_id: string;
   name: string;
@@ -42,7 +42,7 @@ export type AppointmentStatus =
   | "cancelled"
   | "no_show";
 
-export type MarciaAppointment = {
+export type MiaAppointment = {
   id: string;
   company_id: string;
   professional_id: string;
@@ -55,14 +55,14 @@ export type MarciaAppointment = {
   source: string;
   notes?: string | null;
   price_cents?: number | null;
-  marcia_customer?: MarciaCustomer | null;
-  marcia_professional?: MarciaProfessional | null;
-  marcia_service?: MarciaService | null;
+  marcia_customer?: MiaCustomer | null;
+  marcia_professional?: MiaProfessional | null;
+  marcia_service?: MiaService | null;
 };
 
 export type WorkOrderStatus = "draft" | "open" | "in_progress" | "waiting_customer" | "completed" | "cancelled";
 
-export type MarciaWorkOrder = {
+export type MiaWorkOrder = {
   id: string;
   number: number;
   company_id: string;
@@ -75,8 +75,8 @@ export type MarciaWorkOrder = {
   scheduled_at?: string | null;
   total_cents: number;
   created_at: string;
-  marcia_customer?: MarciaCustomer | null;
-  marcia_professional?: MarciaProfessional | null;
+  marcia_customer?: MiaCustomer | null;
+  marcia_professional?: MiaProfessional | null;
 };
 
 export const appointmentLabels: Record<AppointmentStatus, string> = {
@@ -124,7 +124,7 @@ export async function listAppointments(companyId: string, from: Date, to: Date) 
     .lt("starts_at", to.toISOString())
     .order("starts_at", { ascending: true });
   if (error) throw error;
-  return (data || []) as MarciaAppointment[];
+  return (data || []) as MiaAppointment[];
 }
 
 export async function listCustomers(companyId: string) {
@@ -134,7 +134,7 @@ export async function listCustomers(companyId: string) {
     .eq("company_id", companyId)
     .order("name", { ascending: true });
   if (error) throw error;
-  return (data || []) as MarciaCustomer[];
+  return (data || []) as MiaCustomer[];
 }
 
 export async function listProfessionals(companyId: string) {
@@ -145,7 +145,7 @@ export async function listProfessionals(companyId: string) {
     .eq("active", true)
     .order("name", { ascending: true });
   if (error) throw error;
-  return (data || []) as MarciaProfessional[];
+  return (data || []) as MiaProfessional[];
 }
 
 export async function listServices(companyId: string) {
@@ -156,7 +156,7 @@ export async function listServices(companyId: string) {
     .eq("active", true)
     .order("sort_order", { ascending: true });
   if (error) throw error;
-  return (data || []) as MarciaService[];
+  return (data || []) as MiaService[];
 }
 
 export async function listWorkOrders(companyId: string) {
@@ -166,13 +166,13 @@ export async function listWorkOrders(companyId: string) {
     .eq("company_id", companyId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data || []) as MarciaWorkOrder[];
+  return (data || []) as MiaWorkOrder[];
 }
 
-export async function createCustomer(input: Omit<MarciaCustomer, "id">) {
+export async function createCustomer(input: Omit<MiaCustomer, "id">) {
   const { data, error } = await db.from("marcia_customer").insert(input).select("*").single();
   if (error) throw error;
-  return data as MarciaCustomer;
+  return data as MiaCustomer;
 }
 
 export async function reserveAppointment(input: {
@@ -200,7 +200,7 @@ export async function reserveAppointment(input: {
     p_idempotency_key: crypto.randomUUID(),
   });
   if (error) throw error;
-  return data as MarciaAppointment;
+  return data as MiaAppointment;
 }
 
 export async function updateAppointmentStatus(companyId: string, id: string, status: AppointmentStatus) {
@@ -220,7 +220,7 @@ export async function rescheduleAppointment(companyId: string, id: string, start
     p_hold_minutes: null,
   });
   if (error) throw error;
-  return data as MarciaAppointment;
+  return data as MiaAppointment;
 }
 
 export async function cancelAppointment(companyId: string, id: string, reason?: string) {
@@ -230,7 +230,7 @@ export async function cancelAppointment(companyId: string, id: string, reason?: 
     p_reason: reason?.trim() || null,
   });
   if (error) throw error;
-  return data as MarciaAppointment;
+  return data as MiaAppointment;
 }
 
 export async function createWorkOrder(input: {
@@ -311,7 +311,7 @@ export async function createWorkOrder(input: {
       .eq("id", data.id)
       .single();
     if (refreshError) throw refreshError;
-    return refreshed as MarciaWorkOrder;
+    return refreshed as MiaWorkOrder;
   }
   const { data, error } = await db.from("marcia_work_order").insert({
     company_id: input.companyId,
@@ -326,7 +326,7 @@ export async function createWorkOrder(input: {
     total_cents: input.totalCents || 0,
   }).select("*").single();
   if (error) throw error;
-  return data as MarciaWorkOrder;
+  return data as MiaWorkOrder;
 }
 
 export async function updateWorkOrderStatus(id: string, status: WorkOrderStatus) {

@@ -34,7 +34,7 @@ export function PageHeader({
   );
 }
 
-export function MarciaAssistantCard({
+export function MiaAssistantCard({
   title = "Tudo sob controle",
   text,
   compact = false,
@@ -77,7 +77,7 @@ export function MarciaAssistantCard({
   );
 }
 
-export function MarciaAiWorking({
+export function MiaAiWorking({
   active,
   messages = [
     "Lendo o que você escreveu…",

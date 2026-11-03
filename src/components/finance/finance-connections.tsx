@@ -13,7 +13,7 @@ import {
   Smartphone,
   Sparkles,
 } from "lucide-react";
-import { PageHeader } from "@/components/marcia/page-kit";
+import { PageHeader } from "@/components/mia/page-kit";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useBrand } from "@/contexts/brand-context";

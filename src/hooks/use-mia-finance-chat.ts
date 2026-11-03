@@ -16,8 +16,8 @@ import {
   type ChatMessage,
   type ChatPendingTurn,
   type ChatPhase,
-  type MarciaChatController,
-} from "@/components/finance/marcia-chat-types";
+  type MiaChatController,
+} from "@/components/finance/mia-chat-types";
 
 const CONFIRM_WORDS = /^(sim|confirmar|confirma|pode fazer|pode|execute|executar|ok)$/;
 const CANCEL_WORDS = /^(cancelar|cancela|nao|não)$/;
@@ -32,7 +32,7 @@ function isTimeoutError(error: unknown) {
 export function useMarciaFinanceChat(
   companyId: string | null | undefined,
   options: { loadHistory?: boolean } = {},
-): MarciaChatController {
+): MiaChatController {
   const loadHistory = options.loadHistory ?? true;
   const interpret = useServerFn(interpretFinanceCommand);
   const execute = useServerFn(executeFinanceCommand);

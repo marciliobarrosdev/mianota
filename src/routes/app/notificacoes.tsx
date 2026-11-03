@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { PageHeader } from "@/components/marcia/page-kit";
+import { PageHeader } from "@/components/mia/page-kit";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -44,7 +44,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { brandedRouteHead } from "@/config/brand";
-import { useMarciaNotifications } from "@/hooks/use-marcia-notifications";
+import { useMarciaNotifications } from "@/hooks/use-mia-notifications";
 import { supabase } from "@/lib/auth/realm-supabase";
 import { sendTestPush } from "@/lib/finance/push.functions";
 import { downloadMonthlyReport, sendMonthlyReportWhatsapp } from "@/lib/finance/monthly-report.functions";

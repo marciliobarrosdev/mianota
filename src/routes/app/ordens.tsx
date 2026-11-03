@@ -4,9 +4,9 @@ import { CheckCircle2, ChevronRight, ClipboardList, Clock3, Search, Wrench } fro
 import { toast } from "sonner";
 import { brandedRouteHead } from "@/config/brand";
 import { Button } from "@/components/ui/button";
-import { EmptyState, LoadingBlocks, PageHeader, StatusPill } from "@/components/marcia/page-kit";
-import { NewWorkOrderDialog } from "@/components/marcia/new-work-order-dialog";
-import { CompleteWorkOrderDialog } from "@/components/marcia/complete-work-order-dialog";
+import { EmptyState, LoadingBlocks, PageHeader, StatusPill } from "@/components/mia/page-kit";
+import { NewWorkOrderDialog } from "@/components/mia/new-work-order-dialog";
+import { CompleteWorkOrderDialog } from "@/components/mia/complete-work-order-dialog";
 import {
   friendlyError,
   listWorkOrders,
@@ -14,9 +14,9 @@ import {
   shortDate,
   updateWorkOrderStatus,
   workOrderLabels,
-  type MarciaWorkOrder,
+  type MiaWorkOrder,
   type WorkOrderStatus,
-} from "@/lib/ai/marcia";
+} from "@/lib/ai/mia";
 
 export const Route = createFileRoute("/app/ordens")({
   beforeLoad: () => {
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/app/ordens")({
 function WorkOrdersPage() {
   const ctx = Route.useRouteContext();
   const companyId = ctx.company?.id;
-  const [items, setItems] = useState<MarciaWorkOrder[]>([]);
+  const [items, setItems] = useState<MiaWorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -66,7 +66,7 @@ function WorkOrdersPage() {
     [items, query, filter],
   );
 
-  async function advance(item: MarciaWorkOrder) {
+  async function advance(item: MiaWorkOrder) {
     const next: WorkOrderStatus = "in_progress";
     try {
       await updateWorkOrderStatus(item.id, next);
@@ -165,7 +165,7 @@ function OrderRow({
   advance,
   onCompleted,
 }: {
-  item: MarciaWorkOrder;
+  item: MiaWorkOrder;
   companyId: string;
   advance: () => void;
   onCompleted: () => void;

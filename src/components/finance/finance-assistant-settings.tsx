@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import fallbackAvatarUrl from "@/assets/marcia-avatar-640.png";
-import { PageHeader, LoadingBlocks } from "@/components/marcia/page-kit";
+import { PageHeader, LoadingBlocks } from "@/components/mia/page-kit";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

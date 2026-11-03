@@ -16,8 +16,8 @@ import {
   cancelAppointment,
   friendlyError,
   rescheduleAppointment,
-  type MarciaAppointment,
-} from "@/lib/ai/marcia";
+  type MiaAppointment,
+} from "@/lib/ai/mia";
 import { syncMarciaAppointmentToGoogle } from "@/lib/common/google.functions";
 import { operationLocalInputToIso, isoToOperationLocalInput } from "@/lib/common/timezone";
 
@@ -29,7 +29,7 @@ export function AppointmentActionsDialog({
   onChanged,
   compact = false,
 }: {
-  appointment: MarciaAppointment;
+  appointment: MiaAppointment;
   companyId: string;
   onChanged?: () => void;
   compact?: boolean;

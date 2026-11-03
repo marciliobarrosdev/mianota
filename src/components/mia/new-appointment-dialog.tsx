@@ -19,10 +19,10 @@ import {
   listProfessionals,
   listServices,
   reserveAppointment,
-  type MarciaCustomer,
-  type MarciaProfessional,
-  type MarciaService,
-} from "@/lib/ai/marcia";
+  type MiaCustomer,
+  type MiaProfessional,
+  type MiaService,
+} from "@/lib/ai/mia";
 import {
   PHONE_INPUT_PROPS,
   brazilianPhoneError,
@@ -46,9 +46,9 @@ export function NewAppointmentDialog({
   const syncGoogle = useServerFn(syncMarciaAppointmentToGoogle);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState<MarciaCustomer[]>([]);
-  const [professionals, setProfessionals] = useState<MarciaProfessional[]>([]);
-  const [services, setServices] = useState<MarciaService[]>([]);
+  const [customers, setCustomers] = useState<MiaCustomer[]>([]);
+  const [professionals, setProfessionals] = useState<MiaProfessional[]>([]);
+  const [services, setServices] = useState<MiaService[]>([]);
   const [customerId, setCustomerId] = useState("");
   const [professionalId, setProfessionalId] = useState("");
   const [serviceId, setServiceId] = useState("");

@@ -5,8 +5,8 @@ import {
   type ChatMessage,
   type ChatPendingTurn,
   type ChatPhase,
-  type MarciaChatController,
-} from "@/components/finance/marcia-chat-types";
+  type MiaChatController,
+} from "@/components/finance/mia-chat-types";
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -115,7 +115,7 @@ const SEED: ChatMessage[] = [
 /** Roteiro local da demonstração, com o mesmo contrato do chat real. */
 export function useDemoMarciaChat(
   options: { seed?: boolean; dateLabel?: string } = {},
-): MarciaChatController {
+): MiaChatController {
   const [messages, setMessages] = useState<ChatMessage[]>(options.seed === false ? [] : SEED);
   const [phase, setPhase] = useState<ChatPhase>("idle");
   const [pending, setPending] = useState<ChatPendingTurn | null>(null);

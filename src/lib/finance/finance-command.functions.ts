@@ -904,7 +904,7 @@ export const undoFinanceCommand = createServerFn({ method: "POST" })
   }))
   .handler(async ({ context, data }) => {
     await authorize(context, data.companyId);
-    const { canUndo } = await import("@/lib/ai/marcia-chat-rules");
+    const { canUndo } = await import("@/lib/ai/mia-chat-rules");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
     const stored = await db

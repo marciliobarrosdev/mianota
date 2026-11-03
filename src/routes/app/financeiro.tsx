@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
 import { Button } from "@/components/ui/button";
-import { EmptyState, LoadingBlocks, PageHeader } from "@/components/marcia/page-kit";
+import { EmptyState, LoadingBlocks, PageHeader } from "@/components/mia/page-kit";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { friendlyError, money } from "@/lib/ai/marcia";
+import { friendlyError, money } from "@/lib/ai/mia";
 
 export const Route = createFileRoute("/app/financeiro")({
   beforeLoad: () => {

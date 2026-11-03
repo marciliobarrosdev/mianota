@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canUndo, contextualSuggestions } from "@/lib/ai/marcia-chat-rules";
+import { canUndo, contextualSuggestions } from "@/lib/ai/mia-chat-rules";
 
 describe("desfazer lançamento da MIA", () => {
   const now = new Date("2026-10-29T15:00:00Z");

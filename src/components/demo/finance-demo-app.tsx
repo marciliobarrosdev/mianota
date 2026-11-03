@@ -3,16 +3,16 @@ import { ClientOnly, Link } from "@tanstack/react-router";
 import { Mic, Sparkles } from "lucide-react";
 import { useBrand } from "@/contexts/brand-context";
 import { Button } from "@/components/ui/button";
-import { LoadingBlocks, PageHeader } from "@/components/marcia/page-kit";
+import { LoadingBlocks, PageHeader } from "@/components/mia/page-kit";
 import { FinanceOverview } from "@/components/finance/finance-overview";
 import { TransactionsView } from "@/components/finance/transactions-view";
 import { PlannerView } from "@/components/finance/planner-view";
 import type { PlannerActions } from "@/components/finance/planner-actions";
 import { toast } from "sonner";
-import { MarciaChat } from "@/components/finance/marcia-chat";
-import { MarciaChatShell } from "@/components/finance/marcia-chat-shell";
+import { MiaChat } from "@/components/finance/mia-chat";
+import { MiaChatShell } from "@/components/finance/mia-chat-shell";
 import { financeLinks } from "@/components/finance/finance-links";
-import { useDemoMarciaChat } from "@/hooks/use-demo-marcia-chat";
+import { useDemoMarciaChat } from "@/hooks/use-demo-mia-chat";
 import {
   buildDemoPlanner,
   buildDemoSnapshot,
@@ -177,7 +177,7 @@ function DemoDayComposer({ date }: { date: string }) {
   const label = new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR");
   const controller = useDemoMarciaChat({ seed: false, dateLabel: label });
   return (
-    <MarciaChat
+    <MiaChat
       controller={controller}
       assistantName={branding.assistantName}
       variant="compact"
@@ -199,11 +199,11 @@ function DemoChat() {
   const branding = useBrand();
   const controller = useDemoMarciaChat();
   return (
-    <MarciaChatShell
+    <MiaChatShell
       assistantName={branding.assistantName}
       subtitle="Demonstração · respostas simuladas"
     >
-      <MarciaChat
+      <MiaChat
         controller={controller}
         assistantName={branding.assistantName}
         suggestions={[
@@ -213,6 +213,6 @@ function DemoChat() {
           "Quanto eu gastei este mês?",
         ]}
       />
-    </MarciaChatShell>
+    </MiaChatShell>
   );
 }

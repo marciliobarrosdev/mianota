@@ -6,12 +6,12 @@ import { FileDown, MessageCircle, Mic, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
-import { PageHeader } from "@/components/marcia/page-kit";
+import { PageHeader } from "@/components/mia/page-kit";
 import { Button } from "@/components/ui/button";
 import { FinanceError, FinanceLoading } from "@/components/finance/finance-states";
 import { PlannerView } from "@/components/finance/planner-view";
-import { MarciaChat } from "@/components/finance/marcia-chat";
-import { useMarciaFinanceChat } from "@/hooks/use-marcia-finance-chat";
+import { MiaChat } from "@/components/finance/mia-chat";
+import { useMarciaFinanceChat } from "@/hooks/use-mia-finance-chat";
 import { getFinancePlanner, type FinancePlannerItem } from "@/lib/finance/finance-dashboard.functions";
 import { toIsoDate } from "@/lib/finance/finance-period";
 import {
@@ -261,7 +261,7 @@ function DayComposer({
   const controller = useMarciaFinanceChat(companyId, { loadHistory: false });
   const label = new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR");
   return (
-    <MarciaChat
+    <MiaChat
       controller={controller}
       assistantName={assistantName}
       variant="compact"

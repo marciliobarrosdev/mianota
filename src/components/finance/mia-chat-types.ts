@@ -33,7 +33,7 @@ export type ChatPendingTurn = {
   quickReplies: string[];
 };
 
-export type MarciaChatController = {
+export type MiaChatController = {
   messages: ChatMessage[];
   phase: ChatPhase;
   pending: ChatPendingTurn | null;

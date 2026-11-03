@@ -3,7 +3,7 @@ import { ClipboardPlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { createWorkOrder, friendlyError, listCustomers, listProfessionals, type MarciaCustomer, type MarciaProfessional } from "@/lib/ai/marcia";
+import { createWorkOrder, friendlyError, listCustomers, listProfessionals, type MiaCustomer, type MiaProfessional } from "@/lib/ai/mia";
 
 const control = "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100";
 
@@ -14,8 +14,8 @@ export function NewWorkOrderDialog({ companyId, onCreated, appointment }: {
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState<MarciaCustomer[]>([]);
-  const [professionals, setProfessionals] = useState<MarciaProfessional[]>([]);
+  const [customers, setCustomers] = useState<MiaCustomer[]>([]);
+  const [professionals, setProfessionals] = useState<MiaProfessional[]>([]);
   const [customerId, setCustomerId] = useState(appointment?.customerId || "");
   const [professionalId, setProfessionalId] = useState(appointment?.professionalId || "");
   const [summary, setSummary] = useState(appointment?.title || "");

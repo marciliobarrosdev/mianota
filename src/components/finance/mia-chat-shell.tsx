@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { MiaAvatar } from "./mia-avatar";
 
 /** Moldura de altura fixa para o chat: histórico rola, composer fica no rodapé. */
-export function MarciaChatShell({
+export function MiaChatShell({
   assistantName,
   children,
   subtitle = "Assessora financeira · responde na hora",
