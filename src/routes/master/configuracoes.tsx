@@ -648,7 +648,7 @@ function SecurityPage() {
             ) : (
               <ul className="divide-y rounded-xl border">
                 {auditShown.map((a) => {
-                  const d = a.details as { added?: string[]; removed?: string[] };
+                  const d = a.details;
                   const extra = [
                     d?.added?.length ? `+ ${d.added.join(", ")}` : "",
                     d?.removed?.length ? `− ${d.removed.join(", ")}` : "",

@@ -99,7 +99,7 @@ export const listMasterAudit = createServerFn({ method: "POST" })
       actor_email: string | null;
       action: string;
       target: string | null;
-      details: Record<string, unknown>;
+      details: { added?: string[]; removed?: string[]; fields?: string[] } | null;
       created_at: string;
     }[];
   });
