@@ -14,10 +14,12 @@ import {
   Search,
   CreditCard,
   Building2,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listMasterSubscriptions } from "@/lib/master/master.functions";
 import { toast } from "sonner";
+import { daysUntil, downloadCsv, renewalBuckets, revenueStats, toCsv } from "@/lib/master/subscriber-rules";
 
 export const Route = createFileRoute("/master/assinaturas")({
   head: brandedRouteHead("Assinaturas"),
@@ -36,6 +38,7 @@ type Row = {
   paddle_subscription_id: string | null;
   next_billing_amount_cents: number | null;
   created_at: string;
+  updated_at?: string | null;
   plan: { nome: string; preco_cents: number; moeda: string; intervalo: string } | null;
   company: { nome: string; status_cobranca: string; email_corporativo: string | null } | null;
 };
@@ -120,7 +123,7 @@ function AssinaturasPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-black uppercase tracking-[.16em] text-violet-500">
+        <p className="text-xs font-black uppercase tracking-[.16em] text-primary">
           receita recorrente
         </p>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Assinaturas</h1>
@@ -285,7 +288,7 @@ function AssinaturasPage() {
                       <td className="px-4 py-3">
                         <Badge className={st.cls + " font-medium"}>{st.label}</Badge>
                         {r.cancel_at_period_end && (
-                          <div className="text-[10px] text-amber-600 mt-1">
+                          <div className="text-[10px] text-destructive mt-1">
                             cancela no fim do período
                           </div>
                         )}
@@ -295,7 +298,7 @@ function AssinaturasPage() {
                           ? new Date(r.current_period_end).toLocaleDateString("pt-BR")
                           : "—"}
                         {r.trial_ends_at && r.status === "trialing" && (
-                          <div className="text-[10px] text-blue-600">
+                          <div className="text-[10px] text-muted-foreground">
                             trial até {new Date(r.trial_ends_at).toLocaleDateString("pt-BR")}
                           </div>
                         )}
@@ -325,6 +328,35 @@ function AssinaturasPage() {
   );
 }
 
+function RenewalList({ title, hint, rows, alert }: { title: string; hint: string; rows: Row[]; alert?: boolean }) {
+  return (
+    <Card className={`p-4 ${alert ? "border-destructive/40" : ""}`}>
+      <p className="text-sm font-bold">{title} <span className="text-muted-foreground">({rows.length})</span></p>
+      <p className="text-xs text-muted-foreground">{hint}</p>
+      {rows.length === 0 ? (
+        <p className="mt-3 text-xs text-muted-foreground">Nenhuma.</p>
+      ) : (
+        <ul className="mt-3 divide-y text-sm">
+          {rows.slice(0, 6).map((r) => {
+            const d = daysUntil(r.current_period_end);
+            return (
+              <li key={r.id} className="flex items-center justify-between gap-2 py-2">
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{r.company?.nome ?? "—"}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">{r.plan?.nome ?? "—"} · {r.company?.email_corporativo ?? "sem e-mail"}</div>
+                </div>
+                <span className={`shrink-0 text-xs font-semibold ${alert ? "text-destructive" : "text-muted-foreground"}`}>
+                  {d === null ? "—" : d < 0 ? `há ${-d} dia(s)` : d === 0 ? "hoje" : `em ${d} dia(s)`}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
 function Stat({
   label,
   value,
@@ -337,7 +369,7 @@ function Stat({
   alert?: boolean;
 }) {
   return (
-    <Card className={`p-4 ${alert ? "border-amber-300 bg-amber-500/[.04]" : ""}`}>
+    <Card className={`p-4 ${alert ? "border-destructive/40" : ""}`}>
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-1 flex items-center gap-2 text-2xl font-bold">
         {value} {alert && <CircleAlert className="size-4 text-amber-600" />}
