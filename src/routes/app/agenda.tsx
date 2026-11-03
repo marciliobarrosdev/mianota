@@ -14,7 +14,7 @@ import {
   listAppointments,
   shortTime,
   type MarciaAppointment,
-} from "@/lib/marcia";
+} from "@/lib/ai/marcia";
 
 export const Route = createFileRoute("/app/agenda")({
   beforeLoad: () => {

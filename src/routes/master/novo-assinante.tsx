@@ -1,6 +1,6 @@
-import { EMAIL_INPUT_PROPS, emailError, maskCpf, maskCnpj, normalizeEmail } from "@/lib/masks";
+import { EMAIL_INPUT_PROPS, emailError, maskCpf, maskCnpj, normalizeEmail } from "@/lib/common/masks";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { maskBrazilianPhoneInput, PHONE_INPUT_PROPS } from "@/lib/phone";
+import { maskBrazilianPhoneInput, PHONE_INPUT_PROPS } from "@/lib/common/phone";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Plus, Copy, Check } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
-import { createCompanyWithOwner, listPlansBasic } from "@/lib/master.functions";
+import { createCompanyWithOwner, listPlansBasic } from "@/lib/master/master.functions";
 
 export const Route = createFileRoute("/master/novo-assinante")({
   head: brandedRouteHead("Novo assinante"),

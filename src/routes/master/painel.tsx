@@ -40,8 +40,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { brandedRouteHead } from "@/config/brand";
-import { masterKpis } from "@/lib/master.functions";
-import { getMasterSetupProgress } from "@/lib/master-setup.functions";
+import { masterKpis } from "@/lib/master/master.functions";
+import { getMasterSetupProgress } from "@/lib/master/master-setup.functions";
 import { BroadcastCard } from "@/components/master/broadcast-card";
 import { DeletionRequestsCard } from "@/components/master/deletion-requests-card";
 

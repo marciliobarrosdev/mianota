@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
 const migration = read("supabase/migrations/20261018120000_marcia_finance_foundation.sql");
-const command = read("src/lib/finance-command.functions.ts");
+const command = read("src/lib/finance/finance-command.functions.ts");
 const shell = read("src/components/app-shell.tsx");
 const onboarding = read("src/routes/app/onboarding.tsx");
 const dashboard = read("src/routes/app/inicio.tsx");
@@ -16,23 +16,23 @@ const chatHook = read("src/hooks/use-marcia-finance-chat.ts");
 const transactions = read("src/components/finance/transactions-view.tsx");
 const plannerView = read("src/components/finance/planner-view.tsx");
 const demoApp = read("src/components/demo/finance-demo-app.tsx");
-const reminders = read("src/lib/finance-reminders.functions.ts");
+const reminders = read("src/lib/finance/finance-reminders.functions.ts");
 const settings = read("src/routes/app/configuracoes.tsx");
 const landing = read("src/components/landing/finance-landing.tsx");
 const styles = read("src/styles.css");
 const demoShell = read("src/routes/demo.tsx");
 const demoPages = read("src/components/demo/finance-demo-pages.tsx");
 const whatsappMigration = read("supabase/migrations/20261018150000_finance_whatsapp_identity.sql");
-const whatsappServer = read("src/lib/finance-whatsapp.server.ts");
+const whatsappServer = read("src/lib/finance/finance-whatsapp.server.ts");
 const webhook = read("src/routes/api/public/whatsapp-webhook.ts");
 const masterSetup = read("src/routes/master/implantacao.tsx");
-const masterServer = read("src/lib/master.functions.ts");
+const masterServer = read("src/lib/master/master.functions.ts");
 const offerMigration = read("supabase/migrations/20261019193000_basic_pro_offer.sql");
 const landingRoute = read("src/routes/index.tsx");
 const balanceMigration = read("supabase/migrations/20261019213000_fin_account_balance_rpc.sql");
 const cloneOfferBootstrap = read("drizzle/migrations/0005_basic_pro_clone_bootstrap.sql");
 const masterPlans = read("src/routes/master/planos.tsx");
-const dashboardFunctions = read("src/lib/finance-dashboard.functions.ts");
+const dashboardFunctions = read("src/lib/finance/finance-dashboard.functions.ts");
 const oldCalendar = read("src/routes/app/calendario.tsx");
 
 for (const table of [

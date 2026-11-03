@@ -56,12 +56,12 @@ expect(
   "Guia deve explicar a janela de atendimento da Meta",
 );
 expect(
-  "src/lib/integration-secrets.server.ts",
+  "src/lib/common/integration-secrets.server.ts",
   /whatsapp_meta:[\s\S]*access_token[\s\S]*app_secret/,
   "Credenciais Meta devem usar o cofre criptografado",
 );
 expect(
-  "src/lib/master-whatsapp.server.ts",
+  "src/lib/whatsapp/master-whatsapp.server.ts",
   /AES|resolveIntegration\("whatsapp_meta"\)/,
   "Runtime Meta deve resolver credenciais apenas no servidor",
 );
@@ -86,7 +86,7 @@ expect(
   "Webhook central deve rotear comandos financeiros para o assinante correto",
 );
 expect(
-  "src/lib/central-finance-whatsapp.server.ts",
+  "src/lib/whatsapp/central-finance-whatsapp.server.ts",
   /fin_whatsapp_identity[\s\S]*phone_e164/,
   "Roteamento central deve identificar o tenant pelo celular ativo",
 );
@@ -96,12 +96,12 @@ expect(
   "Banco deve impedir um celular ativo em mais de um tenant",
 );
 expect(
-  "src/lib/master-whatsapp.functions.ts",
+  "src/lib/whatsapp/master-whatsapp.functions.ts",
   /24 \* 60 \* 60 \* 1000/,
   "Respostas Meta devem respeitar a janela de 24 horas",
 );
 expect(
-  "src/lib/master-whatsapp.functions.ts",
+  "src/lib/whatsapp/master-whatsapp.functions.ts",
   /is_super_admin/,
   "Funções da caixa de entrada devem exigir superadmin",
 );
@@ -148,12 +148,12 @@ expect(
   "Formulário deve conter URL e API Key",
 );
 expect(
-  "src/lib/integrations.functions.ts",
+  "src/lib/common/integrations.functions.ts",
   /fetchInstances\?instanceName=__marcia_credentials_test__[\s\S]*AbortSignal\.timeout\(15_000\)/,
   "Teste da Evolution deve validar a chave sem listar todas as instâncias",
 );
 expect(
-  "src/lib/integrations.functions.ts",
+  "src/lib/common/integrations.functions.ts",
   /res\.status === 401 \|\| res\.status === 403[\s\S]*res\.status !== 404/,
   "Probe deve aceitar instância inexistente sem aceitar chave inválida",
 );

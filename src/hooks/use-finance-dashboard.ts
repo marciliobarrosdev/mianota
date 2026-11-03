@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   getFinanceDashboard,
   type FinanceDashboardSnapshot,
-} from "@/lib/finance-dashboard.functions";
+} from "@/lib/finance/finance-dashboard.functions";
 
 export function useFinanceDashboard(
   companyId?: string | null,

@@ -25,11 +25,11 @@ import {
   Sparkles,
   Lock,
 } from "lucide-react";
-import { createCheckoutCompany } from "@/lib/checkout.functions";
-import { createStripeCheckout } from "@/lib/stripe.functions";
-import { createInfinitePayCheckout } from "@/lib/infinitepay.functions";
+import { createCheckoutCompany } from "@/lib/billing/checkout.functions";
+import { createStripeCheckout } from "@/lib/billing/stripe.functions";
+import { createInfinitePayCheckout } from "@/lib/billing/infinitepay.functions";
 import { useServerFn } from "@tanstack/react-start";
-import { trialDaysLeft } from "@/lib/tenant";
+import { trialDaysLeft } from "@/lib/common/tenant";
 
 type Search = { plano?: string };
 

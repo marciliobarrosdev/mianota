@@ -5,7 +5,7 @@ import {
   encryptPayload,
   isExpiredSubscriptionStatus,
   vapidJwt,
-} from "../src/lib/web-push.server";
+} from "@/lib/finance/web-push.server";
 
 async function hkdf(salt: Uint8Array, ikm: Uint8Array, info: Uint8Array, len: number) {
   const k = await crypto.subtle.importKey("raw", ikm as BufferSource, "HKDF", false, ["deriveBits"]);

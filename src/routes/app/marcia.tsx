@@ -18,9 +18,9 @@ import { useMarciaFinanceChat } from "@/hooks/use-marcia-finance-chat";
 import { useFinanceDashboard } from "@/hooks/use-finance-dashboard";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { formatCentsBRL } from "@/lib/money";
-import { contextualSuggestions } from "@/lib/marcia-chat-rules";
-import type { FinanceDashboardSnapshot } from "@/lib/finance-dashboard.functions";
+import { formatCentsBRL } from "@/lib/common/money";
+import { contextualSuggestions } from "@/lib/ai/marcia-chat-rules";
+import type { FinanceDashboardSnapshot } from "@/lib/finance/finance-dashboard.functions";
 
 export const Route = createFileRoute("/app/marcia")({
   head: brandedRouteHead("Falar com a MIA"),

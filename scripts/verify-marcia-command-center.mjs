@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const functions = read("src/lib/finance-command.functions.ts");
+const functions = read("src/lib/finance/finance-command.functions.ts");
 const chat = read("src/components/finance/marcia-chat.tsx");
 const chatHook = read("src/hooks/use-marcia-finance-chat.ts");
-const aiRequest = read("src/lib/ai-request.server.ts");
-const lovableAi = read("src/lib/lovable-ai.server.ts");
-const providerAi = read("src/lib/ai-provider.server.ts");
-const aiConfig = read("src/lib/ai-config.functions.ts");
+const aiRequest = read("src/lib/ai/ai-request.server.ts");
+const lovableAi = read("src/lib/ai/lovable-ai.server.ts");
+const providerAi = read("src/lib/ai/ai-provider.server.ts");
+const aiConfig = read("src/lib/ai/ai-config.functions.ts");
 const aiCreditsPage = read("src/routes/master/ia-creditos.tsx");
 const migration = read("supabase/migrations/20261018120000_marcia_finance_foundation.sql");
 const shell = read("src/components/app-shell.tsx");

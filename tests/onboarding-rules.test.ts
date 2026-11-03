@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { onboardingProgress } from "../src/lib/onboarding-rules";
+import { onboardingProgress } from "@/lib/finance/onboarding-rules";
 
 const empty = { movements: 0, whatsappLinked: false, scheduled: 0, pushDevices: 0, profileCustomized: false, budgetsOrGoals: 0, paidPlan: false };
 

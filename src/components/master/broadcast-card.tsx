@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getBroadcastOverview, sendBroadcast } from "@/lib/notification-broadcast.functions";
+import { getBroadcastOverview, sendBroadcast } from "@/lib/finance/notification-broadcast.functions";
 
 export function BroadcastCard() {
   const overviewFn = useServerFn(getBroadcastOverview);

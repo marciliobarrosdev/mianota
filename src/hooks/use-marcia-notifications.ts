@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { getPushPublicKey } from "@/lib/push.functions";
+import { getPushPublicKey } from "@/lib/finance/push.functions";
 
 type PushState = "idle" | "checking" | "activating" | "active" | "error";
 

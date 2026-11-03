@@ -16,7 +16,7 @@ import {
   workOrderLabels,
   type MarciaWorkOrder,
   type WorkOrderStatus,
-} from "@/lib/marcia";
+} from "@/lib/ai/marcia";
 
 export const Route = createFileRoute("/app/ordens")({
   beforeLoad: () => {

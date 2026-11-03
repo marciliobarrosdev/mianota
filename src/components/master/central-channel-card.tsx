@@ -32,12 +32,12 @@ import {
   saveEvolutionPurchaseMessage,
   saveMetaTemplateConfig,
   switchCentralChannel,
-} from "@/lib/master-onboarding.functions";
+} from "@/lib/master/master-onboarding.functions";
 import {
   SUGGESTED_EVOLUTION_PURCHASE_MESSAGE,
   SUGGESTED_META_TEMPLATE_BODY,
   buildEvolutionActivationText,
-} from "@/lib/purchase-onboarding-rules";
+} from "@/lib/whatsapp/purchase-onboarding-rules";
 
 type Mode = "evolution" | "meta";
 type State = Awaited<ReturnType<typeof getCentralChannelState>>;

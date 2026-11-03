@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
-const server = read("../src/lib/stripe-admin.functions.ts");
+const server = read("../src/lib/master/stripe-admin.functions.ts");
 const screen = read("../src/routes/master/planos.tsx");
 
 assert.match(server, /is_super_admin/, "Stripe catalog must require the installation owner");

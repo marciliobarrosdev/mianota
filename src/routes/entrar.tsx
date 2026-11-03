@@ -21,11 +21,11 @@ import { brandedRouteHead } from "@/config/brand";
 import fallbackAvatarUrl from "@/assets/marcia-avatar-640.png";
 import { useBrand } from "@/contexts/brand-context";
 import { BrandLogo } from "@/components/brand-logo";
-import { clearAppAccessCache } from "@/lib/app-access-cache";
+import { clearAppAccessCache } from "@/lib/common/app-access-cache";
 import { clearImpersonation } from "@/lib/auth/realm-supabase";
-import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/masks";
-import { formatCentsBRL } from "@/lib/money";
-import { normalizePlanSlug, resolveSignupPlan } from "@/lib/plan-selection";
+import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
+import { formatCentsBRL } from "@/lib/common/money";
+import { normalizePlanSlug, resolveSignupPlan } from "@/lib/billing/plan-selection";
 
 type Search = { modo?: "login" | "signup"; plano?: string };
 

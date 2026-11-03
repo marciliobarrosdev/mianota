@@ -17,7 +17,7 @@ import {
   activationPhoneMatches,
   buildEvolutionActivationText,
   respondingPhoneE164,
-} from "../src/lib/purchase-onboarding-rules";
+} from "@/lib/whatsapp/purchase-onboarding-rules";
 import { normalize } from "../src/lib/billing/normalize";
 
 // ---------- Simulação de backend e provedores (nenhuma mensagem real) ----------
@@ -74,7 +74,7 @@ afterEach(() => {
 });
 
 async function service() {
-  return import("../src/lib/purchase-onboarding.server");
+  return import("@/lib/whatsapp/purchase-onboarding.server");
 }
 
 describe("canal central exclusivo", () => {

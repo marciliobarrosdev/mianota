@@ -8,7 +8,7 @@ import {
   resolveFinancePeriod,
   type FinancePeriod,
   type FinancePeriodPreset,
-} from "@/lib/finance-period";
+} from "@/lib/finance/finance-period";
 
 const PRESETS: FinancePeriodPreset[] = ["this_month", "last_month", "last_30", "custom"];
 

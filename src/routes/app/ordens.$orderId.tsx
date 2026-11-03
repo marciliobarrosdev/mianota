@@ -20,7 +20,7 @@ import {
   shortDate,
   workOrderLabels,
   type MarciaWorkOrder,
-} from "@/lib/marcia";
+} from "@/lib/ai/marcia";
 
 export const Route = createFileRoute("/app/ordens/$orderId")({
   beforeLoad: () => {

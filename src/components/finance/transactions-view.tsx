@@ -30,8 +30,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MoneyInput } from "@/components/money-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { FinanceTransactionDetail } from "@/lib/finance-dashboard.functions";
-import { PAYMENT_METHOD_LABELS, sourceLabel, statusLabel, toIsoDate, type FinancePeriod } from "@/lib/finance-period";
+import type { FinanceTransactionDetail } from "@/lib/finance/finance-dashboard.functions";
+import { PAYMENT_METHOD_LABELS, sourceLabel, statusLabel, toIsoDate, type FinancePeriod } from "@/lib/finance/finance-period";
 import {
   EMPTY_TX_FILTERS,
   filterTx,
@@ -42,7 +42,7 @@ import {
   txTotals,
   type TxFilters,
   type TxSort,
-} from "@/lib/transactions-rules";
+} from "@/lib/finance/transactions-rules";
 import { PeriodFilter } from "./period-filter";
 import { money } from "./finance-overview";
 import { ExpenseCharts, SplitDialog, TagInput } from "./transactions-extras";

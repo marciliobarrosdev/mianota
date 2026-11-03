@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveModel } from "../src/lib/ai-model-rules";
+import { resolveModel } from "@/lib/ai/ai-model-rules";
 
 describe("resolveModel", () => {
   it("optimized mode uses the economy model of the provider", () => {

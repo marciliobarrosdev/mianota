@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dailyProjection, filterPlannerItems, plannerTotals, toIcs } from "../src/lib/planner-rules";
+import { dailyProjection, filterPlannerItems, plannerTotals, toIcs } from "@/lib/finance/planner-rules";
 
 const base = { time: null, kind: "conta" as const, recurring: false, category: null, paymentMethod: null, source: null, note: null };
 const items = [
@@ -28,7 +28,7 @@ describe("planner rules", () => {
   });
 });
 
-import { canMoveItem, isValidReportRange, reportPeriod, shiftDate, weekDays } from "../src/lib/planner-rules";
+import { canMoveItem, isValidReportRange, reportPeriod, shiftDate, weekDays } from "@/lib/finance/planner-rules";
 
 describe("planejamento fase 2", () => {
   it("adiar 7 dias atravessa o mês", () => expect(shiftDate("2026-10-29", 7)).toBe("2026-11-05"));

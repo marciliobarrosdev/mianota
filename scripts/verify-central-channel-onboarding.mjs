@@ -26,7 +26,7 @@ must(/shouldProcessInbound\(channel\.active_provider, "evolution"\)/.test(webhoo
 must(/metaActive \? \(value\.messages/.test(webhook), "Meta inativa ainda processa mensagens");
 must(/buttonPayload/.test(webhook), "payload do botão Começar não repassado");
 
-const support = read("src/lib/master-whatsapp.server.ts");
+const support = read("src/lib/whatsapp/master-whatsapp.server.ts");
 must(/active_provider: _ignored/.test(support), "updateSupportChannel pode alterar o canal ativo");
 
 const billing = read("src/routes/api/public/billing/webhook.ts");
@@ -34,9 +34,9 @@ must(/topup_plan_credits[\s\S]*startOnboarding\(evt, eventKey, companyId\)/.test
 must(/async function startOnboarding[\s\S]*catch/.test(billing), "falha do onboarding pode derrubar a compra");
 const stripe = read("src/routes/api/public/stripe-webhook.ts");
 must(/customer_details/.test(stripe) && /startStripeOnboarding/.test(stripe), "Stripe sem onboarding");
-must(/phone_number_collection\[enabled\]/.test(read("src/lib/stripe.functions.ts")), "checkout Stripe não pede telefone");
+must(/phone_number_collection\[enabled\]/.test(read("src/lib/billing/stripe.functions.ts")), "checkout Stripe não pede telefone");
 
-const service = read("src/lib/purchase-onboarding.server.ts");
+const service = read("src/lib/whatsapp/purchase-onboarding.server.ts");
 must(/redactSecrets/.test(service), "erros do onboarding sem ocultação de segredos");
 must(!/console\.(log|error)\([^)]*code\b/.test(service), "código de ativação em log");
 must(/activation_code_hash/.test(service) && !/activation_code:/.test(service), "código salvo em texto puro");
@@ -47,22 +47,22 @@ must(
 must(/channelConnected: isActiveChannelConnected\(channel\)/.test(service), "onboarding usa status do canal sem checar o provedor ativo");
 must(/template: channel\.evolution_purchase_message/.test(service), "envio real do QR ignora a mensagem configurada no superadmin");
 must(
-  /channelConnected: rules\.isActiveChannelConnected\(channel\)/.test(read("src/lib/master-onboarding.functions.ts")),
+  /channelConnected: rules\.isActiveChannelConnected\(channel\)/.test(read("src/lib/master/master-onboarding.functions.ts")),
   "simulação usa status do canal sem checar o provedor ativo",
 );
 const latestRpc = migrations.slice(migrations.lastIndexOf("CREATE OR REPLACE FUNCTION public.switch_central_channel"));
 must(/coalesce\(_provider, ''\) <> 'evolution'/.test(latestRpc) && /coalesce\(_status, ''\) <> 'connected'/.test(latestRpc), "RPC ativa Evolution sem provider/status coerentes");
 must(/coalesce\(_provider, ''\) <> 'meta'/.test(latestRpc) && /test_ok INTO _meta_ok/.test(latestRpc), "RPC ativa Meta sem provider/status/teste");
 
-const central = read("src/lib/central-finance-whatsapp.server.ts");
+const central = read("src/lib/whatsapp/central-finance-whatsapp.server.ts");
 must(/tryActivatePurchase/.test(central), "ativação na primeira resposta ausente");
 
-const ai = read("src/lib/ai-config.functions.ts");
+const ai = read("src/lib/ai/ai-config.functions.ts");
 must(!/api_key[^\n]*return/.test(ai) && /last4/.test(ai), "chave BYOK pode ser reexibida");
 for (const fn of ["getAiOverview", "saveAiMode", "saveByokKey", "testAiProvider"]) {
   must(new RegExp(`${fn} = createServerFn[\\s\\S]*?assertSuperAdmin`).test(ai), `${fn} sem checagem de superadmin`);
 }
-const onboardingFns = read("src/lib/master-onboarding.functions.ts");
+const onboardingFns = read("src/lib/master/master-onboarding.functions.ts");
 must((onboardingFns.match(/assertSuperAdmin\(context\.supabase\)/g) || []).length >= 10, "funções da fila sem checagem de superadmin");
 must(/saveEvolutionPurchaseMessage/.test(onboardingFns), "editor da mensagem QR não tem persistência");
 must(/createSuggestedMetaTemplate\(data\.name, data\.language, data\.body\)/.test(onboardingFns), "corpo personalizado não é enviado para aprovação na Meta");

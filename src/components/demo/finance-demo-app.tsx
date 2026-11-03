@@ -17,8 +17,8 @@ import {
   buildDemoPlanner,
   buildDemoSnapshot,
   buildDemoTransactions,
-} from "@/lib/finance-demo-data";
-import { resolveFinancePeriod, toIsoDate, type FinancePeriod } from "@/lib/finance-period";
+} from "@/lib/finance/finance-demo-data";
+import { resolveFinancePeriod, toIsoDate, type FinancePeriod } from "@/lib/finance/finance-period";
 
 const links = financeLinks("demo");
 

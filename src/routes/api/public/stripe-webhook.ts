@@ -59,7 +59,7 @@ async function startStripeOnboarding(
   fallbackEmail?: string | null,
 ) {
   try {
-    const { enqueuePurchaseOnboarding } = await import("@/lib/purchase-onboarding.server");
+    const { enqueuePurchaseOnboarding } = await import("@/lib/whatsapp/purchase-onboarding.server");
     await enqueuePurchaseOnboarding({
       source: "stripe",
       eventKey: `stripe:${eventId}`,
@@ -191,7 +191,7 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
       POST: async ({ request }) => {
         const raw = await request.text();
         const header = request.headers.get("stripe-signature") || "";
-        const { resolveIntegration } = await import("@/lib/integration-secrets.server");
+        const { resolveIntegration } = await import("@/lib/common/integration-secrets.server");
         const { webhook_secret } = await resolveIntegration("stripe");
         if (!webhook_secret) return new Response("not configured", { status: 503 });
         if (!header || !(await verify(raw, header, webhook_secret)))

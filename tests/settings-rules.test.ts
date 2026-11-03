@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { auditLabel, maskPhone, parseSettingsTab, passwordStrength, planValidity } from "../src/lib/settings-rules";
-import { normalizeAssistantProfile } from "../src/lib/assistant-profile-rules";
+import { auditLabel, maskPhone, parseSettingsTab, passwordStrength, planValidity } from "@/lib/finance/settings-rules";
+import { normalizeAssistantProfile } from "@/lib/ai/assistant-profile-rules";
 
 describe("settings rules", () => {
   it("translates audit codes", () => {

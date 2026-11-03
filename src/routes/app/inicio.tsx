@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { plannerItemAction, undoPlannerAction } from "@/lib/finance-planner.functions";
-import { downloadMonthlyReport, sendMonthlyReportWhatsapp } from "@/lib/monthly-report.functions";
-import { previousPeriod } from "@/lib/overview-rules";
-import { addDays } from "@/lib/finance-period";
+import { plannerItemAction, undoPlannerAction } from "@/lib/finance/finance-planner.functions";
+import { downloadMonthlyReport, sendMonthlyReportWhatsapp } from "@/lib/finance/monthly-report.functions";
+import { previousPeriod } from "@/lib/finance/overview-rules";
+import { addDays } from "@/lib/finance/finance-period";
 import { useUnreadNotifications } from "@/hooks/use-unread-notifications";
 import { RefreshCw } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
@@ -15,7 +15,7 @@ import { LoadingBlocks } from "@/components/marcia/page-kit";
 import { FinanceOverview } from "@/components/finance/finance-overview";
 import { financeLinks } from "@/components/finance/finance-links";
 import { useFinanceDashboard } from "@/hooks/use-finance-dashboard";
-import { resolveFinancePeriod, type FinancePeriod } from "@/lib/finance-period";
+import { resolveFinancePeriod, type FinancePeriod } from "@/lib/finance/finance-period";
 
 export const Route = createFileRoute("/app/inicio")({
   head: brandedRouteHead("Visão do mês"),

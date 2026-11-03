@@ -46,9 +46,9 @@ import {
 import { brandedRouteHead } from "@/config/brand";
 import { useMarciaNotifications } from "@/hooks/use-marcia-notifications";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { sendTestPush } from "@/lib/push.functions";
-import { downloadMonthlyReport, sendMonthlyReportWhatsapp } from "@/lib/monthly-report.functions";
-import { monthLabel, previousMonth } from "@/lib/monthly-report-rules";
+import { sendTestPush } from "@/lib/finance/push.functions";
+import { downloadMonthlyReport, sendMonthlyReportWhatsapp } from "@/lib/finance/monthly-report.functions";
+import { monthLabel, previousMonth } from "@/lib/finance/monthly-report-rules";
 import {
   CATEGORY_LABEL,
   DEFAULT_PREFERENCE,
@@ -61,7 +61,7 @@ import {
   type NotificationCategory,
   type NotificationPreference,
   type Urgency,
-} from "@/lib/notification-rules";
+} from "@/lib/finance/notification-rules";
 
 type Notice = {
   id: string;

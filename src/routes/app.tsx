@@ -1,13 +1,13 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
-import type { CompanyRow, Membership } from "@/lib/tenant";
+import type { CompanyRow, Membership } from "@/lib/common/tenant";
 import {
   clearAppAccessCache,
   getCachedAppAccess,
   type AppAccessContext,
-} from "@/lib/app-access-cache";
-import { readRemixInstallationClaimed } from "@/lib/remix-installation-client";
+} from "@/lib/common/app-access-cache";
+import { readRemixInstallationClaimed } from "@/lib/common/remix-installation-client";
 import {
   clearImpersonation,
   getRealmClient,

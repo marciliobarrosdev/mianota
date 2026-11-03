@@ -9,7 +9,7 @@ import {
   listFinanceChatHistory,
   undoFinanceCommand,
   transcribeChatAudio,
-} from "@/lib/finance-command.functions";
+} from "@/lib/finance/finance-command.functions";
 import {
   newId,
   type ChatAttachment,

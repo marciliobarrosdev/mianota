@@ -37,14 +37,14 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/masks";
+import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
 import {
   PHONE_INPUT_PROPS,
   brazilianPhoneError,
   maskBrazilianPhoneInput,
   normalizeValidBrazilianPhone,
-} from "@/lib/phone";
-import { polishServiceDescription } from "@/lib/service-description.functions";
+} from "@/lib/common/phone";
+import { polishServiceDescription } from "@/lib/master/service-description.functions";
 
 type Service = {
   id: string;

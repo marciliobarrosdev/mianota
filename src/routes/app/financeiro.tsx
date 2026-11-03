@@ -14,7 +14,7 @@ import { brandedRouteHead } from "@/config/brand";
 import { Button } from "@/components/ui/button";
 import { EmptyState, LoadingBlocks, PageHeader } from "@/components/marcia/page-kit";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { friendlyError, money } from "@/lib/marcia";
+import { friendlyError, money } from "@/lib/ai/marcia";
 
 export const Route = createFileRoute("/app/financeiro")({
   beforeLoad: () => {

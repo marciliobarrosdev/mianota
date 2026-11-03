@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   getFinanceWhatsappChannel,
   getFinanceWhatsappIdentity,
-} from "@/lib/finance-whatsapp.functions";
+} from "@/lib/finance/finance-whatsapp.functions";
 
 export function useWhatsappStatus(companyId?: string, intervalMs = 30000) {
   const checkChannel = useServerFn(getFinanceWhatsappChannel);

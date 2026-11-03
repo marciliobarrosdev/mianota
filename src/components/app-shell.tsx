@@ -32,12 +32,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import type { CompanyRow, Membership } from "@/lib/tenant";
+import type { CompanyRow, Membership } from "@/lib/common/tenant";
 import { useWhatsappStatus } from "@/hooks/use-whatsapp-status";
-import { clearAppAccessCache } from "@/lib/app-access-cache";
+import { clearAppAccessCache } from "@/lib/common/app-access-cache";
 import { clearImpersonation, currentAuthRealm, signOutRealm } from "@/lib/auth/realm-supabase";
 import { NotificationBell } from "@/components/notification-bell";
-import { syncFinanceReminders } from "@/lib/finance-reminders.functions";
+import { syncFinanceReminders } from "@/lib/finance/finance-reminders.functions";
 
 type NavItem = {
   to: string;

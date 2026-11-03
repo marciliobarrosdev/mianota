@@ -8,7 +8,7 @@ const checkout = read("src/routes/app/checkout.tsx");
 const plans = read("src/routes/master/planos.tsx");
 const companies = read("src/routes/master/assinantes.tsx");
 const banner = read("src/components/trial-banner.tsx");
-const financeWhatsapp = read("src/lib/finance-whatsapp.server.ts");
+const financeWhatsapp = read("src/lib/finance/finance-whatsapp.server.ts");
 const migration = read("supabase/migrations/20261013153000_trial_credit_experience.sql");
 
 assert.match(login, /friendlySignupError/, "signup errors must be translated");

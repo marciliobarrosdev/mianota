@@ -12,8 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { completeWorkOrder } from "@/lib/work-order.functions";
-import { friendlyError, type MarciaWorkOrder } from "@/lib/marcia";
+import { completeWorkOrder } from "@/lib/master/work-order.functions";
+import { friendlyError, type MarciaWorkOrder } from "@/lib/ai/marcia";
 
 const control = "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100";
 

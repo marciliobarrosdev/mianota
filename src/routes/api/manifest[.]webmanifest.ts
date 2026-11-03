@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { brand } from "@/config/brand";
-import { loadCloneBrandServer } from "@/lib/brand.server";
+import { loadCloneBrandServer } from "@/lib/common/brand.server";
 
 const MANAGED_ICON = /^icon\/([0-9a-f-]{36})-512\.png$/i;
 

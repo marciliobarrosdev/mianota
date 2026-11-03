@@ -35,7 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MoneyInput } from "@/components/money-input";
 import { useBrand } from "@/contexts/brand-context";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { getAssistantKnowledge, saveAssistantProfile } from "@/lib/assistant-profile.functions";
+import { getAssistantKnowledge, saveAssistantProfile } from "@/lib/ai/assistant-profile.functions";
 import {
   DEFAULT_ASSISTANT_PROFILE,
   GOAL_LABEL,
@@ -45,7 +45,7 @@ import {
   personalizeReply,
   type AssistantProfile,
   type PrimaryGoal,
-} from "@/lib/assistant-profile-rules";
+} from "@/lib/ai/assistant-profile-rules";
 
 type Knowledge = {
   transactions: number;

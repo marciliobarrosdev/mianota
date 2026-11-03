@@ -1,9 +1,9 @@
 import { AlertTriangle } from "lucide-react";
-import { trialDaysLeft, type CompanyRow } from "@/lib/tenant";
+import { trialDaysLeft, type CompanyRow } from "@/lib/common/tenant";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyCredits } from "@/lib/credits.functions";
+import { getMyCredits } from "@/lib/billing/credits.functions";
 
 export function TrialBanner({ company }: { company: CompanyRow }) {
   const fetchCredits = useServerFn(getMyCredits);

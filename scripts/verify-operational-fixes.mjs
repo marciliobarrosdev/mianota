@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const dashboard = read("src/lib/finance-dashboard.functions.ts");
-const command = read("src/lib/finance-command.functions.ts");
-const whatsapp = read("src/lib/finance-whatsapp.server.ts");
+const dashboard = read("src/lib/finance/finance-dashboard.functions.ts");
+const command = read("src/lib/finance/finance-command.functions.ts");
+const whatsapp = read("src/lib/finance/finance-whatsapp.server.ts");
 const webhook = read("src/routes/api/public/whatsapp-webhook.ts");
-const connection = read("src/lib/evolution.functions.ts");
+const connection = read("src/lib/whatsapp/evolution.functions.ts");
 const onboarding = read("src/routes/app/onboarding.tsx");
 const trialFeatures = read("supabase/migrations/20261013183000_sync_trial_plan_features.sql");
-const integrationSecrets = read("src/lib/integration-secrets.server.ts");
+const integrationSecrets = read("src/lib/common/integration-secrets.server.ts");
 const connectionPage = read("src/routes/app/conexao.tsx");
-const centralWhatsapp = read("src/lib/central-finance-whatsapp.server.ts");
+const centralWhatsapp = read("src/lib/whatsapp/central-finance-whatsapp.server.ts");
 const centralWebhook = read("src/routes/api/public/support-whatsapp-webhook.ts");
 
 assert.match(dashboard, /requireCompanyMemberAccess/, "dashboard must authorize the tenant");

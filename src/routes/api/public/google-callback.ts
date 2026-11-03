@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { hashGoogleOAuthState, syncGoogleBusyBlocks } from "@/lib/google.server";
+import { hashGoogleOAuthState, syncGoogleBusyBlocks } from "@/lib/common/google.server";
 
 export const Route = createFileRoute("/api/public/google-callback")({
   server: {
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/public/google-callback")({
         const state = url.searchParams.get("state");
         if (!state) return new Response("missing state", { status: 400 });
 
-        const { resolveIntegration } = await import("@/lib/integration-secrets.server");
+        const { resolveIntegration } = await import("@/lib/common/integration-secrets.server");
         const googleCfg = await resolveIntegration("google");
         const clientId = googleCfg.client_id;
         const clientSecret = googleCfg.client_secret;

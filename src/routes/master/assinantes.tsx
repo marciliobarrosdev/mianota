@@ -36,8 +36,8 @@ import {
   setCompanyTrial,
   resetCompanyOwnerPassword,
   getCompanyDetails,
-} from "@/lib/master.functions";
-import { adminGrantCredits } from "@/lib/credits.functions";
+} from "@/lib/master/master.functions";
+import { adminGrantCredits } from "@/lib/billing/credits.functions";
 
 export const Route = createFileRoute("/master/assinantes")({
   head: brandedRouteHead("Assinantes"),

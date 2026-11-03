@@ -22,7 +22,7 @@ import {
   getFinanceWhatsappChannel,
   getFinanceWhatsappIdentity,
   revokeFinanceWhatsappIdentity,
-} from "@/lib/finance-whatsapp.functions";
+} from "@/lib/finance/finance-whatsapp.functions";
 
 export const Route = createFileRoute("/app/conexao")({
   head: brandedRouteHead("WhatsApp"),

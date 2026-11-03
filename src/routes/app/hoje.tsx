@@ -35,7 +35,7 @@ import {
   updateAppointmentStatus,
   type MarciaAppointment,
   type MarciaWorkOrder,
-} from "@/lib/marcia";
+} from "@/lib/ai/marcia";
 
 export const Route = createFileRoute("/app/hoje")({
   beforeLoad: () => {

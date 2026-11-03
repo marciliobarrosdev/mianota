@@ -9,8 +9,8 @@ import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
 import { Button } from "@/components/ui/button";
 import { MiaAvatar } from "@/components/finance/mia-avatar";
-import { getOnboardingProgress } from "@/lib/onboarding.functions";
-import { ONBOARDING_ORDER, onboardingProgress, type OnboardingSignals, type OnboardingStepId } from "@/lib/onboarding-rules";
+import { getOnboardingProgress } from "@/lib/finance/onboarding.functions";
+import { ONBOARDING_ORDER, onboardingProgress, type OnboardingSignals, type OnboardingStepId } from "@/lib/finance/onboarding-rules";
 
 export const Route = createFileRoute("/app/guia")({
   head: brandedRouteHead("Comece aqui"),

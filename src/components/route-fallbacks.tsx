@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useRouter } from "@tanstack/react-router";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Loader2, MessageSquareText } from "lucide-react";
-import { reportLovableError } from "@/lib/lovable-error-reporting";
+import { reportLovableError } from "@/lib/common/lovable-error-reporting";
 import { supportConfigured, supportWhatsappUrl, supportWhatsappDisplay } from "@/config/brand";
 
 export function RoutePendingComponent() {

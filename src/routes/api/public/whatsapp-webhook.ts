@@ -57,7 +57,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
           const instanceUserId = instance.data.user_id as string;
 
           try {
-            const { assertCompanyOperational } = await import("@/lib/plan-limits.server");
+            const { assertCompanyOperational } = await import("@/lib/billing/plan-limits.server");
             await assertCompanyOperational(companyId);
           } catch (error: any) {
             console.warn("[finance-whatsapp.entitlement]", companyId, error?.message);
@@ -91,7 +91,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
           }
 
           const { pairFinanceWhatsapp, handleFinanceWhatsapp } =
-            await import("@/lib/finance-whatsapp.server");
+            await import("@/lib/finance/finance-whatsapp.server");
           const paired = await pairFinanceWhatsapp({
             db,
             companyId,
@@ -140,7 +140,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
           let imageDataUrl: string | null = null;
           if (hasImage) {
             try {
-              const { evoGetMediaBase64 } = await import("@/lib/evolution.server");
+              const { evoGetMediaBase64 } = await import("@/lib/whatsapp/evolution.server");
               const media = await evoGetMediaBase64(instanceName, data);
               const mime = media.mimetype?.startsWith("image/") ? media.mimetype : "image/jpeg";
               imageDataUrl = `data:${mime};base64,${media.base64}`;
@@ -173,7 +173,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
 
           const outboundRef = `finance:${messageId || crypto.randomUUID()}`;
           const { reserveMessageQuota, settleMessageQuota } =
-            await import("@/lib/plan-limits.server");
+            await import("@/lib/billing/plan-limits.server");
           if (!(await reserveMessageQuota(companyId, outboundRef, 1))) return ok("quota_limited");
           let result: Awaited<ReturnType<typeof handleFinanceWhatsapp>> | null = null;
           try {
@@ -214,7 +214,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
         }
       },
       GET: async () => {
-        const { loadCloneBrandServer } = await import("@/lib/brand.server");
+        const { loadCloneBrandServer } = await import("@/lib/common/brand.server");
         const cloneBrand = await loadCloneBrandServer();
         return new Response(`${cloneBrand.assistantName} finance webhook online`, { status: 200 });
       },
@@ -247,11 +247,11 @@ async function deliver(input: {
     persistOutboundMessagesAndFinalizeQuota,
     reserveMessageQuota,
     settleMessageQuota,
-  } = await import("@/lib/plan-limits.server");
+  } = await import("@/lib/billing/plan-limits.server");
   if (!input.quotaReserved && !(await reserveMessageQuota(input.companyId, input.ref, 1))) return;
   let attempted = false;
   try {
-    const { evoSendPresence, evoSendText } = await import("@/lib/evolution.server");
+    const { evoSendPresence, evoSendText } = await import("@/lib/whatsapp/evolution.server");
     const delay = Math.min(2400, 650 + reply.length * 12);
     await evoSendPresence(input.instanceName, input.phone, "composing", delay);
     await new Promise((resolve) => setTimeout(resolve, delay));

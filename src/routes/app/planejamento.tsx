@@ -12,8 +12,8 @@ import { FinanceError, FinanceLoading } from "@/components/finance/finance-state
 import { PlannerView } from "@/components/finance/planner-view";
 import { MarciaChat } from "@/components/finance/marcia-chat";
 import { useMarciaFinanceChat } from "@/hooks/use-marcia-finance-chat";
-import { getFinancePlanner, type FinancePlannerItem } from "@/lib/finance-dashboard.functions";
-import { toIsoDate } from "@/lib/finance-period";
+import { getFinancePlanner, type FinancePlannerItem } from "@/lib/finance/finance-dashboard.functions";
+import { toIsoDate } from "@/lib/finance/finance-period";
 import {
   createPlannerBill,
   downloadPeriodReport,
@@ -23,7 +23,7 @@ import {
   undoPlannerAction,
   updatePlannerRecurrence,
   type PlannerExtras,
-} from "@/lib/finance-planner.functions";
+} from "@/lib/finance/finance-planner.functions";
 import {
   NewBillDialog,
   RecurrencesPanel,

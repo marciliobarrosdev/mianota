@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_TX_FILTERS, filterTx, groupTxByDay, learnCategoryRule, sortTx, txStatus, txToCsv, txTotals, type TxLike } from "../src/lib/transactions-rules";
+import { EMPTY_TX_FILTERS, filterTx, groupTxByDay, learnCategoryRule, sortTx, txStatus, txToCsv, txTotals, type TxLike } from "@/lib/finance/transactions-rules";
 
 const tx = (p: Partial<TxLike>): TxLike => ({
   id: Math.random().toString(), date: "2026-10-10", type: "despesa", description: "x", merchant: null, category: null,

@@ -17,9 +17,9 @@ import {
   friendlyError,
   rescheduleAppointment,
   type MarciaAppointment,
-} from "@/lib/marcia";
-import { syncMarciaAppointmentToGoogle } from "@/lib/google.functions";
-import { operationLocalInputToIso, isoToOperationLocalInput } from "@/lib/timezone";
+} from "@/lib/ai/marcia";
+import { syncMarciaAppointmentToGoogle } from "@/lib/common/google.functions";
+import { operationLocalInputToIso, isoToOperationLocalInput } from "@/lib/common/timezone";
 
 const control = "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100";
 

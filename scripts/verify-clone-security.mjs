@@ -31,15 +31,15 @@ const assistantRebrandMigration = readFileSync(
   "utf8",
 );
 const bootstrapClient = readFileSync(
-  new URL("../src/lib/remix-bootstrap.ts", import.meta.url),
+  new URL("../src/lib/common/remix-bootstrap.ts", import.meta.url),
   "utf8",
 );
 const secretStore = readFileSync(
-  new URL("../src/lib/integration-secrets.server.ts", import.meta.url),
+  new URL("../src/lib/common/integration-secrets.server.ts", import.meta.url),
   "utf8",
 );
 const platformIntegrations = readFileSync(
-  new URL("../src/lib/integrations.functions.ts", import.meta.url),
+  new URL("../src/lib/common/integrations.functions.ts", import.meta.url),
   "utf8",
 );
 const stripeWebhook = readFileSync(
@@ -57,47 +57,47 @@ const integrationsRoute = readFileSync(
   "utf8",
 );
 const integrationReadiness = readFileSync(
-  new URL("../src/lib/integration-readiness.functions.ts", import.meta.url),
+  new URL("../src/lib/master/integration-readiness.functions.ts", import.meta.url),
   "utf8",
 );
 const checkoutServer = readFileSync(
-  new URL("../src/lib/checkout.functions.ts", import.meta.url),
+  new URL("../src/lib/billing/checkout.functions.ts", import.meta.url),
   "utf8",
 );
 const masterServer = readFileSync(
-  new URL("../src/lib/master.functions.ts", import.meta.url),
+  new URL("../src/lib/master/master.functions.ts", import.meta.url),
   "utf8",
 );
-const teamServer = readFileSync(new URL("../src/lib/team.functions.ts", import.meta.url), "utf8");
+const teamServer = readFileSync(new URL("../src/lib/master/team.functions.ts", import.meta.url), "utf8");
 const evolutionServer = readFileSync(
-  new URL("../src/lib/evolution.functions.ts", import.meta.url),
+  new URL("../src/lib/whatsapp/evolution.functions.ts", import.meta.url),
   "utf8",
 );
-const csatServer = readFileSync(new URL("../src/lib/csat.functions.ts", import.meta.url), "utf8");
+const csatServer = readFileSync(new URL("../src/lib/master/csat.functions.ts", import.meta.url), "utf8");
 const creditsServer = readFileSync(
-  new URL("../src/lib/credits.functions.ts", import.meta.url),
+  new URL("../src/lib/billing/credits.functions.ts", import.meta.url),
   "utf8",
 );
 const agentAiServer = readFileSync(
-  new URL("../src/lib/agent-ai.functions.ts", import.meta.url),
+  new URL("../src/lib/ai/agent-ai.functions.ts", import.meta.url),
   "utf8",
 );
 const agentRoute = readFileSync(new URL("../src/routes/app/agente.tsx", import.meta.url), "utf8");
 const securityServer = readFileSync(
-  new URL("../src/lib/security.functions.ts", import.meta.url),
+  new URL("../src/lib/master/security.functions.ts", import.meta.url),
   "utf8",
 );
 const companyAccessServer = readFileSync(
-  new URL("../src/lib/company-admin-access.server.ts", import.meta.url),
+  new URL("../src/lib/common/company-admin-access.server.ts", import.meta.url),
   "utf8",
 );
 const planLimitsServer = readFileSync(
-  new URL("../src/lib/plan-limits.server.ts", import.meta.url),
+  new URL("../src/lib/billing/plan-limits.server.ts", import.meta.url),
   "utf8",
 );
-const googleServer = readFileSync(new URL("../src/lib/google.server.ts", import.meta.url), "utf8");
+const googleServer = readFileSync(new URL("../src/lib/common/google.server.ts", import.meta.url), "utf8");
 const googleFunctions = readFileSync(
-  new URL("../src/lib/google.functions.ts", import.meta.url),
+  new URL("../src/lib/common/google.functions.ts", import.meta.url),
   "utf8",
 );
 const googleCallback = readFileSync(
@@ -113,7 +113,7 @@ const whatsappWebhook = readFileSync(
   "utf8",
 );
 const financeWhatsappServer = readFileSync(
-  new URL("../src/lib/finance-whatsapp.server.ts", import.meta.url),
+  new URL("../src/lib/finance/finance-whatsapp.server.ts", import.meta.url),
   "utf8",
 );
 const brandUploader = readFileSync(
@@ -129,13 +129,13 @@ const publicBrandAssetRoute = readFileSync(
   "utf8",
 );
 const secureRandomServer = readFileSync(
-  new URL("../src/lib/secure-random.server.ts", import.meta.url),
+  new URL("../src/lib/common/secure-random.server.ts", import.meta.url),
   "utf8",
 );
 const brandConfig = readFileSync(new URL("../src/config/brand.ts", import.meta.url), "utf8");
-const aiPrompt = readFileSync(new URL("../src/lib/ai-prompt.ts", import.meta.url), "utf8");
+const aiPrompt = readFileSync(new URL("../src/lib/ai/ai-prompt.ts", import.meta.url), "utf8");
 const brandStorageServer = readFileSync(
-  new URL("../src/lib/brand-storage.functions.ts", import.meta.url),
+  new URL("../src/lib/common/brand-storage.functions.ts", import.meta.url),
   "utf8",
 );
 

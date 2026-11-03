@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { brandedRouteHead } from "@/config/brand";
-import { completeForcedPasswordChange } from "@/lib/security.functions";
+import { completeForcedPasswordChange } from "@/lib/master/security.functions";
 
 export const Route = createFileRoute("/trocar-senha")({
   ssr: false,

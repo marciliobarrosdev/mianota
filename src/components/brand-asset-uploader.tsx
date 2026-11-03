@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/auth/realm-supabase";
-import { ensureBrandAssetBucket } from "@/lib/brand-storage.functions";
+import { ensureBrandAssetBucket } from "@/lib/common/brand-storage.functions";
 
 const BRAND_BUCKET = "clone-brand-assets";
 const MAX_FILE_BYTES = 5 * 1024 * 1024;

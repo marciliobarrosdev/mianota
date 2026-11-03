@@ -34,11 +34,11 @@ import {
   createStripePlanPrice,
   listStripeRecurringPrices,
   type StripeCatalogPrice,
-} from "@/lib/stripe-admin.functions";
-import { listPlansBasic } from "@/lib/master.functions";
+} from "@/lib/master/stripe-admin.functions";
+import { listPlansBasic } from "@/lib/master/master.functions";
 import { MoneyInput } from "@/components/money-input";
-import { DEFAULT_MAX_CENTS } from "@/lib/money";
-import { isValidHttpUrl } from "@/lib/masks";
+import { DEFAULT_MAX_CENTS } from "@/lib/common/money";
+import { isValidHttpUrl } from "@/lib/common/masks";
 import { duplicatePricePlans, isInfinitePayLink } from "@/lib/billing/infinitepay-rules";
 
 function isValidPlanPrice(cents: unknown): cents is number {

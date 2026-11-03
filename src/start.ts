@@ -1,6 +1,6 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
-import { renderErrorPage } from "./lib/error-page";
+import { renderErrorPage } from "@/lib/common/error-page";
 // Substitui intencionalmente o attachSupabaseAuth gerado: o token enviado vem da
 // sessão do domínio da aba (assinante ou super admin). Não re-adicionar o gerado.
 import { attachRealmSupabaseAuth } from "@/lib/auth/realm-auth-middleware";

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getCsatByToken, submitCsat } from "@/lib/csat.functions";
+import { getCsatByToken, submitCsat } from "@/lib/master/csat.functions";
 import { Star, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

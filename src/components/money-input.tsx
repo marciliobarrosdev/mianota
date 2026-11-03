@@ -6,7 +6,7 @@ import {
   parseBRLToCents,
   sanitizeMoneyTyping,
   type MoneyValidationOptions,
-} from "@/lib/money";
+} from "@/lib/common/money";
 
 type MoneyFieldOptions = MoneyValidationOptions & {
   /** Valor em centavos inteiros (null = vazio). */

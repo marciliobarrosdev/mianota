@@ -27,8 +27,8 @@ import {
   getIntegrationsOverview,
   saveIntegration,
   testIntegration,
-} from "@/lib/integrations.functions";
-import { getMasterSetupProgress } from "@/lib/master-setup.functions";
+} from "@/lib/common/integrations.functions";
+import { getMasterSetupProgress } from "@/lib/master/master-setup.functions";
 
 export const Route = createFileRoute("/master/pagamentos")({
   head: brandedRouteHead("Pagamentos"),

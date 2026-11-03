@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { expensesByCategory, filterTx, EMPTY_TX_FILTERS, groupTxByDay, normalizeTags, validateSplits, type TxLike } from "../src/lib/transactions-rules";
-import { markDuplicates, parseCsv, parseOfx, parseStatementAmount, parseStatementDate } from "../src/lib/bank-statement-rules";
-import { summarizeMonth } from "../src/lib/monthly-report-rules";
+import { expensesByCategory, filterTx, EMPTY_TX_FILTERS, groupTxByDay, normalizeTags, validateSplits, type TxLike } from "@/lib/finance/transactions-rules";
+import { markDuplicates, parseCsv, parseOfx, parseStatementAmount, parseStatementDate } from "@/lib/finance/bank-statement-rules";
+import { summarizeMonth } from "@/lib/finance/monthly-report-rules";
 
 const tx = (p: Partial<TxLike>): TxLike => ({ id: Math.random().toString(), date: "2026-10-29", type: "despesa", description: "x", merchant: null, category: "Alimentação", amountCents: 0, paymentMethod: null, source: "manual", hasAttachment: false, status: "pago", dueDate: null, ...p });
 

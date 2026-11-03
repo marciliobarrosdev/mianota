@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const onboarding = read("src/routes/app/onboarding.tsx");
-const onboardingServer = read("src/lib/finance-dashboard.functions.ts");
-const command = read("src/lib/finance-command.functions.ts");
+const onboardingServer = read("src/lib/finance/finance-dashboard.functions.ts");
+const command = read("src/lib/finance/finance-command.functions.ts");
 const commandRoute = read("src/routes/app/marcia.tsx");
 const chat = read("src/components/finance/marcia-chat.tsx");
 const pageKit = read("src/components/marcia/page-kit.tsx");

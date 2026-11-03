@@ -5,7 +5,7 @@ import { FinanceLanding, type FinancePlan } from "@/components/landing/finance-l
 import { supabase } from "@/integrations/supabase/client";
 import { useBrand } from "@/contexts/brand-context";
 import { personalizeAssistantText } from "@/config/brand";
-import { CHOOSE_PLAN_MESSAGE } from "@/lib/plan-selection";
+import { CHOOSE_PLAN_MESSAGE } from "@/lib/billing/plan-selection";
 
 export const Route = createFileRoute("/")({
   // ?escolher=plano chega quando alguém tenta se cadastrar sem um plano válido.

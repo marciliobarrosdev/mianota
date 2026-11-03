@@ -6,7 +6,7 @@ import {
   shouldSendPush,
   withinReminderLead,
   DEFAULT_PREFERENCE,
-} from "../src/lib/notification-rules";
+} from "@/lib/finance/notification-rules";
 
 describe("Central de avisos", () => {
   test("silêncio das 22h às 7h bloqueia 23h e 3h, libera 12h", () => {
@@ -39,8 +39,8 @@ describe("Central de avisos", () => {
   });
 });
 
-import { shouldSendWhatsapp } from "../src/lib/notification-rules";
-import { monthBounds, previousMonth, summarizeMonth } from "../src/lib/monthly-report-rules";
+import { shouldSendWhatsapp } from "@/lib/finance/notification-rules";
+import { monthBounds, previousMonth, summarizeMonth } from "@/lib/finance/monthly-report-rules";
 
 describe("WhatsApp e relatório mensal", () => {
   test("WhatsApp respeita categoria, desligado e silêncio; aviso em massa não vai", () => {
