@@ -1,3 +1,4 @@
+import { intentNeedsPayment, isPaymentMethod, parsePaymentMethod, PAYMENT_QUESTION, PAYMENT_METHOD_OPTION_LABELS } from "@/lib/finance/payment-method-rules";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -66,6 +67,7 @@ const PAYMENT_METHODS = new Set<PaymentMethod>([
   "dinheiro",
   "transferencia",
   "boleto",
+  "salario",
   "outro",
 ]);
 
@@ -192,6 +194,12 @@ function resolveEntities(draft: FinanceCommandDraft, context: FinanceContext) {
 }
 
 function requiredFields(draft: FinanceCommandDraft): string[] {
+  const base = requiredFieldsBase(draft);
+  if (intentNeedsPayment(draft.intent) && !isPaymentMethod(draft.paymentMethod)) base.push("payment");
+  return base;
+}
+
+function requiredFieldsBase(draft: FinanceCommandDraft): string[] {
   if (draft.intent === "unknown") return ["intent"];
   if (draft.intent === "query_summary") return [];
   if (draft.intent === "create_budget") {
@@ -229,6 +237,8 @@ function requiredFields(draft: FinanceCommandDraft): string[] {
 }
 
 function questionFor(field: string, context: FinanceContext) {
+  if (field === "payment")
+    return { message: PAYMENT_QUESTION, quickReplies: Object.values(PAYMENT_METHOD_OPTION_LABELS) };
   if (field === "intent")
     return {
       message:
@@ -308,17 +318,7 @@ function previewFor(draft: FinanceCommandDraft) {
   if (draft.paymentMethod)
     rows.push({
       label: "Pagamento",
-      value:
-        (
-          {
-            pix: "Pix",
-            cartao: "Cartão",
-            dinheiro: "Dinheiro",
-            transferencia: "Transferência",
-            boleto: "Boleto",
-            outro: "Outro",
-          } as Record<string, string>
-        )[draft.paymentMethod] || draft.paymentMethod,
+      value: (PAYMENT_METHOD_OPTION_LABELS as Record<string, string>)[draft.paymentMethod] || draft.paymentMethod,
     });
   if (draft.paymentStatus)
     rows.push({ label: "Situação", value: draft.paymentStatus === "paid" ? "Pago" : "Pendente" });
@@ -559,6 +559,8 @@ export const interpretFinanceCommand = createServerFn({ method: "POST" })
       throw error;
     }
     const draft = resolveEntities(mergeDraft(previous, interpreted), financeContext);
+    if (!isPaymentMethod(draft.paymentMethod))
+      draft.paymentMethod = parsePaymentMethod(data.message, { allowNumber: previous?.missing?.[0] === "payment" }) as any;
     if (!draft.date && ["record_expense", "record_income"].includes(draft.intent))
       draft.date = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
     if (!draft.type && draft.intent === "record_expense") draft.type = "despesa";

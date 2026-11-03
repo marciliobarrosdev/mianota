@@ -1,3 +1,4 @@
+import { intentNeedsPayment, isPaymentMethod, parsePaymentMethod, PAYMENT_QUESTION_WHATSAPP, paymentMethodLabel } from "@/lib/finance/payment-method-rules";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOVABLE_AI_MODEL } from "@/lib/ai/lovable-ai-config";
 
@@ -20,7 +21,7 @@ type Draft = {
   categoryName?: string | null;
   accountId?: string | null;
   accountName?: string | null;
-  paymentMethod?: "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto" | "outro" | null;
+  paymentMethod?: "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto" | "salario" | "outro" | null;
   paymentStatus?: "paid" | "pending" | null;
   date?: string | null;
   frequency?: "semanal" | "quinzenal" | "mensal" | "anual" | null;
@@ -94,7 +95,7 @@ function normalize(value: unknown): Draft {
     accountId: uuid(raw.accountId),
     accountName: text(raw.accountName, 120),
     paymentMethod:
-      method && ["pix", "cartao", "dinheiro", "transferencia", "boleto", "outro"].includes(method)
+      method && isPaymentMethod(method)
         ? (method as Draft["paymentMethod"])
         : null,
     paymentStatus: status === "paid" || status === "pending" ? status : null,
@@ -174,6 +175,12 @@ function resolve(draft: Draft, context: FinanceContext) {
 }
 
 function missing(draft: Draft) {
+  const base = missingBase(draft);
+  if (intentNeedsPayment(draft.intent) && !isPaymentMethod(draft.paymentMethod)) base.push("payment");
+  return base;
+}
+
+function missingBase(draft: Draft): string[] {
   if (draft.intent === "unknown") return ["intent"];
   if (draft.intent === "query_summary") return [];
   if (draft.intent === "create_budget")
@@ -207,6 +214,7 @@ function missing(draft: Draft) {
 }
 
 function question(field: string, context: FinanceContext) {
+  if (field === "payment") return PAYMENT_QUESTION_WHATSAPP;
   if (field === "intent")
     return "O que você quer fazer: registrar um gasto, uma receita, criar um orçamento ou uma meta?";
   if (field === "summary")
@@ -246,7 +254,7 @@ function preview(draft: Draft) {
       : "",
     draft.categoryName ? `Categoria: ${draft.categoryName}` : "",
     draft.accountName ? `Conta: ${draft.accountName}` : "",
-    draft.paymentMethod ? `Pagamento: ${draft.paymentMethod}` : "",
+    draft.paymentMethod ? `Pagamento: ${paymentMethodLabel(draft.paymentMethod)}` : "",
     draft.frequency ? `Frequência: ${draft.frequency}` : "",
     draft.date ? `Data: ${new Date(`${draft.date}T12:00:00`).toLocaleDateString("pt-BR")}` : "",
   ].filter(Boolean);
@@ -655,6 +663,8 @@ export async function handleFinanceWhatsapp(input: {
     const forced = rules.matchCategoryRule(input.message, profile.category_rules);
     if (forced && names.has(forced)) { interpreted.categoryId = forced; interpreted.categoryName = names.get(forced) || null; }
     draft = resolve(merge(previous, interpreted), context);
+    if (!isPaymentMethod(draft.paymentMethod))
+      draft.paymentMethod = parsePaymentMethod(input.message, { allowNumber: previous?.missing?.[0] === "payment" }) as any;
     if (!draft.date && ["record_expense", "record_income"].includes(draft.intent))
       draft.date = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
     if (!draft.type && draft.intent === "record_expense") draft.type = "despesa";

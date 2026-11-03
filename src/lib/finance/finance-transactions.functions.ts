@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const iso = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const uuid = z.string().uuid();
-const PAYMENT = z.enum(["pix", "cartao", "dinheiro", "transferencia", "boleto", "outro"]);
+const PAYMENT = z.enum(["pix", "cartao", "dinheiro", "transferencia", "boleto", "salario", "outro"]);
 
 async function access(context: any, companyId: string) {
   const { requireCompanyMemberAccess } = await import("@/lib/common/company-admin-access.server");

@@ -672,7 +672,7 @@ export const getFinancePlanner = createServerFn({ method: "POST" })
     return buildPlannerItems(db, data.companyId, data.first, data.last);
   });
 
-const PAYMENT_METHODS = new Set(["pix", "cartao", "dinheiro", "transferencia", "boleto", "outro"]);
+const PAYMENT_METHODS = new Set(["pix", "cartao", "dinheiro", "transferencia", "boleto", "salario", "outro"]);
 
 export const addFinanceTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
