@@ -134,7 +134,7 @@ function AssinaturasPage() {
 
       <Card className="grid gap-4 p-4 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="flex gap-3">
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-500/10 text-violet-600">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <CheckCircle2 className="size-5" />
           </div>
           <div>
@@ -372,7 +372,7 @@ function Stat({
     <Card className={`p-4 ${alert ? "border-destructive/40" : ""}`}>
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-1 flex items-center gap-2 text-2xl font-bold">
-        {value} {alert && <CircleAlert className="size-4 text-amber-600" />}
+        {value} {alert && <CircleAlert className="size-4 text-destructive" />}
       </div>
       {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
     </Card>

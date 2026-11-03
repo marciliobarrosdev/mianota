@@ -37,6 +37,15 @@ import {
   resetCompanyOwnerPassword,
   getCompanyDetails,
 } from "@/lib/master/master.functions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Download } from "lucide-react";
+import { daysUntil, downloadCsv, toCsv } from "@/lib/master/subscriber-rules";
 import { adminGrantCredits } from "@/lib/billing/credits.functions";
 
 export const Route = createFileRoute("/master/assinantes")({
@@ -60,6 +69,7 @@ function EmpresasPage() {
   const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(0);
   const [tipoPessoa, setTipoPessoa] = useState<"" | "pf" | "pj">("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [trialCompany, setTrialCompany] = useState<any | null>(null);
