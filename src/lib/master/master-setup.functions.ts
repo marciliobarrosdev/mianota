@@ -56,7 +56,7 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         db
           .from("plan")
           .select(
-            "id,nome,ativo,trial_days,creditos_trial,checkout_mode,checkout_url,stripe_price_id",
+            "id,nome,ativo,trial_days,creditos_trial,checkout_mode,checkout_url,stripe_price_id,is_free,free_days,preco_cents",
           )
           .eq("ativo", true),
         db.from("company").select("id", { count: "exact", head: true }),
