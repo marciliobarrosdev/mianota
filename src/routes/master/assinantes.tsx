@@ -81,6 +81,7 @@ function EmpresasPage() {
   const [trialDays, setTrialDays] = useState(7);
   const [trialCredits, setTrialCredits] = useState(100);
   const [trialSaving, setTrialSaving] = useState(false);
+  const [releaseCompany, setReleaseCompany] = useState<any | null>(null);
 
   async function reload() {
     setLoading(true);
@@ -360,6 +361,7 @@ function EmpresasPage() {
                       <DropdownMenuItem onClick={() => openDetails(c.id)}><Eye className="size-3.5" /> Ver ficha</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setEditId(c.id)}><Pencil className="size-3.5" /> Editar assinante</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openTrial(c)}><CalendarClock className="size-3.5" /> Dar ou renovar trial</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setReleaseCompany(c)}><BadgeCheck className="size-3.5" /> Liberar pagamento</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => doGrantCredits(c)}><Sparkles className="size-3.5" /> Créditos de IA</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => doResetPassword(c)}><KeyRound className="size-3.5" /> Redefinir senha</DropdownMenuItem>
                       <DropdownMenuItem asChild><Link to="/master/conversas"><ArrowRight className="size-3.5" /> Abrir Conversas</Link></DropdownMenuItem>
