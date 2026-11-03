@@ -165,7 +165,10 @@ export function PlannerView({
   const allMonthItems = items.filter((i) => i.date.startsWith(monthKey));
   const monthItems = visible.filter((i) => i.date.startsWith(monthKey));
   const monthSummary = summarizeFinanceDay(monthItems);
-  const totals = plannerTotals(allMonthItems, today);
+  const monthTotals = plannerTotals(allMonthItems, today);
+  const totals = summary
+    ? { ...monthTotals, toReceiveCents: summary.toReceiveCents, toPayCents: summary.toPayCents, overdueCents: summary.overdueOpenCents, overdueCount: summary.overdueOpenCount }
+    : monthTotals;
   // Only warn about future dips; past negative days already covered by later income are irrelevant.
   const lowest = dailyProjection(allMonthItems).find((p) => p.date >= today && p.balanceCents < 0);
   const overdue = monthItems.filter((i) => financeDayStatus(i, today) === "vencido");

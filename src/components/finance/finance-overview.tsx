@@ -75,6 +75,7 @@ export function FinanceOverview({
   previous,
   actions,
   unreadCount,
+  summary,
 }: {
   data: FinanceOverviewData;
   period: FinancePeriod;
@@ -86,8 +87,28 @@ export function FinanceOverview({
   previous?: FinanceOverviewData | null;
   actions?: OverviewActions;
   unreadCount?: number;
+  summary?: import("@/lib/finance/summary-cards-rules").FinanceSummaryCards | null;
 }) {
   const { totals } = data;
+  const cards = summary
+    ? {
+        balance: summary.monthBalanceCents,
+        prevBalance: summary.previousMonthBalanceCents,
+        received: summary.receivedMtdCents,
+        prevReceived: summary.previousReceivedMtdCents,
+        spent: summary.spentMtdCents,
+        prevSpent: summary.previousSpentMtdCents,
+        leftover: summary.monthBalanceCents,
+      }
+    : {
+        balance: totals.netCents,
+        prevBalance: previous?.totals.netCents,
+        received: totals.receivedCents,
+        prevReceived: previous?.totals.receivedCents,
+        spent: totals.spentCents,
+        prevSpent: previous?.totals.spentCents,
+        leftover: totals.leftoverCents,
+      };
   const today = todayIso();
   const hour = Number(
     new Intl.DateTimeFormat("en-GB", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date()),

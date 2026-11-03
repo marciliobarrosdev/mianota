@@ -13,6 +13,7 @@ import { useBrand } from "@/contexts/brand-context";
 import { Button } from "@/components/ui/button";
 import { LoadingBlocks } from "@/components/mia/page-kit";
 import { FinanceOverview } from "@/components/finance/finance-overview";
+import { useFinanceSummary } from "@/hooks/use-finance-summary";
 import { financeLinks } from "@/components/finance/finance-links";
 import { useFinanceDashboard } from "@/hooks/use-finance-dashboard";
 import { resolveFinancePeriod, type FinancePeriod } from "@/lib/finance/finance-period";
@@ -30,6 +31,7 @@ function MonthOverviewPage() {
   const { data, loading, error, refresh } = useFinanceDashboard(companyId, period);
   const prevRange = useMemo(() => previousPeriod(period), [period.from, period.to]);
   const { data: previous } = useFinanceDashboard(companyId, prevRange);
+  const summary = useFinanceSummary(companyId, data);
   const { unread } = useUnreadNotifications(companyId, (ctx as any).user?.id);
   const act = useServerFn(plannerItemAction);
   const undo = useServerFn(undoPlannerAction);
@@ -116,6 +118,7 @@ function MonthOverviewPage() {
       previous={previous}
       actions={actions}
       unreadCount={unread}
+      summary={summary}
     />
   );
 }
