@@ -2,6 +2,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { describeIntegration } from "@/lib/common/integration-secrets.server";
+import {
+  isRecent,
+  setupProgress,
+  setupStatus,
+  timeAgo,
+  type SetupGroup,
+  type SetupStatus,
+} from "@/lib/master/master-setup-rules";
 
 async function assertSuperAdmin(supabase: any) {
   const { data, error } = await supabase.rpc("is_super_admin");
