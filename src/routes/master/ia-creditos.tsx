@@ -10,7 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { deleteByokKey, getAiOverview, saveAiMode, saveByokKey } from "@/lib/ai/ai-config.functions";
+import {
+  deleteByokKey,
+  getAiOverview,
+  saveAiMode,
+  saveByokKey,
+  testAiProvider,
+} from "@/lib/ai/ai-config.functions";
 
 export const Route = createFileRoute("/master/ia-creditos")({
   head: brandedRouteHead("IA e créditos"),
@@ -18,11 +24,21 @@ export const Route = createFileRoute("/master/ia-creditos")({
 });
 
 type Overview = Awaited<ReturnType<typeof getAiOverview>>;
-type Mode = "lovable" | "openai" | "anthropic";
+type Mode = "lovable" | "openai" | "anthropic" | "openrouter" | "gemini";
+type Byok = Exclude<Mode, "lovable">;
+const MODES: Mode[] = ["lovable", "openai", "anthropic", "openrouter", "gemini"];
 const MODE_LABEL: Record<Mode, string> = {
   lovable: "Lovable AI (gerenciada)",
   openai: "OpenAI (chave própria)",
   anthropic: "Anthropic (chave própria)",
+  openrouter: "OpenRouter (chave própria)",
+  gemini: "Google Gemini — API direta",
+};
+const KEY_NAME: Record<Byok, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  openrouter: "OpenRouter",
+  gemini: "Google Gemini",
 };
 
 function AiCreditsPage() {
@@ -128,8 +144,14 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
   const saveMode = useServerFn(saveAiMode);
   const [mode, setMode] = useState<Mode>(data.config.mode);
   const [model, setModel] = useState<string>(
-    data.config.model || data.models[data.config.mode][0].id,
+    data.config.model || data.models[data.config.mode][0]?.id || "",
   );
+  const test = useServerFn(testAiProvider);
+  const [testResult, setTestResult] = useState<{ ok: boolean; ms: number; message: string } | null>(null);
+  const activeModelLabel =
+    data.models[data.config.mode].find((m) => m.id === data.config.model)?.label ||
+    data.config.model ||
+    "modelo padrão";
   const [optimized, setOptimized] = useState(data.config.optimized);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -153,8 +175,20 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
         <SectionTitle icon={Cpu} title="3. Provedor de IA (um por vez)" />
         <Badge>Ativo: {MODE_LABEL[data.config.mode]}</Badge>
       </div>
-      <div className="grid gap-2 sm:grid-cols-3">
-        {(["lovable", "openai", "anthropic"] as Mode[]).map((item) => {
+      <div className="rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm">
+        <p className="font-semibold">
+          Ativo agora: {MODE_LABEL[data.config.mode]} · {activeModelLabel}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Último teste:{" "}
+          {data.config.testOk === null
+            ? "ainda não testado"
+            : `${data.config.testOk ? "ok" : "falhou"}${data.config.testedAt ? ` em ${new Date(data.config.testedAt).toLocaleString("pt-BR")}` : ""}${data.config.lastTestMs ? ` · ${data.config.lastTestMs} ms` : ""}`}
+          . A MIA usa este modelo no app e no WhatsApp.
+        </p>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        {MODES.map((item) => {
           const byok = item === "lovable" ? null : data.byok[item];
           return (
             <button
@@ -165,8 +199,9 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
                 setModel(
                   item === data.config.mode && data.config.model
                     ? data.config.model
-                    : data.models[item][0].id,
+                    : data.models[item][0]?.id || "",
                 );
+                setTestResult(null);
               }}
               className={`rounded-xl border p-3 text-left text-sm ${mode === item ? "border-primary bg-primary/5" : "border-border"}`}
             >
@@ -199,9 +234,11 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
             ))}
           </select>
         </div>
+        {(mode === "lovable" || mode === "openai" || mode === "anthropic") && (
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={optimized} onCheckedChange={setOptimized} /> Modo otimizado (usa o modelo econômico)
         </label>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -210,7 +247,24 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
           disabled={busy !== null}
           onClick={() => run("save", () => saveMode({ data: { mode, model, optimized } }))}
         >
-          {busy === "save" && <Loader2 className="size-4 animate-spin" />} Ativar {MODE_LABEL[mode]}
+          {busy === "save" && <Loader2 className="size-4 animate-spin" />} Ativar modelo
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy !== null}
+          onClick={async () => {
+            setBusy("test");
+            try {
+              setTestResult(await test({ data: { provider: mode, model } }));
+            } catch (error) {
+              setTestResult({ ok: false, ms: 0, message: error instanceof Error ? error.message : "Falha." });
+            } finally {
+              setBusy(null);
+            }
+          }}
+        >
+          {busy === "test" && <Loader2 className="size-4 animate-spin" />} Testar conexão
         </Button>
         <span className="text-xs text-muted-foreground">
           {mode === "lovable"
@@ -219,18 +273,28 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
         </span>
       </div>
 
+      {testResult && (
+        <p
+          className={`rounded-md border p-2 text-xs ${testResult.ok ? "border-primary/40 bg-primary/5" : "border-destructive/40 bg-destructive/5 text-destructive"}`}
+        >
+          {testResult.ok ? "Conexão ok" : "Teste falhou"} ({testResult.ms} ms): {testResult.message}
+        </p>
+      )}
+
       {data.config.lastError && data.config.mode !== "lovable" && (
         <p className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-xs text-destructive">
           Último erro do provedor (a IA respondeu pela Lovable AI): {data.config.lastError}
         </p>
       )}
 
-      {mode !== "lovable" && <ByokForm provider={mode} data={data} onChanged={onChanged} />}
+      {mode !== "lovable" && (
+        <ByokForm key={mode} provider={mode} model={model} data={data} onChanged={onChanged} />
+      )}
 
       <p className="flex gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="size-4 shrink-0" /> Chaves próprias ficam criptografadas no servidor
-        e nunca são exibidas de novo — só os 4 últimos caracteres. OpenAI ou Anthropic são validadas
-        automaticamente; o proprietário não precisa executar um teste separado.
+        e nunca são exibidas de novo — só os 4 últimos caracteres. Cada chave é validada com uma chamada real
+        ao salvar, e um modelo só é ativado depois de responder ao teste.
       </p>
     </Card>
   );
@@ -238,10 +302,12 @@ function ProviderCard({ data, onChanged }: { data: Overview; onChanged: () => vo
 
 function ByokForm({
   provider,
+  model,
   data,
   onChanged,
 }: {
-  provider: "openai" | "anthropic";
+  provider: Byok;
+  model: string;
   data: Overview;
   onChanged: () => void;
 }) {
@@ -253,7 +319,7 @@ function ByokForm({
   return (
     <div className="rounded-xl border p-3 space-y-2">
       <p className="flex items-center gap-2 text-sm font-semibold">
-        <KeyRound className="size-4" /> Chave {provider === "openai" ? "OpenAI" : "Anthropic"}
+        <KeyRound className="size-4" /> Chave {KEY_NAME[provider]}
         {item.configured && <Badge variant="secondary">…{item.last4}</Badge>}
       </p>
       <div className="flex flex-wrap gap-2">
@@ -274,7 +340,7 @@ function ByokForm({
           onClick={async () => {
             setBusy(true);
             try {
-              const result = await save({ data: { provider, apiKey: key } });
+              const result = await save({ data: { provider, apiKey: key, model } });
               setKey("");
               toast.success(result?.message || "Chave validada e salva com segurança.");
               onChanged();
@@ -285,7 +351,7 @@ function ByokForm({
             }
           }}
         >
-          Salvar chave
+          Salvar configuração
         </Button>
         {item.configured && (
           <Button
