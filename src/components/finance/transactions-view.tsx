@@ -114,6 +114,7 @@ export function TransactionsView({
   emptyState,
   actions,
   basePath = "/app",
+  summary,
 }: {
   items: FinanceTransactionDetail[];
   period: FinancePeriod;

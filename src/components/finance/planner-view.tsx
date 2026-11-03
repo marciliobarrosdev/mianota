@@ -93,6 +93,7 @@ export function PlannerView({
   extras,
   toolbar,
   renderAskMia,
+  summary,
 }: {
   items: FinancePlannerItem[];
   month: Date;
@@ -106,6 +107,7 @@ export function PlannerView({
   extras?: PlannerExtras | null;
   toolbar?: ReactNode;
   renderAskMia?: (label: string) => ReactNode;
+  summary?: import("@/lib/finance/summary-cards-rules").FinanceSummaryCards | null;
 }) {
   const today = toIsoDate(new Date());
   const [selected, setSelected] = useState<string | null>(null);
