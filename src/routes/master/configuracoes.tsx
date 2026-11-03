@@ -583,12 +583,7 @@ function SecurityPage() {
                             <div className="flex justify-end gap-1">
                               {event.matched_company_id && (
                                 <Button asChild size="sm" variant="ghost">
-                                  <Link
-                                    to="/master/assinantes"
-                                    search={{ q: event.buyer_email ?? "" } as never}
-                                  >
-                                    Abrir ficha
-                                  </Link>
+                                  <Link to="/master/assinantes">Abrir Assinantes</Link>
                                 </Button>
                               )}
                               {s === "error" && (
