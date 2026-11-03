@@ -41,30 +41,12 @@ type Row = {
 };
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  trialing: {
-    label: "Trial",
-    cls: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300",
-  },
-  active: {
-    label: "Ativa",
-    cls: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
-  },
-  past_due: {
-    label: "Inadimplente",
-    cls: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
-  },
-  canceled: {
-    label: "Cancelada",
-    cls: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300",
-  },
-  paused: {
-    label: "Pausada",
-    cls: "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-  },
-  incomplete: {
-    label: "Incompleta",
-    cls: "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-  },
+  trialing: { label: "Trial", cls: "bg-secondary text-secondary-foreground" },
+  active: { label: "Ativa", cls: "bg-primary/15 text-primary" },
+  past_due: { label: "Inadimplente", cls: "bg-destructive/15 text-destructive" },
+  canceled: { label: "Cancelada", cls: "bg-muted text-muted-foreground" },
+  paused: { label: "Pausada", cls: "bg-muted text-muted-foreground" },
+  incomplete: { label: "Incompleta", cls: "bg-muted text-muted-foreground" },
 };
 
 function AssinaturasPage() {
@@ -74,6 +56,7 @@ function AssinaturasPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [planFilter, setPlanFilter] = useState<string>("all");
 
   async function load() {
     setLoading(true);
@@ -95,6 +78,7 @@ function AssinaturasPage() {
     const s = q.trim().toLowerCase();
     return rows.filter((r) => {
       if (filter !== "all" && r.status !== filter) return false;
+      if (planFilter !== "all" && r.plan?.nome !== planFilter) return false;
       if (!s) return true;
       return (
         r.company?.nome?.toLowerCase().includes(s) ||
@@ -102,17 +86,36 @@ function AssinaturasPage() {
         r.paddle_subscription_id?.toLowerCase().includes(s)
       );
     });
-  }, [rows, q, filter]);
+  }, [rows, q, filter, planFilter]);
+
+  const planNames = useMemo(
+    () => [...new Set(rows.map((r) => r.plan?.nome).filter(Boolean) as string[])].sort(),
+    [rows],
+  );
 
   const stats = useMemo(() => {
-    const mrr = rows
-      .filter((r) => r.status === "active")
-      .reduce((s, r) => s + (r.plan?.preco_cents ?? 0), 0);
+    const rev = revenueStats(rows as any);
     const trial = rows.filter((r) => r.status === "trialing").length;
-    const active = rows.filter((r) => r.status === "active").length;
-    const past = rows.filter((r) => r.status === "past_due").length;
-    return { mrr, trial, active, past };
+    return { ...rev, trial };
   }, [rows]);
+
+  const renewals = useMemo(() => renewalBuckets(rows as any), [rows]);
+
+  function exportCsv() {
+    const csv = toCsv(
+      ["Assinante", "E-mail", "Plano", "Valor", "Status", "Próxima cobrança", "Criada"],
+      filtered.map((r) => [
+        r.company?.nome ?? "",
+        r.company?.email_corporativo ?? "",
+        r.plan?.nome ?? "",
+        r.plan ? (r.plan.preco_cents / 100).toFixed(2).replace(".", ",") : "",
+        STATUS[r.status]?.label ?? r.status,
+        r.current_period_end ? new Date(r.current_period_end).toLocaleDateString("pt-BR") : "",
+        new Date(r.created_at).toLocaleDateString("pt-BR"),
+      ]),
+    );
+    downloadCsv(`assinaturas-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+  }
 
   return (
     <div className="space-y-6">
@@ -153,12 +156,34 @@ function AssinaturasPage() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="MRR estimado" value={formatBRL(stats.mrr)} hint="apenas ativas" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Stat label="Receita mensal (MRR)" value={formatBRL(stats.mrr)} hint="apenas ativas" />
         <Stat label="Ativas" value={stats.active.toString()} />
         <Stat label="Em trial" value={stats.trial.toString()} />
-        <Stat label="Inadimplentes" value={stats.past.toString()} alert={stats.past > 0} />
+        <Stat label="Novas pagantes no mês" value={stats.newPaid.toString()} />
+        <Stat label="Canceladas no mês" value={stats.canceledMonth.toString()} />
+        <Stat
+          label="Conversão para pago"
+          value={stats.conversionPct === null ? "—" : `${stats.conversionPct}%`}
+          hint="ativas ÷ já pagaram"
+        />
       </div>
+
+      {(renewals.overdue.length > 0 || renewals.expiringSoon.length > 0) && (
+        <div className="grid gap-3 md:grid-cols-2">
+          <RenewalList
+            title="Venceu sem pagar"
+            hint="A InfinitePay não renova sozinha: envie o link do plano."
+            rows={renewals.overdue}
+            alert
+          />
+          <RenewalList
+            title="Vence nos próximos 7 dias"
+            hint="Lembre o assinante antes de vencer."
+            rows={renewals.expiringSoon}
+          />
+        </div>
+      )}
 
       <Card className="p-4">
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
@@ -171,6 +196,22 @@ function AssinaturasPage() {
               className="pl-9"
             />
           </div>
+          <select
+            aria-label="Plano"
+            className="h-9 rounded-md border bg-background px-2 text-sm"
+            value={planFilter}
+            onChange={(e) => setPlanFilter(e.target.value)}
+          >
+            <option value="all">Todos os planos</option>
+            {planNames.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+          <Button variant="outline" size="sm" onClick={exportCsv} disabled={!filtered.length}>
+            <Download className="size-4" /> CSV
+          </Button>
           <div className="flex gap-1.5 flex-wrap">
             {(["all", "active", "trialing", "past_due", "canceled"] as const).map((s) => (
               <button
