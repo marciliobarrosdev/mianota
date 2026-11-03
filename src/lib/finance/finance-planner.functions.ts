@@ -95,7 +95,7 @@ export const plannerItemAction = createServerFn({ method: "POST" })
       if (upErr) throw new Error(upErr.message);
       undo.push({ table: "fin_lancamento", id: row.id, before });
     } else {
-      const { data: rec, error } = await db.from("fin_recorrencia").select("id,descricao,valor_cents,tipo,categoria_id,conta_id,proxima_data,termina_em,ativo").eq("id", data.recurrenceId).eq("company_id", data.companyId).maybeSingle();
+      const { data: rec, error } = await db.from("fin_recorrencia").select("id,descricao,valor_cents,tipo,categoria_id,conta_id,proxima_data,termina_em,ativo,forma_pagamento").eq("id", data.recurrenceId).eq("company_id", data.companyId).maybeSingle();
       if (error || !rec) throw new Error("Conta recorrente não encontrada.");
       if (data.scope === "all" && data.action !== "pay") {
         const patch: Record<string, any> = {};
@@ -128,6 +128,7 @@ export const plannerItemAction = createServerFn({ method: "POST" })
             valor_cents: edits.valor_cents || rec.valor_cents,
             categoria_id: edits.categoria_id !== undefined ? edits.categoria_id : rec.categoria_id,
             conta_id: rec.conta_id,
+            forma_pagamento: rec.forma_pagamento || null,
             recorrencia_id: rec.id,
             status,
             vencimento: target,

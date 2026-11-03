@@ -466,6 +466,7 @@ async function execute(db: any, companyId: string, userId: string, command: any)
       conta_id: draft.accountId || null,
       frequencia: draft.frequency,
       proxima_data: nextDate,
+      forma_pagamento: draft.paymentMethod || null,
     });
     if (saved.error) throw new Error(saved.error.message);
     result = { message: `${draft.summary} foi programado para repetir ${draft.frequency}.` };

@@ -782,6 +782,7 @@ export const executeFinanceCommand = createServerFn({ method: "POST" })
             conta_id: draft.accountId || null,
             frequencia: draft.frequency,
             proxima_data: nextDate,
+            forma_pagamento: draft.paymentMethod || null,
           })
           .select("id")
           .single();
