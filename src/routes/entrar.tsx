@@ -62,7 +62,7 @@ async function loadSelectedPlan(requested: string | undefined): Promise<PlanInfo
   return {
     slug: row.slug,
     nome: row.nome,
-    preco: `${formatCentsBRL(row.preco_cents)}/mês`,
+    preco: row.preco_cents > 0 ? `${formatCentsBRL(row.preco_cents)}/mês` : "Sem custo",
     trialDays: row.trial_days,
   };
 }
@@ -443,7 +443,7 @@ function EntrarPage() {
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       {planInfo.trialDays > 0
-                        ? `${planInfo.trialDays} ${planInfo.trialDays === 1 ? "dia" : "dias"} grátis • cancele antes e não paga nada`
+                        ? `${planInfo.trialDays} ${planInfo.trialDays === 1 ? "dia" : "dias"} grátis • uma vez por conta`
                         : "Confira as condições e conclua a ativação na próxima etapa"}
                     </div>
                   </div>
