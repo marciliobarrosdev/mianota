@@ -130,7 +130,8 @@ function CheckoutPage() {
     ctx.company!.status_cobranca === "trial" &&
     trialDaysLeft(ctx.company!.trial_ate) > 0;
   // Conta existente (trial/gratuito em uso ou já usado) só pode ativar plano pago.
-  const paywallMode = hasCompany && ctx.company!.status_cobranca !== "ativo";
+  const paywallMode = hasCompany;
+  const renewing = hasCompany && ctx.company!.status_cobranca === "ativo";
 
   // Empresa ativa ou em trial ainda válido → não deveria estar aqui
   useEffect(() => {
@@ -170,7 +171,7 @@ function CheckoutPage() {
 
   // Polling em modo paywall: assim que webhook ativar, libera
   useEffect(() => {
-    if (!waiting || !ctx.company) return;
+    if (!waiting || !ctx.company || renewing) return;
     const id = ctx.company.id;
     const interval = setInterval(async () => {
       const { data: comp } = await supabase
