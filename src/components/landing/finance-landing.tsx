@@ -75,7 +75,7 @@ const FALLBACK_PLANS: FinancePlan[] = [
   {
     slug: "starter",
     name: "Basic",
-    price: "49",
+    price: "29,90",
     description: "O essencial para organizar o mês sem planilha.",
     features: [
       "Dashboard financeiro",
@@ -90,7 +90,7 @@ const FALLBACK_PLANS: FinancePlan[] = [
   {
     slug: "pro",
     name: "Pro",
-    price: "69",
+    price: "49,90",
     description: "Para conversar com seu financeiro e automatizar a rotina.",
     features: [
       "Tudo do Basic",
@@ -317,6 +317,21 @@ export function FinanceLanding({
       })),
     [plans, assistantName],
   );
+  // Ordem fixa: Grátis, depois pagos do menor para o maior preço.
+  const orderedPlans = useMemo(
+    () =>
+      [...displayPlans].sort(
+        (a, b) =>
+          Number(!!b.free) - Number(!!a.free) ||
+          Number(a.price.replace(/\./g, "").replace(",", ".")) -
+            Number(b.price.replace(/\./g, "").replace(",", ".")),
+      ),
+    [displayPlans],
+  );
+  const planSignupHref = (slug: string) =>
+    `${signupHref}${signupHref.includes("?") ? "&" : "?"}plano=${encodeURIComponent(slug)}`;
+  const freePlan = orderedPlans.find((plan) => plan.free);
+  const trialHref = freePlan ? planSignupHref(freePlan.slug) : plansHref;
 
   useEffect(() => {
     const root = landingRef.current;
@@ -362,13 +377,6 @@ export function FinanceLanding({
             <a href="#como-funciona" className="transition hover:text-white">
               Como funciona
             </a>
-            <a
-              href={`${demoHref}/dashboard`}
-              className="transition hover:text-white"
-              data-demo-entry="header"
-            >
-              Ver demo
-            </a>
             <a href="#recursos" className="transition hover:text-white">
               Recursos
             </a>
@@ -385,7 +393,7 @@ export function FinanceLanding({
               Entrar
             </a>
             <a
-              href={plansHref}
+              href={trialHref}
               className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-[13px] font-black text-violet-800 transition hover:-translate-y-0.5"
             >
               Testar grátis <ArrowRight className="size-3.5" />
@@ -414,18 +422,11 @@ export function FinanceLanding({
               </p>
               <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
                 <a
-                  href={plansHref}
+                  href={trialHref}
                   className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 text-[14px] font-black shadow-[0_24px_55px_-20px_rgba(147,51,234,.9)] transition hover:-translate-y-0.5"
                 >
                   Testar grátis{" "}
                   <ArrowRight className="size-4 transition group-hover:translate-x-1" />
-                </a>
-                <a
-                  href={`${demoHref}/dashboard`}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/7 px-6 text-[14px] font-black backdrop-blur transition hover:bg-white/12"
-                  data-demo-entry="hero"
-                >
-                  <Play className="size-4 fill-white" /> Ver a demo
                 </a>
               </div>
               <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[12px] font-bold text-white/58 lg:justify-start">
@@ -519,15 +520,6 @@ export function FinanceLanding({
               avatarUrl={avatarUrl || fallbackAvatarUrl}
             />
             <div className="mt-5 text-center">
-              <a
-                href={`${demoHref}/dashboard`}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-white px-5 text-sm font-black text-violet-800 transition hover:-translate-y-0.5 hover:border-violet-400"
-              >
-                Explorar o sistema completo <ArrowUpRight className="size-4" />
-              </a>
-              <p className="mt-2 text-[11px] font-semibold text-[#8b7c94]">
-                Demonstração navegável com dados fictícios
-              </p>
             </div>
           </div>
         </section>
@@ -616,12 +608,6 @@ export function FinanceLanding({
                   text="Fale, digite ou envie uma foto e siga o seu dia."
                 />
               </div>
-              <a
-                href={`${demoHref}/dashboard`}
-                className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-[#21132f] px-5 text-sm font-black text-white transition hover:-translate-y-0.5"
-              >
-                Ver dashboard completo <ArrowUpRight className="size-4" />
-              </a>
             </div>
             <DashboardPreview assistantName={assistantName} />
           </div>
@@ -674,12 +660,6 @@ export function FinanceLanding({
                   </div>
                 </div>
               </div>
-              <a
-                href={`${demoHref}/dashboard`}
-                className="inline-flex shrink-0 items-center gap-2 text-sm font-black text-violet-700"
-              >
-                Navegar pela demo <ArrowUpRight className="size-4" />
-              </a>
             </div>
           </div>
         </section>
@@ -782,8 +762,8 @@ export function FinanceLanding({
               title="Escolha o quanto quer automatizar."
               description="Comece com o essencial ou leve a MIA também para o WhatsApp."
             />
-            <div data-stagger className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-2">
-              {displayPlans.map((plan) => (
+            <div data-stagger className="mx-auto mt-8 grid max-w-md grid-cols-1 gap-5 lg:max-w-6xl lg:grid-cols-3">
+              {orderedPlans.map((plan) => (
                 <article
                   key={plan.slug}
                   className={`relative flex flex-col rounded-[24px] border p-6 ${plan.featured ? "border-violet-500 bg-[#21132f] text-white shadow-[0_30px_70px_-35px_rgba(91,33,182,.9)]" : "border-violet-100 bg-[#fbf9fd]"}`}
@@ -799,8 +779,8 @@ export function FinanceLanding({
                     {plan.name}
                   </div>
                   {plan.free ? (
-                    <div className="mt-4 font-display text-5xl font-black tracking-[-.06em]">
-                      Grátis
+                    <div className="mt-4 font-display text-4xl font-black tracking-[-.05em]">
+                      SEM CUSTO
                     </div>
                   ) : (
                     <div className="mt-4 flex items-end gap-1">
@@ -838,7 +818,7 @@ export function FinanceLanding({
                     ))}
                   </div>
                   <a
-                    href={`${signupHref}${signupHref.includes("?") ? "&" : "?"}plano=${encodeURIComponent(plan.slug)}`}
+                    href={planSignupHref(plan.slug)}
                     className={`mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-xl text-sm font-black ${plan.featured ? "bg-white text-violet-800" : "bg-violet-700 text-white"}`}
                   >
                     Começar com {plan.name} <ArrowRight className="size-4" />
@@ -898,7 +878,7 @@ export function FinanceLanding({
                 </div>
               </div>
               <a
-                href={plansHref}
+                href={trialHref}
                 className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 text-sm font-black text-white"
               >
                 Criar minha conta <ArrowRight className="size-4" />
@@ -958,16 +938,10 @@ export function FinanceLanding({
             </p>
             <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
               <a
-                href={plansHref}
+                href={trialHref}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-[14px] font-black text-violet-800"
               >
                 Testar grátis <ArrowRight className="size-4" />
-              </a>
-              <a
-                href={`${demoHref}/dashboard`}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/8 px-6 text-[14px] font-black"
-              >
-                Entrar na demonstração <Play className="size-4" />
               </a>
             </div>
           </div>
@@ -998,7 +972,6 @@ export function FinanceLanding({
               <a href="#por-dentro">Por dentro</a>
               <a href="#recursos">Recursos</a>
               <a href="#planos">Planos</a>
-              <a href={`${demoHref}/dashboard`}>Demonstração</a>
             </FooterColumn>
 
             <FooterColumn title="Acesso e políticas">

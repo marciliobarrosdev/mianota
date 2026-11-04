@@ -1,3 +1,4 @@
+import { allowedTargetPlans } from "@/lib/billing/plan-transition-rules";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/auth/realm-supabase";
@@ -129,12 +130,14 @@ function CheckoutPage() {
     ctx.company!.status_cobranca === "trial" &&
     trialDaysLeft(ctx.company!.trial_ate) > 0;
   // Conta existente (trial/gratuito em uso ou já usado) só pode ativar plano pago.
-  const paywallMode = hasCompany && ctx.company!.status_cobranca !== "ativo";
+  const paywallMode = hasCompany;
+  const renewing = hasCompany && ctx.company!.status_cobranca === "ativo";
 
   // Empresa ativa ou em trial ainda válido → não deveria estar aqui
   useEffect(() => {
     if (!ctx.company) return;
-    if (ctx.company.status_cobranca === "ativo") {
+    // Plano pago ativo só fica aqui para renovar, subir ou descer de plano.
+    if (ctx.company.status_cobranca === "ativo" && !search.plano) {
       navigate({
         to: ctx.company.onboarding_completed ? "/app/inicio" : "/app/onboarding",
         replace: true,
@@ -150,9 +153,7 @@ function CheckoutPage() {
       .order("ordem")
       .then(({ data }) => {
         if (data?.length) {
-          const list = (data as Plano[]).filter(
-            (p) => !ctx.company || (!p.is_free && p.preco_cents > 0),
-          );
+          const list = allowedTargetPlans(data as Plano[], { hasCompany: !!ctx.company });
           if (!list.length) return;
           setPlans(list);
           // Sem empresa, ninguém começa com plano presumido: a pessoa escolhe
@@ -170,7 +171,7 @@ function CheckoutPage() {
 
   // Polling em modo paywall: assim que webhook ativar, libera
   useEffect(() => {
-    if (!waiting || !ctx.company) return;
+    if (!waiting || !ctx.company || renewing) return;
     const id = ctx.company.id;
     const interval = setInterval(async () => {
       const { data: comp } = await supabase
@@ -267,14 +268,23 @@ function CheckoutPage() {
   const headerBadge = paywallMode
     ? {
         icon: <Lock className="size-3.5 mr-1.5" />,
-        text: trialActive ? "Escolha um plano pago" : "Seu período de teste terminou",
+        text: renewing
+          ? "Renovar ou trocar de plano"
+          : trialActive
+            ? "Escolha um plano pago"
+            : "Seu período de teste terminou",
       }
     : {
         icon: <Sparkles className="size-3.5 mr-1.5" />,
         text: `${plans[0]?.trial_days ?? 3} dias grátis sem cartão`,
       };
-  const headerTitle = paywallMode ? "Ative seu plano para continuar" : "Comece grátis em segundos";
-  const headerSubtitle = paywallMode
+  const headerTitle = renewing
+    ? "Renove ou troque seu plano"
+    : paywallMode
+      ? "Ative seu plano para continuar" : "Comece grátis em segundos";
+  const headerSubtitle = renewing
+    ? "Escolha Basic ou Pro. Assim que o pagamento for confirmado, suas cotas são renovadas conforme o plano escolhido."
+    : paywallMode
     ? "Seus dados ficam aqui esperando. Assim que o pagamento for confirmado, seu acesso é liberado automaticamente."
     : "Escolha um plano para começar. Você não precisa pagar agora — só vai cobrar no final do período de teste, se quiser continuar.";
 

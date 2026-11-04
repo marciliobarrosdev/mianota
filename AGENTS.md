@@ -15,3 +15,4 @@
 - Identity rules map lowercase form types to uppercase storage — why: preserve the company constraint.
 - Sensitive Master actions (admins, integration keys, suspensions, billing reprocess) are logged via `writeMasterAudit` (`src/lib/master/master-audit.server.ts`) into super-admin-read-only `master_audit_log`; it never throws — why: one security trail that cannot break the action.
 - Subdirectories (e.g. src/lib/finance) have their own AGENTS.md; read it before changing files there.
+- Plan acquisition/upgrade/downgrade and the "needs payment" gate live in `src/lib/billing/plan-transition-rules.ts`; public signup stores the full subscriber form in auth metadata `signup_profile`, applied to the company by `createCheckoutCompany` — why: one rule set for landing, checkout and /app guard.

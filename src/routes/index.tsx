@@ -24,7 +24,7 @@ const FALLBACK_PLANS: FinancePlan[] = [
   {
     slug: "starter",
     name: "Basic",
-    price: "49",
+    price: "29,90",
     description: "O essencial para cuidar do dinheiro sem planilha.",
     features: [
       "Dashboard financeiro",
@@ -39,7 +39,7 @@ const FALLBACK_PLANS: FinancePlan[] = [
   {
     slug: "pro",
     name: "Pro",
-    price: "69",
+    price: "49,90",
     description: "Para automatizar a rotina e conversar com seu financeiro.",
     features: [
       "Tudo do Basic",
@@ -109,7 +109,7 @@ function LandingRoute() {
               slug: row.slug,
               name: row.nome,
               price: (row.preco_cents / 100).toLocaleString("pt-BR", {
-                minimumFractionDigits: 0,
+                minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               }),
               description:
