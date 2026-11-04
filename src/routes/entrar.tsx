@@ -25,6 +25,8 @@ import { clearAppAccessCache } from "@/lib/common/app-access-cache";
 import { clearImpersonation } from "@/lib/auth/realm-supabase";
 import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
 import { formatCentsBRL } from "@/lib/common/money";
+import { SignupProfileFields, EMPTY_SIGNUP_PROFILE } from "@/components/signup-profile-fields";
+import { sanitizeSignupProfile, signupProfileError } from "@/lib/billing/signup-profile-rules";
 import { normalizePlanSlug, resolveSignupPlan } from "@/lib/billing/plan-selection";
 
 type Search = { modo?: "login" | "signup"; plano?: string };
@@ -165,6 +167,7 @@ function EntrarPage() {
   const [password, setPassword] = useState("");
   const [needsPassword, setNeedsPassword] = useState(search.modo !== "signup" || !planInfo);
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(EMPTY_SIGNUP_PROFILE);
 
   useEffect(() => {
     setNeedsPassword(search.modo !== "signup" || !planInfo);
@@ -247,10 +250,19 @@ function EntrarPage() {
       setLoading(false);
       return toast.error(passwordError);
     }
+    const profileError = signupProfileError(profile);
+    if (profileError) {
+      setLoading(false);
+      return toast.error(profileError);
+    }
     const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: {
+        data: {
+          nome: profile.responsavelNome,
+          signup_profile: sanitizeSignupProfile(profile),
+        },
         emailRedirectTo: `${window.location.origin}/app/checkout?plano=${encodeURIComponent(planInfo.slug)}`,
       },
     });
@@ -439,16 +451,16 @@ function EntrarPage() {
 
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[color:var(--brand-soft)] border border-[color:var(--brand)]/20 text-[11px] font-semibold text-[color:var(--brand-text)] mb-3">
                   <span className="size-1.5 rounded-full bg-[color:var(--brand)] dot-pulse" />
-                  {needsPassword ? "Acesso à conta" : "Cadastro em 1 clique"}
+                  {needsPassword ? "Acesso à conta" : "Cadastro do assinante"}
                 </div>
 
                 <h1 className="font-display text-[26px] sm:text-[28px] font-extrabold leading-tight tracking-tight">
-                  {needsPassword ? "Bem-vindo de volta" : "Comece em 1 clique"}
+                  {needsPassword ? "Bem-vindo de volta" : "Crie sua conta"}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1.5 mb-6">
                   {needsPassword
                     ? "Você já tem conta — informe sua senha pra continuar."
-                    : "Informe seu e-mail e crie uma senha para acessar sua conta depois."}
+                    : "Preencha seus dados, e-mail e senha para criar sua conta."}
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -469,6 +481,10 @@ function EntrarPage() {
                       />
                     </div>
                   }
+
+                  {!needsPassword && (
+                    <SignupProfileFields value={profile} onChange={setProfile} />
+                  )}
 
                   {
                     <>
@@ -530,12 +546,16 @@ function EntrarPage() {
                     {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
                     {needsPassword
                       ? "Entrar e continuar"
-                      : `Criar conta e testar ${planInfo?.nome ?? "o plano"}`}
+                      : planInfo && planInfo.trialDays > 0
+                        ? `Criar conta e começar ${planInfo.nome}`
+                        : `Criar conta e ir para o pagamento`}
                   </Button>
 
                   {!needsPassword && (
                     <p className="text-[11.5px] text-muted-foreground text-center pt-1 leading-relaxed">
-                      {`Cadastro sem cartão. Seu teste do ${planInfo?.nome ?? "plano"} será ativado automaticamente.`}
+                      {planInfo && planInfo.trialDays > 0
+                        ? `Sem cartão. Seu acesso ao ${planInfo.nome} é liberado assim que você confirmar o e-mail.`
+                        : `Seu acesso ao ${planInfo?.nome ?? "plano"} é liberado após a confirmação do pagamento.`}
                     </p>
                   )}
                 </form>
