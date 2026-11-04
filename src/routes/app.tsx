@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { companyNeedsPayment } from "@/lib/billing/plan-transition-rules";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import type { CompanyRow, Membership } from "@/lib/common/tenant";
