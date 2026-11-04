@@ -34,8 +34,8 @@ type Search = { modo?: "login" | "signup"; plano?: string };
 type PlanInfo = { slug: string; nome: string; preco: string; trialDays: number };
 
 const PLAN_FALLBACK: Record<string, Omit<PlanInfo, "slug">> = {
-  starter: { nome: "Basic", preco: "R$ 49,00/mês", trialDays: 3 },
-  pro: { nome: "Pro", preco: "R$ 69,00/mês", trialDays: 3 },
+  starter: { nome: "Basic", preco: "R$ 29,90/mês", trialDays: 0 },
+  pro: { nome: "Pro", preco: "R$ 49,90/mês", trialDays: 0 },
 };
 
 /**
