@@ -1,3 +1,4 @@
+import { allowedTargetPlans } from "@/lib/billing/plan-transition-rules";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/auth/realm-supabase";
@@ -134,7 +135,8 @@ function CheckoutPage() {
   // Empresa ativa ou em trial ainda válido → não deveria estar aqui
   useEffect(() => {
     if (!ctx.company) return;
-    if (ctx.company.status_cobranca === "ativo") {
+    // Plano pago ativo só fica aqui para renovar, subir ou descer de plano.
+    if (ctx.company.status_cobranca === "ativo" && !search.plano) {
       navigate({
         to: ctx.company.onboarding_completed ? "/app/inicio" : "/app/onboarding",
         replace: true,
@@ -150,9 +152,7 @@ function CheckoutPage() {
       .order("ordem")
       .then(({ data }) => {
         if (data?.length) {
-          const list = (data as Plano[]).filter(
-            (p) => !ctx.company || (!p.is_free && p.preco_cents > 0),
-          );
+          const list = allowedTargetPlans(data as Plano[], { hasCompany: !!ctx.company });
           if (!list.length) return;
           setPlans(list);
           // Sem empresa, ninguém começa com plano presumido: a pessoa escolhe
