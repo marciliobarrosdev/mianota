@@ -70,14 +70,8 @@ export const Route = createFileRoute("/app")({
 
     const company = ctx.company;
 
-    // Trial expirado ou status que exige pagamento → trava no checkout
-    const trialExpired =
-      company.status_cobranca === "trial" && new Date(company.trial_ate).getTime() <= Date.now();
-    const needsPayment =
-      company.status_cobranca === "checkout_pending" ||
-      company.status_cobranca === "suspenso" ||
-      company.status_cobranca === "pendente" ||
-      trialExpired;
+    // Teste vencido, sem créditos ou pagamento pendente → trava no checkout
+    const needsPayment = companyNeedsPayment(company as any);
 
     if (needsPayment && location.pathname !== "/app/checkout") {
       throw redirect({ to: "/app/checkout" });
