@@ -268,14 +268,23 @@ function CheckoutPage() {
   const headerBadge = paywallMode
     ? {
         icon: <Lock className="size-3.5 mr-1.5" />,
-        text: trialActive ? "Escolha um plano pago" : "Seu período de teste terminou",
+        text: renewing
+          ? "Renovar ou trocar de plano"
+          : trialActive
+            ? "Escolha um plano pago"
+            : "Seu período de teste terminou",
       }
     : {
         icon: <Sparkles className="size-3.5 mr-1.5" />,
         text: `${plans[0]?.trial_days ?? 3} dias grátis sem cartão`,
       };
-  const headerTitle = paywallMode ? "Ative seu plano para continuar" : "Comece grátis em segundos";
-  const headerSubtitle = paywallMode
+  const headerTitle = renewing
+    ? "Renove ou troque seu plano"
+    : paywallMode
+      ? "Ative seu plano para continuar" : "Comece grátis em segundos";
+  const headerSubtitle = renewing
+    ? "Escolha Basic ou Pro. Assim que o pagamento for confirmado, suas cotas são renovadas conforme o plano escolhido."
+    : paywallMode
     ? "Seus dados ficam aqui esperando. Assim que o pagamento for confirmado, seu acesso é liberado automaticamente."
     : "Escolha um plano para começar. Você não precisa pagar agora — só vai cobrar no final do período de teste, se quiser continuar.";
 
