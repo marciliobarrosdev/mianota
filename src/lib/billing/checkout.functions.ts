@@ -102,8 +102,8 @@ export const createCheckoutCompany = createServerFn({ method: "POST" })
           ...(p.logoUrl ? { logo_url: p.logoUrl } : {}),
         }).eq("id", String(companyId));
         if (profileError) console.error("[signup_profile.company]", profileError.message);
-        await admin.from("profiles").update({ nome: p.responsavelNome, nome_completo: p.responsavelNome })
-          .eq("id", context.userId);
+        await admin.from("profiles").update({ nome: p.responsavelNome, nome_completo: p.responsavelNome, cpf: p.tipoPessoa === "pf" ? p.cnpjCpf : null, telefone: normalizeValidBrazilianPhone(p.telefone) })
+          .eq("user_id", context.userId);
       }
     }
 
