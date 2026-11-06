@@ -3305,6 +3305,148 @@ export type Database = {
         }
         Relationships: []
       }
+      master_lead: {
+        Row: {
+          auto_moved: boolean
+          company_id: string | null
+          created_at: string
+          email: string | null
+          empresa: string | null
+          id: string
+          motivo_perda: string | null
+          nome: string
+          observacoes: string | null
+          origem: string
+          plano_convertido: string | null
+          position: number
+          responsavel: string | null
+          stage: string
+          stage_changed_at: string
+          tags: string[]
+          telefone: string | null
+          temperatura: string
+          updated_at: string
+          user_id: string | null
+          valor_cents: number
+        }
+        Insert: {
+          auto_moved?: boolean
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          empresa?: string | null
+          id?: string
+          motivo_perda?: string | null
+          nome: string
+          observacoes?: string | null
+          origem?: string
+          plano_convertido?: string | null
+          position?: number
+          responsavel?: string | null
+          stage?: string
+          stage_changed_at?: string
+          tags?: string[]
+          telefone?: string | null
+          temperatura?: string
+          updated_at?: string
+          user_id?: string | null
+          valor_cents?: number
+        }
+        Update: {
+          auto_moved?: boolean
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          empresa?: string | null
+          id?: string
+          motivo_perda?: string | null
+          nome?: string
+          observacoes?: string | null
+          origem?: string
+          plano_convertido?: string | null
+          position?: number
+          responsavel?: string | null
+          stage?: string
+          stage_changed_at?: string
+          tags?: string[]
+          telefone?: string | null
+          temperatura?: string
+          updated_at?: string
+          user_id?: string | null
+          valor_cents?: number
+        }
+        Relationships: []
+      }
+      master_lead_activity: {
+        Row: {
+          actor_id: string | null
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          lead_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          kind?: string
+          lead_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          lead_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_lead_activity_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "master_lead"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_lead_task: {
+        Row: {
+          created_at: string
+          done: boolean
+          due_at: string | null
+          id: string
+          lead_id: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          due_at?: string | null
+          id?: string
+          lead_id: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          due_at?: string | null
+          id?: string
+          lead_id?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_lead_task_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "master_lead"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mensagens: {
         Row: {
           autor: string

@@ -18,6 +18,7 @@ import {
   WalletCards,
   Sparkles,
   Inbox,
+  KanbanSquare,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileBottomNav, type MobileNavItem } from "@/components/mobile-bottom-nav";
@@ -82,6 +83,10 @@ const sections = [
       { to: "/master/assinaturas", label: "Assinaturas", icon: CreditCard },
       { to: "/master/onboarding", label: "Ativação pós-compra", icon: Inbox },
     ],
+  },
+  {
+    label: "Gestão de Leads",
+    items: [{ to: "/master/leads", label: "Leads", icon: KanbanSquare }],
   },
   {
     label: "Oferta e cobrança",

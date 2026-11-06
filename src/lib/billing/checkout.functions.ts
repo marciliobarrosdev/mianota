@@ -107,5 +107,14 @@ export const createCheckoutCompany = createServerFn({ method: "POST" })
       }
     }
 
+    if (chosen?.is_free) {
+      const { data: co } = await admin.from("company").select("nome, telefone").eq("id", String(companyId)).maybeSingle();
+      const { createLeadFromFreeSignup } = await import("@/lib/master/lead-sync.server");
+      await createLeadFromFreeSignup({
+        companyId: String(companyId), userId: context.userId, email: ownerEmail || null,
+        nome: co?.nome || data.nome, telefone: co?.telefone ?? null,
+      });
+    }
+
     return { companyId };
   });

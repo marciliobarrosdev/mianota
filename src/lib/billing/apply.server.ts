@@ -152,6 +152,10 @@ export async function applyEvent(evt: NormalizedBillingEvent, eventKey: string) 
     matched_company_id: companyId,
     processed: true,
   });
+  if (subStatus === "active") {
+    const { markLeadConverted } = await import("@/lib/master/lead-sync.server");
+    await markLeadConverted(companyId, planId ?? null);
+  }
   // Onboarding de WhatsApp: depois da ativação e dos créditos; nunca derruba a compra.
   if (evt.eventType === "purchase_approved" || evt.eventType === "subscription_renewed") {
     const { notifyPaymentConfirmed } = await import("@/lib/finance/notification-jobs.server");
