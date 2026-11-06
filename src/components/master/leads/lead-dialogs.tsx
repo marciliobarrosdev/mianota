@@ -182,6 +182,11 @@ export function LeadDetailSheet({ lead, onOpenChange, onEdit }: { lead: LeadRow 
             <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
           </TabsList>
           <TabsContent value="resumo">
+            {lead.needs_upgrade && (
+              <p className="mb-3 rounded-md bg-destructive/10 p-3 text-sm font-medium text-destructive">
+                Os créditos IA do Plano Grátis acabaram. Ofereça o upgrade para Basic ou Pro.
+              </p>
+            )}
             <dl className="grid grid-cols-2 gap-3 text-sm">
               {[
                 ["E-mail", lead.email], ["WhatsApp", lead.telefone], ["Empresa", lead.empresa], ["Origem", origemLabel(lead.origem)],

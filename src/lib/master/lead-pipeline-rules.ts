@@ -31,6 +31,7 @@ export interface LeadLike {
   trial_ate?: string | null;
   creditos_saldo?: number | null;
   open_tasks_overdue?: number;
+  plan_is_free?: boolean | null;
 }
 
 /** Position placed between neighbours for drag & drop ordering. */
@@ -54,6 +55,13 @@ export function shouldAutoLose(lead: LeadLike, now = new Date()): boolean {
   if (lead.stage === "convertido" || lead.stage === "perdido") return false;
   const left = trialDaysLeft(lead.trial_ate, now);
   return left !== null && left <= -7;
+}
+
+/** Free-plan lead with zero AI credits left: must upgrade (never auto-lost for this reason). */
+export function needsCreditUpgrade(lead: LeadLike): boolean {
+  if (lead.stage === "convertido" || lead.stage === "perdido") return false;
+  if (lead.plan_is_free !== true) return false;
+  return lead.creditos_saldo !== null && lead.creditos_saldo !== undefined && lead.creditos_saldo <= 0;
 }
 
 export function daysInStage(stageChangedAt: string, now = new Date()): number {
@@ -90,6 +98,7 @@ export function pipelineMetrics(leads: LeadLike[], now = new Date()) {
       const d = trialDaysLeft(l.trial_ate, now);
       return d !== null && d >= 0 && d <= 2;
     }).length,
+    needsUpgrade: leads.filter((l) => needsCreditUpgrade(l)).length,
     overdueTasks: leads.reduce((s, l) => s + (l.open_tasks_overdue ?? 0), 0),
     convertedCents: converted.reduce((s, l) => s + (l.valor_cents ?? 0), 0),
   };

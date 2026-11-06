@@ -27,3 +27,18 @@ describe("lead pipeline", () => {
     expect(m.convertedCents).toBe(2990);
   });
 });
+
+import { needsCreditUpgrade } from "@/lib/master/lead-pipeline-rules";
+describe("credits exhausted", () => {
+  const l = { id: "x", nome: "B", created_at: "2026-11-01T00:00:00Z" };
+  it("flags free leads with zero credits", () => {
+    expect(needsCreditUpgrade({ ...l, stage: "experimental", plan_is_free: true, creditos_saldo: 0 })).toBe(true);
+  });
+  it("ignores paid plans and leads with credits", () => {
+    expect(needsCreditUpgrade({ ...l, stage: "experimental", plan_is_free: false, creditos_saldo: 0 })).toBe(false);
+    expect(needsCreditUpgrade({ ...l, stage: "experimental", plan_is_free: true, creditos_saldo: 3 })).toBe(false);
+  });
+  it("never auto-loses for exhausted credits alone", () => {
+    expect(shouldAutoLose({ ...l, stage: "experimental", plan_is_free: true, creditos_saldo: 0, trial_ate: "2026-11-20T00:00:00Z" }, now)).toBe(false);
+  });
+});

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download, KanbanSquare, List, Plus, RefreshCw, Search, Target, TrendingUp, Users, Clock, AlertTriangle, Wallet } from "lucide-react";
+import { Download, KanbanSquare, List, Plus, RefreshCw, Search, Target, TrendingUp, Users, Clock, AlertTriangle, Wallet, Sparkles } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,6 +42,7 @@ function LeadsPage() {
   const [temp, setTemp] = useState(ALL);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [onlyUpgrade, setOnlyUpgrade] = useState(false);
   const [mobileStage, setMobileStage] = useState<LeadStage>("novo");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<LeadRow | null>(null);
@@ -53,7 +54,7 @@ function LeadsPage() {
   const filtered = useMemo(
     () => filterLeads(leads, { q, tag: tag === ALL ? "" : tag, origem: origem === ALL ? "" : origem, temperatura: temp === ALL ? "" : temp, from, to }),
     [leads, q, tag, origem, temp, from, to],
-  );
+  ).filter((l) => !onlyUpgrade || l.needs_upgrade);
   const metrics = useMemo(() => pipelineMetrics(leads), [leads]);
 
   const move = useMutation({
@@ -110,6 +111,7 @@ function LeadsPage() {
     { label: "Novos no mês", value: metrics.newThisMonth, icon: TrendingUp },
     { label: "Taxa de conversão", value: `${metrics.conversionRate.toLocaleString("pt-BR")}%`, icon: Target },
     { label: "Grátis vencendo (2 dias)", value: metrics.expiringSoon, icon: Clock },
+    { label: "Sem créditos IA (upgrade)", value: metrics.needsUpgrade, icon: Sparkles },
     { label: "Tarefas atrasadas", value: metrics.overdueTasks, icon: AlertTriangle },
     { label: "Receita convertida", value: formatCentsBRL(metrics.convertedCents), icon: Wallet },
   ];
@@ -129,7 +131,7 @@ function LeadsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-7">
         {kpis.map((k) => (
           <Card key={k.label} className="p-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">{k.label}<k.icon className="h-4 w-4" /></div>
@@ -161,6 +163,9 @@ function LeadsPage() {
         )}
         <Input type="date" className="w-36" value={from} onChange={(e) => setFrom(e.target.value)} aria-label="De" />
         <Input type="date" className="w-36" value={to} onChange={(e) => setTo(e.target.value)} aria-label="Até" />
+        <Button size="sm" variant={onlyUpgrade ? "default" : "outline"} onClick={() => setOnlyUpgrade((v) => !v)}>
+          <Sparkles className="mr-1 h-4 w-4" />Precisam de upgrade ({metrics.needsUpgrade})
+        </Button>
         <div className="ml-auto flex rounded-md border p-0.5">
           <Button size="sm" variant={view === "kanban" ? "secondary" : "ghost"} onClick={() => setView("kanban")}><KanbanSquare className="mr-1 h-4 w-4" />Kanban</Button>
           <Button size="sm" variant={view === "lista" ? "secondary" : "ghost"} onClick={() => setView("lista")}><List className="mr-1 h-4 w-4" />Lista</Button>

@@ -176,6 +176,7 @@ function LeadCardBody({ lead, actions, overlay }: { lead: LeadRow; actions: Lead
   return (
     <article
       className={cn(
+        lead.needs_upgrade && "border-destructive/60",
         "cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing",
         overlay && "rotate-2 shadow-xl ring-2 ring-primary",
       )}
@@ -225,6 +226,11 @@ function LeadCardBody({ lead, actions, overlay }: { lead: LeadRow; actions: Lead
         )}
         {lead.valor_cents > 0 && <span className="font-medium text-foreground">{formatCentsBRL(lead.valor_cents)}</span>}
       </div>
+      {lead.needs_upgrade && (
+        <p className="mt-2 flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-[11px] font-medium text-destructive">
+          <Sparkles className="h-3 w-3" />Créditos IA esgotados · precisa de upgrade
+        </p>
+      )}
       {lead.auto_moved && <p className="mt-1 text-[10px] italic text-muted-foreground">Movido automaticamente</p>}
     </article>
   );

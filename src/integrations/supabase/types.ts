@@ -3310,6 +3310,7 @@ export type Database = {
           auto_moved: boolean
           company_id: string | null
           created_at: string
+          credits_exhausted_at: string | null
           email: string | null
           empresa: string | null
           id: string
@@ -3333,6 +3334,7 @@ export type Database = {
           auto_moved?: boolean
           company_id?: string | null
           created_at?: string
+          credits_exhausted_at?: string | null
           email?: string | null
           empresa?: string | null
           id?: string
@@ -3356,6 +3358,7 @@ export type Database = {
           auto_moved?: boolean
           company_id?: string | null
           created_at?: string
+          credits_exhausted_at?: string | null
           email?: string | null
           empresa?: string | null
           id?: string

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isLeadStage, shouldAutoLose, type LeadStage, type LeadTemp } from "@/lib/master/lead-pipeline-rules";
+import { isLeadStage, needsCreditUpgrade, shouldAutoLose, type LeadStage, type LeadTemp } from "@/lib/master/lead-pipeline-rules";
 
 async function assertSuper(supabase: any) {
   const { data, error } = await supabase.rpc("is_super_admin");
@@ -38,6 +38,9 @@ export type LeadRow = {
   trial_ate: string | null;
   creditos_saldo: number | null;
   plano: string | null;
+  plan_is_free: boolean | null;
+  needs_upgrade: boolean;
+  credits_exhausted_at: string | null;
   open_tasks: number;
   open_tasks_overdue: number;
 };
@@ -55,6 +58,12 @@ export const listLeads = createServerFn({ method: "POST" })
       const { data: cs } = await sb.from("company").select("id, logo_url, trial_ate, creditos_saldo, selected_plan_slug").in("id", ids);
       for (const c of cs ?? []) companies.set(c.id, c);
     }
+    const slugs = Array.from(new Set(Array.from(companies.values()).map((c: any) => c.selected_plan_slug).filter(Boolean)));
+    const freeBySlug = new Map<string, boolean>();
+    if (slugs.length) {
+      const { data: ps } = await sb.from("plan").select("slug, is_free").in("slug", slugs);
+      for (const p of ps ?? []) freeBySlug.set(p.slug, !!p.is_free);
+    }
     const { data: tasks } = await sb.from("master_lead_task").select("lead_id, due_at").eq("done", false);
     const now = Date.now();
     const rows: LeadRow[] = (leads ?? []).map((l: any) => {
@@ -67,10 +76,29 @@ export const listLeads = createServerFn({ method: "POST" })
         trial_ate: c?.trial_ate ?? null,
         creditos_saldo: c?.creditos_saldo ?? null,
         plano: c?.selected_plan_slug ?? null,
+        plan_is_free: c?.selected_plan_slug ? (freeBySlug.get(c.selected_plan_slug) ?? null) : null,
+        needs_upgrade: false,
         open_tasks: t.length,
         open_tasks_overdue: t.filter((x: any) => x.due_at && new Date(x.due_at).getTime() < now).length,
       };
     });
+    // Créditos IA esgotados no Plano Grátis: destaca e registra uma vez; nunca move para Perdidos.
+    const nowIso0 = new Date().toISOString();
+    const newlyExhausted: LeadRow[] = [];
+    for (const r of rows) {
+      r.needs_upgrade = needsCreditUpgrade(r);
+      if (r.needs_upgrade && !r.credits_exhausted_at) { r.credits_exhausted_at = nowIso0; newlyExhausted.push(r); }
+      else if (!r.needs_upgrade && r.credits_exhausted_at && (r.creditos_saldo ?? 0) > 0) {
+        r.credits_exhausted_at = null;
+        await sb.from("master_lead").update({ credits_exhausted_at: null }).eq("id", r.id);
+      }
+    }
+    if (newlyExhausted.length) {
+      await sb.from("master_lead").update({ credits_exhausted_at: nowIso0 }).in("id", newlyExhausted.map((r) => r.id));
+      await sb.from("master_lead_activity").insert(newlyExhausted.map((r) => ({
+        lead_id: r.id, kind: "creditos", body: "Créditos IA do Plano Grátis esgotados — precisa fazer upgrade para Basic ou Pro",
+      })));
+    }
     // Auto: grátis vencido há 7+ dias sem pagamento → Perdidos.
     const toLose = rows.filter((r) => shouldAutoLose(r));
     if (toLose.length) {

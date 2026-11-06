@@ -1,0 +1,1 @@
+ALTER TABLE public.master_lead ADD COLUMN IF NOT EXISTS credits_exhausted_at timestamptz;
