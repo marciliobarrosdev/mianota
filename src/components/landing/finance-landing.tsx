@@ -370,7 +370,7 @@ export function FinanceLanding({
 
         {/* Chamada final */}
         <section aria-labelledby="final-cta-title" className="px-5 pb-16 pt-8 sm:pb-24">
-          <div data-reveal className="relative mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-[1fr_0.42fr] md:gap-8">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-[1fr_0.42fr] md:gap-8">
             <div className="relative overflow-hidden rounded-[28px] border border-ln-ink/15 ln-gradient p-6 ln-glow sm:p-10 lg:p-12">
               <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-72 rotate-12 rounded-[48px] border border-ln-ink/15" />
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 size-72 rotate-12 rounded-[48px] border border-ln-ink/10" />
