@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/auth/realm-supabase";
 import { getPushPublicKey } from "@/lib/finance/push.functions";
+import { registerMiaWorker } from "./mia-worker";
 
 type PushState = "idle" | "checking" | "activating" | "active" | "error";
 
@@ -129,7 +130,7 @@ export function useMarciaNotifications({ companyId, userId }: UseMarciaNotificat
         );
       }
 
-      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await registerMiaWorker();
       const registration = await navigator.serviceWorker.ready;
 
       let subscription = await registration.pushManager.getSubscription();

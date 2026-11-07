@@ -1,86 +1,29 @@
-/* White-label PWA service worker.
- * Only public shell files and immutable build assets are cached. Authenticated
- * pages, API responses and third-party requests always stay on the network.
+/* Messaging worker, kept at the deployed path to preserve push subscriptions.
+ * Retires only legacy app-shell caches. No fetch interception, forced reload,
+ * storage clearing or unregister: this registration also delivers web push.
  */
-const CACHE_PREFIX = "mia-pwa";
-const CACHE_VERSION = "v1";
-const SHELL_CACHE = `${CACHE_PREFIX}-shell-${CACHE_VERSION}`;
-const ASSET_CACHE = `${CACHE_PREFIX}-assets-${CACHE_VERSION}`;
-const OFFLINE_URL = "/offline.html";
+const BRAND_CACHE = "mia-notification-brand-v1";
 const BRAND_CACHE_URL = "/__clone-brand-runtime.json";
 
-const SHELL_FILES = [
-  OFFLINE_URL,
-  "/icons/apple-touch-icon.png",
-  "/icons/mia-192.png",
-  "/icons/mia-512.png",
-  "/icons/mia-app.svg",
-  "/icons/mia-maskable.svg",
-];
+function isLegacyAppCache(name) {
+  return /^(?:mia|marcia)-pwa-(?:shell|assets)-v\d+$/.test(name);
+}
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(SHELL_FILES))
-      .then(() => self.skipWaiting()),
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter(
-              (key) => key.startsWith(CACHE_PREFIX) && ![SHELL_CACHE, ASSET_CACHE].includes(key),
-            )
-            .map((key) => caches.delete(key)),
-        ),
-      )
-      .then(() => self.clients.claim()),
+    (async () => {
+      try {
+        const keys = await caches.keys();
+        await Promise.allSettled(keys.filter(isLegacyAppCache).map((key) => caches.delete(key)));
+      } finally {
+        await self.clients.claim();
+      }
+    })(),
   );
-});
-
-function isPublicAsset(request, url) {
-  if (url.pathname.startsWith("/assets/")) return true;
-
-  return url.pathname.startsWith("/icons/") || url.pathname === OFFLINE_URL;
-}
-
-async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
-
-  const response = await fetch(request);
-  const cacheControl = response.headers.get("cache-control") || "";
-
-  if (response.ok && response.type === "basic" && !cacheControl.includes("no-store")) {
-    const cache = await caches.open(ASSET_CACHE);
-    await cache.put(request, response.clone());
-  }
-
-  return response;
-}
-
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  if (request.method !== "GET" || request.headers.has("authorization")) return;
-
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-
-  // Documents are never cached because they can contain authenticated or
-  // tenant-specific content. The static offline page is the only fallback.
-  if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)));
-    return;
-  }
-
-  if (!isPublicAsset(request, url)) return;
-  event.respondWith(cacheFirst(request));
 });
 
 function safeBrandAsset(value) {
@@ -97,7 +40,7 @@ function normalizeNotificationBrand(value) {
   const shortName =
     typeof source.shortName === "string" && source.shortName.trim()
       ? source.shortName.trim().slice(0, 20)
-      : "Assistente";
+      : "MIA";
   return {
     shortName,
     iconUrl: safeBrandAsset(source.iconUrl || source.logoUrl) || "/icons/mia-192.png",
@@ -105,11 +48,6 @@ function normalizeNotificationBrand(value) {
 }
 
 async function readNotificationBrand() {
-  try {
-    const cached = await caches.match(BRAND_CACHE_URL);
-    if (cached) return normalizeNotificationBrand(await cached.json());
-  } catch {}
-
   try {
     const response = await fetch("/api/manifest.webmanifest", { cache: "no-store" });
     if (response.ok) {
@@ -121,6 +59,12 @@ async function readNotificationBrand() {
     }
   } catch {}
 
+  try {
+    const cache = await caches.open(BRAND_CACHE);
+    const cached = await cache.match(BRAND_CACHE_URL);
+    if (cached) return normalizeNotificationBrand(await cached.json());
+  } catch {}
+
   return normalizeNotificationBrand(null);
 }
 
@@ -128,7 +72,7 @@ self.addEventListener("message", (event) => {
   if (event.data?.type !== "clone-brand:update") return;
   const normalized = normalizeNotificationBrand(event.data.brand);
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) =>
+    caches.open(BRAND_CACHE).then((cache) =>
       cache.put(
         BRAND_CACHE_URL,
         new Response(JSON.stringify(normalized), {

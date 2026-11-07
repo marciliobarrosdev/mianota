@@ -1,5 +1,8 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
+## Atualização do app instalado
+- [x] Worker no mesmo endereço limpa apenas caches antigos MIA/marcia, sem interceptar arquivos, recarregar ou cancelar notificações; três testes de atualização e três de push passaram. Navegador confirmou localStorage, IndexedDB e cache não relacionado preservados, ícone HTTP 200 e identidade MIAnota; não publicado. Ícones/nomes na tela inicial dependem do celular e podem exigir reinstalação; modo offline antigo retirado.
+
 ## Animação da apresentação inicial
 - [x] Conversa WhatsApp com gravação, digitação, confirmações e rolagem; MIA destacada e grade com opacidade 0,7. Conferido em 1838px, 390px, 320px e movimento reduzido, sem erros nem rolagem lateral; nenhum dado ou envio real alterado.
 

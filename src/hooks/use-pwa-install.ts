@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { registerMiaWorker } from "./mia-worker";
 
 type InstallOutcome = "accepted" | "dismissed" | "unavailable";
 
@@ -60,7 +61,7 @@ export function usePwaInstall() {
     if (!import.meta.env.PROD || !("serviceWorker" in navigator)) return;
 
     const register = () => {
-      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+      registerMiaWorker().catch(() => {
         // A failed registration must never block the application itself.
       });
     };
