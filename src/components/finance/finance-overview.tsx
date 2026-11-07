@@ -387,10 +387,10 @@ function Projection({ data, today }: { data: FinanceOverviewData; today: string 
     new Date(`${d}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
   return (
     <section className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border border-border bg-card px-4 py-3 text-xs shadow-[var(--shadow-card)]">
-      <span className="font-bold text-muted-foreground">Saldo hoje</span>
+      <span className="font-bold text-muted-foreground">Resultado do período até hoje</span>
       <strong className="tabular-nums">{money(todayBal)}</strong>
       <ArrowRight className="size-3.5 text-muted-foreground" />
-      <span className="font-bold text-muted-foreground">previsto no fim ({fmt(data.period.to)})</span>
+      <span className="font-bold text-muted-foreground">Resultado após pendências ({fmt(data.period.to)})</span>
       <strong className={`tabular-nums ${end < 0 ? "text-rose-700 dark:text-rose-400" : ""}`}>{money(end)}</strong>
       {min && (
         <span className="ml-auto text-muted-foreground">

@@ -105,3 +105,14 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Os dados consultados nesta verificação apresentaram Basic R$ 49,00 e Pro R$ 69,00, sem plano gratuito ativo; foram preservados, não corrigidos nem substituídos por valores fictícios nesta limpeza.
 - Nenhum cadastro, lançamento, lead, segredo ou histórico real foi apagado; nenhuma migração foi removida ou aplicada.
 - Não validado nesta rodada: telas conectadas de assinantes/Master, compra e WhatsApp reais; sessão autorizada indisponível. Esta limpeza não equivale a uma reescrita integral ou atualização indiscriminada de todas as dependências.
+
+## 14. Validação autenticada após refatoração (07/11/2026)
+- Sessão da conta explicitamente autorizada: Master, Assinantes, Planos e formulário Novo assinante abriram; edição carregou os dados reais completos. Nenhum cadastro novo foi criado nem dados de contato alterados.
+- Acesso “Entrar como” à empresa da própria conta autorizada: Início, Movimentações, Planejamento e Configurações carregaram; retorno ao Master preservou a sessão administrativa.
+- Movimentações: leitura de nove lançamentos reais de outubro pelo filtro Mês passado; salário de R$ 3.000,00, despesas de R$ 513,00 e saldo líquido de R$ 2.487,00. Formulário manual apresentou entrada/saída e sete formas de pagamento.
+- Planejamento: alternância para Semana e formulário Nova conta com formas de pagamento e recorrência abriram sem erro.
+- Corrigidos rótulos de resultado na Visão do mês e Planejamento: totais restritos às contas/período não são mais chamados de saldo acumulado; aviso de resultado negativo explicita que não inclui sobras anteriores. Valores e regras de cálculo não foram modificados.
+- Auditoria de fontes e links na tela Master: nenhum link de execução para Demo; acesso direto à antiga demonstração retorna 404.
+- Nenhum erro JavaScript observado; 206 testes passaram, um histórico foi ignorado, sete verificações de segurança passaram e compilação sem erros.
+- Limites: não foram salvos cadastros, receitas ou despesas artificiais em contas reais; criação, edição e confirmação de pagamento continuam sem validação de gravação ponta a ponta. Acesso do assinante foi exercitado pela impersonação Master, não por login independente de assinante.
+- Divergência preservada e identificada: planos salvos continuam Basic R$ 49,00, Pro R$ 69,00 e Gratuito inativo; esta verificação não alterou preços nem ativação de planos.

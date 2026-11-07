@@ -1,9 +1,9 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
 ## Validação autenticada após refatoração
-- [ ] Obter sessão autorizada e conferir cadastro, lançamentos, planejamento e acesso Master sem apagar dados reais.
-- [ ] Verificar links para demos removidas e corrigir regressões encontradas.
-- [ ] Executar verificações relevantes e registrar resultados e limites.
+- [x] Sessão autorizada: Master e impersonação da própria empresa; cadastro/edição carregaram, nove lançamentos reais lidos e planejamento semanal/formulário conferidos sem alterar dados.
+- [x] Nenhum link de execução para Demo encontrado; rótulos de resultado corrigidos sem alterar cálculos.
+- [x] 206 testes e sete verificações passaram; resultados e limites registrados em NOVAS-IMPLEMENTAÇÕES.md.
 
 ## Limpeza e refatoração para uso real
 - [x] Remover páginas, componentes, dados e arquivos exclusivos de demonstração.
@@ -13,7 +13,7 @@
 
 ## Correção do cadastro de assinantes
 - [x] Corrigir formato do tipo de pessoa na criação, edição, filtros e ficha.
-- [ ] Verificar salvamento e reabertura pelo Master — depende de sessão autorizada do dono.
+- [ ] Verificar salvamento e reabertura pelo Master — formulário conferido; gravação depende de dados reais de cadastro/alteração fornecidos pelo dono, para não inserir conteúdo fictício.
 
 - [x] Migração: canal ativo exclusivo + troca auditada, template Meta, fila de onboarding, ativação de uso único, config de IA
 - [x] Captura nome/telefone do comprador (Stripe + Kiwify/Cakto/PerfectPay) e phone_number_collection no checkout Stripe

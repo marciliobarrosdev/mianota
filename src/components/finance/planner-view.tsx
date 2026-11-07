@@ -221,11 +221,11 @@ export function PlannerView({
       <SummaryCard icon={<ArrowDownLeft className="size-4" />} label="A receber" value={money(totals.toReceiveCents)} tone="text-emerald-700 dark:text-emerald-400" />
       <SummaryCard icon={<ArrowUpRight className="size-4" />} label="A pagar" value={money(totals.toPayCents)} tone="text-rose-700 dark:text-rose-400" />
       <SummaryCard icon={<AlertTriangle className="size-4" />} label="Atrasadas" value={money(totals.overdueCents)} tone={totals.overdueCount ? "text-rose-700 dark:text-rose-400" : ""} onClick={totals.overdueCount ? () => setFilter("vencido") : undefined} />
-      <SummaryCard icon={<Wallet className="size-4" />} label="Saldo projetado no fim do mês" value={money(totals.projectedCents)} tone={totals.projectedCents >= 0 ? "text-[color:var(--brand-text)]" : "text-rose-700 dark:text-rose-400"} />
+      <SummaryCard icon={<Wallet className="size-4" />} label="Resultado previsto das contas do mês" value={money(totals.projectedCents)} tone={totals.projectedCents >= 0 ? "text-[color:var(--brand-text)]" : "text-rose-700 dark:text-rose-400"} />
     </div>
     {lowest && (
       <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
-        Atenção: pelo planejado, o saldo do mês fica negativo a partir de {lowest.date.slice(8, 10)}/{lowest.date.slice(5, 7)} ({money(lowest.balanceCents)}).
+        Atenção: as contas planejadas acumulam resultado negativo a partir de {lowest.date.slice(8, 10)}/{lowest.date.slice(5, 7)} ({money(lowest.balanceCents)}), sem considerar a sobra de meses anteriores.
       </p>
     )}
     <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
