@@ -297,31 +297,22 @@ function EntrarPage() {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden bg-background text-foreground">
-      {/* Ambient glows — same vibe as LP */}
+    <div className="ln-theme min-h-screen w-full relative overflow-hidden bg-ln-bg font-sans text-ln-ink">
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div
-          className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full blur-3xl opacity-40"
-          style={{ background: "radial-gradient(circle, #8b5cf6 0%, transparent 60%)" }}
-        />
-        <div
-          className="absolute top-[30%] -right-40 h-[700px] w-[700px] rounded-full blur-3xl opacity-25"
-          style={{ background: "radial-gradient(circle, #d946ef 0%, transparent 65%)" }}
-        />
-        <div
-          className="absolute bottom-[-200px] left-1/3 h-[500px] w-[500px] rounded-full blur-3xl opacity-20"
-          style={{ background: "radial-gradient(circle, #6d28d9 0%, transparent 60%)" }}
-        />
+        <div className="ln-grid-bg absolute inset-0" />
+        <div className="ln-blob absolute -top-40 -left-40 size-[560px] rounded-full bg-ln-violet/30 blur-3xl" />
+        <div className="ln-blob absolute top-[35%] -right-40 size-[620px] rounded-full bg-ln-magenta/20 blur-3xl" />
+        <div className="absolute bottom-[-220px] left-1/3 size-[480px] rounded-full bg-ln-lime/10 blur-3xl" />
       </div>
 
       <div className="relative z-10 min-h-screen grid lg:grid-cols-[1.05fr_1fr]">
         {/* LEFT — brand pane (hidden on mobile) */}
-        <aside className="relative hidden overflow-hidden border-r border-[color:var(--hairline)] bg-[linear-gradient(155deg,rgba(109,40,217,.15),rgba(217,70,239,.05)_52%,transparent)] p-10 lg:flex lg:flex-col lg:justify-between xl:p-14">
+        <aside className="relative hidden overflow-hidden border-r border-[color:var(--hairline)] bg-ln-glass backdrop-blur-sm p-10 lg:flex lg:flex-col lg:justify-between xl:p-14">
           <img
             src={branding.avatarUrl || fallbackAvatarUrl}
             alt=""
             aria-hidden
-            className="pointer-events-none absolute -bottom-16 -right-20 h-[70vh] max-h-[760px] opacity-[.22] saturate-[.9]"
+            className="pointer-events-none absolute -bottom-16 -right-20 h-[70vh] max-h-[760px] opacity-[.35]"
           />
           <div className="flex items-center gap-3">
             <Link
@@ -414,13 +405,7 @@ function EntrarPage() {
           <div className="w-full max-w-md">
             <div className="relative panel p-7 sm:p-8 glow-brand overflow-hidden">
               {/* corner accent */}
-              <div
-                aria-hidden
-                className="absolute -top-24 -right-24 size-56 rounded-full blur-3xl opacity-50"
-                style={{
-                  background: "radial-gradient(circle, rgba(124,58,237,.35) 0%, transparent 70%)",
-                }}
-              />
+              <div aria-hidden className="absolute -top-24 -right-24 size-56 rounded-full bg-ln-violet/40 blur-3xl" />
 
               <div className="relative">
                 {planInfo && (
@@ -532,7 +517,7 @@ function EntrarPage() {
                     type="submit"
                     disabled={loading}
                     size="lg"
-                    className="w-full h-12 bg-gradient-brand text-primary-foreground hover:opacity-95 font-semibold text-[14.5px] shadow-[0_8px_24px_-10px_rgba(109,40,217,.72)]"
+                    className="w-full h-12 rounded-full bg-ln-lime text-ln-bg hover:bg-ln-lime/90 font-bold text-[14.5px] ln-pulse"
                   >
                     {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
                     {needsPassword

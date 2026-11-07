@@ -840,3 +840,35 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ln-shimmer::after, .ln-pulse, .ln-breathe, .ln-marquee { animation: none !important; }
 }
+
+/* Escopo visual da landing aplicado a outras telas públicas (ex.: /entrar) */
+.ln-theme {
+  --background: var(--ln-bg);
+  --foreground: var(--ln-ink);
+  --card: var(--ln-surface);
+  --card-foreground: var(--ln-ink);
+  --popover: var(--ln-surface);
+  --popover-foreground: var(--ln-ink);
+  --muted: oklch(1 0 0 / 0.06);
+  --muted-foreground: var(--ln-muted);
+  --border: var(--ln-line);
+  --input: oklch(1 0 0 / 0.14);
+  --ring: var(--ln-violet);
+  --primary: var(--ln-violet);
+  --primary-foreground: var(--ln-ink);
+  --hairline: var(--ln-line);
+  --panel: color-mix(in oklab, var(--ln-surface) 75%, transparent);
+  --brand: var(--ln-magenta);
+  --brand-soft: color-mix(in oklab, var(--ln-violet) 18%, transparent);
+  --brand-text: color-mix(in oklab, var(--ln-magenta) 70%, white);
+  color-scheme: dark;
+}
+.ln-theme .panel {
+  background: color-mix(in oklab, var(--ln-surface) 70%, transparent);
+  border: 1px solid var(--ln-line);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--ln-glow);
+}
+.ln-theme .text-gradient-brand { background: linear-gradient(100deg, var(--ln-ink) 10%, color-mix(in oklab, var(--ln-magenta) 80%, white) 55%, var(--ln-lime)); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.ln-theme input { background: oklch(1 0 0 / 0.04); }
+.ln-theme .font-display { font-family: var(--font-sora); }
