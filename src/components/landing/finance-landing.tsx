@@ -1,20 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
-  ArrowUpRight,
-  BadgeCheck,
   BarChart3,
   Bell,
   CalendarDays,
   Camera,
   Check,
   ChevronDown,
-  CircleDollarSign,
-  Clock,
-  CreditCard,
   FileText,
-  ListChecks,
   Lock,
+  Menu,
   MessageCircle,
   Mic,
   PieChart,
@@ -23,8 +18,8 @@ import {
   Smartphone,
   Sparkles,
   Target,
-  TrendingUp,
   WalletCards,
+  X,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -37,8 +32,8 @@ import {
   supportWhatsappDisplay,
   supportWhatsappUrl,
 } from "@/config/brand";
-import { Button } from "@/components/ui/button";
 import type { PublicPlan } from "@/lib/billing/public-plan-rules";
+import { LandingPhone } from "./landing-phone";
 
 export type FinancePlan = PublicPlan;
 
@@ -61,181 +56,49 @@ type Props = {
   contactAddress?: string;
 };
 
+const SLOGAN = "Sua assistente financeira na palma da mão.";
+
 const FAQS = [
-  [
-    "Preciso entender de finanças?",
-    "Não. Você fala como falaria com uma pessoa. A assistente organiza, pergunta o que faltar e mostra o resultado em palavras simples.",
-  ],
-  [
-    "Ela registra algo sem eu conferir?",
-    "Não. Quando faltar uma informação, a assistente pergunta. Antes de concluir uma ação sensível, ela mostra o que entendeu para você confirmar.",
-  ],
-  [
-    "Como funcionam os lembretes?",
-    "Você informa uma conta futura por voz ou texto. Ela entra no calendário financeiro e aparece nos avisos antes do vencimento.",
-  ],
-  [
-    "Como funciona no WhatsApp?",
-    "No plano Pro, você conecta o canal configurado para a assistente e vincula seu celular. Só números autorizados acessam sua conta.",
-  ],
-  [
-    "Consigo usar sem WhatsApp?",
-    "Sim. Voz, texto e envio de comprovantes funcionam diretamente no aplicativo. O WhatsApp é um canal adicional do plano Pro.",
-  ],
-  [
-    "Posso instalar no celular?",
-    "Sim. O sistema abre pelo navegador e pode ser instalado na tela inicial como aplicativo.",
-  ],
-  [
-    "Ela conecta automaticamente com meu banco?",
-    "Não nesta versão. Você organiza contas, cartões e saldos manualmente, sem entregar acesso bancário e sem pagar por uma conexão externa.",
-  ],
-  [
-    "A MIA movimenta meu dinheiro?",
-    "Não. Ela organiza informações, prepara registros, mostra alertas e ajuda a interpretar o mês. Pagamentos e transferências continuam sempre com você.",
-  ],
-  [
-    "Posso mandar foto de comprovante?",
-    "Sim. Envie uma imagem legível pelo aplicativo. A MIA identifica os dados disponíveis e pergunta o que faltar antes de registrar.",
-  ],
+  ["Preciso entender de finanças?", "Não. Você fala como falaria com uma pessoa. A MIA organiza, pergunta o que faltar e mostra o resultado em palavras simples."],
+  ["Ela registra algo sem eu conferir?", "Não. Quando faltar uma informação, a MIA pergunta. Antes de concluir uma ação sensível, ela mostra o que entendeu para você confirmar."],
+  ["Como funciona no WhatsApp?", "Você vincula seu celular ao canal da MIA. Só números autorizados acessam sua conta, e você pode mandar texto, áudio, foto ou PDF."],
+  ["Consigo usar sem WhatsApp?", "Sim. Voz, texto e envio de comprovantes funcionam diretamente no aplicativo."],
+  ["Posso instalar no celular?", "Sim. O sistema abre pelo navegador e pode ser instalado na tela inicial como aplicativo."],
+  ["Ela conecta automaticamente com meu banco?", "Não nesta versão. Você organiza contas, cartões e saldos sem entregar acesso bancário."],
+  ["A MIA movimenta meu dinheiro?", "Não. Ela organiza informações, mostra alertas e ajuda a interpretar o mês. Pagamentos continuam sempre com você."],
 ];
 
-const PAIN_POINTS: Array<{ icon: LucideIcon; title: string; text: string }> = [
-  {
-    icon: ReceiptText,
-    title: "Você lembra que gastou, mas não registra",
-    text: "No fim do mês, pequenos gastos viram uma diferença que ninguém consegue explicar.",
-  },
-  {
-    icon: CalendarDays,
-    title: "As próximas contas ficam espalhadas",
-    text: "Vencimentos moram na memória, no e-mail, no boleto e em várias conversas.",
-  },
-  {
-    icon: CreditCard,
-    title: "A fatura surpreende quando já fechou",
-    text: "Você descobre tarde quanto comprometeu e onde o dinheiro foi embora.",
-  },
-  {
-    icon: FileText,
-    title: "Planilhas e formulários cansam",
-    text: "O controle é abandonado porque dá mais trabalho alimentar o sistema do que viver a rotina.",
-  },
+const MARQUEE: Array<[LucideIcon, string]> = [
+  [MessageCircle, "WhatsApp"], [Mic, "Áudio"], [Camera, "Foto de nota"], [FileText, "PDF"],
+  [BarChart3, "Relatório mensal"], [Bell, "Lembretes"], [CalendarDays, "Calendário"], [Target, "Metas"],
 ];
 
-const DAILY_MOMENTS: Array<{
-  icon: LucideIcon;
-  number: string;
-  title: string;
-  example: string;
-  result: string;
-}> = [
-  {
-    icon: Mic,
-    number: "01",
-    title: "Gastou? Só conte.",
-    example: "“Paguei R$ 84,90 no mercado pelo Pix.”",
-    result: "A despesa entra na categoria certa e atualiza o mês.",
-  },
-  {
-    icon: CalendarDays,
-    number: "02",
-    title: "Tem conta futura? Avise.",
-    example: "“A internet vence todo dia 12 e custa R$ 120.”",
-    result: "A conta vai para o calendário e vira lembrete.",
-  },
-  {
-    icon: MessageCircle,
-    number: "03",
-    title: "Quer decidir? Pergunte.",
-    example: "“Ainda posso gastar R$ 300 com lazer este mês?”",
-    result: "A resposta usa seu saldo, seu ritmo e seus limites.",
-  },
+const STEPS: Array<{ icon: LucideIcon; title: string; text: string; example: string }> = [
+  { icon: Mic, title: "Fale", text: "Mande um áudio, texto ou foto como se falasse com uma amiga.", example: "“Paguei R$ 84,90 no mercado pelo Pix.”" },
+  { icon: Sparkles, title: "A MIA organiza", text: "Valor, categoria, data e forma de pagamento entram no lugar certo.", example: "Mercado · Alimentação · Pix" },
+  { icon: Target, title: "Você decide", text: "Pergunte o que quiser e receba a resposta com base no seu mês.", example: "“Ainda posso gastar com lazer?”" },
 ];
 
-const FINANCE_FEATURES: Array<{
-  icon: LucideIcon;
-  title: string;
-  text: string;
-  tag: string;
-}> = [
-  {
-    icon: BarChart3,
-    title: "Visão do mês",
-    text: "Saldo, entradas, saídas e comparação com o período anterior.",
-    tag: "Entender",
-  },
-  {
-    icon: ReceiptText,
-    title: "Movimentações",
-    text: "Histórico organizado e pesquisável do que entrou e saiu.",
-    tag: "Consultar",
-  },
-  {
-    icon: CalendarDays,
-    title: "Calendário financeiro",
-    text: "Contas futuras, recebimentos e vencimentos em ordem.",
-    tag: "Planejar",
-  },
-  {
-    icon: Bell,
-    title: "Lembretes",
-    text: "Avisos antes das datas importantes para nada vencer no susto.",
-    tag: "Lembrar",
-  },
-  {
-    icon: WalletCards,
-    title: "Contas e cartões",
-    text: "Saldos manuais, cartões e faturas sem misturar os valores.",
-    tag: "Separar",
-  },
-  {
-    icon: PieChart,
-    title: "Categorias e orçamento",
-    text: "Veja onde mais gasta e acompanhe o limite de cada área.",
-    tag: "Controlar",
-  },
-  {
-    icon: Target,
-    title: "Metas e recorrências",
-    text: "Objetivos e gastos fixos entrando na previsão do mês.",
-    tag: "Avançar",
-  },
-  {
-    icon: Sparkles,
-    title: "Leitura da MIA",
-    text: "Os números viram uma explicação curta e uma próxima ação clara.",
-    tag: "Decidir",
-  },
+const UNDERSTANDS: Array<{ icon: LucideIcon; title: string; text: string }> = [
+  { icon: MessageCircle, title: "Texto", text: "Escreva do seu jeito, sem formulário." },
+  { icon: Mic, title: "Áudio", text: "Fale e a MIA transcreve e registra." },
+  { icon: Camera, title: "Foto de nota", text: "Envie o comprovante e ela lê os dados." },
+  { icon: FileText, title: "PDF", text: "Boletos e extratos viram lançamentos." },
 ];
 
-const COMPARISON_ROWS = [
-  ["Registrar gasto", "Abrir tela e preencher campos", "Falar, digitar ou fotografar"],
-  ["Entender o mês", "Somar e interpretar sozinho", "Receber uma leitura em linguagem simples"],
-  ["Lembrar contas", "Confiar na memória", "Calendário e aviso antes do vencimento"],
-  ["Corrigir informação", "Editar vários campos", "Responder à pergunta que faltou"],
-  ["Tomar uma decisão", "Cruzar saldos, faturas e limites", "Perguntar diretamente à MIA"],
-] as const;
+const FEATURES: Array<{ icon: LucideIcon; title: string; text: string; wide?: boolean }> = [
+  { icon: BarChart3, title: "Visão do mês", text: "Saldo, entradas, saídas e sobra prevista num só olhar, com comparação ao mês anterior.", wide: true },
+  { icon: CalendarDays, title: "Planejamento", text: "Contas a pagar e a receber em ordem." },
+  { icon: Bell, title: "Lembretes", text: "Avisos antes do vencimento, no app e no WhatsApp." },
+  { icon: WalletCards, title: "Contas e cartões", text: "Saldos e faturas sem misturar valores." },
+  { icon: PieChart, title: "Categorias", text: "Veja para onde o dinheiro vai." },
+  { icon: FileText, title: "Relatório mensal em PDF", text: "Um resumo bonito do mês, pronto para guardar ou compartilhar.", wide: true },
+];
 
-const START_STEPS: Array<{ icon: LucideIcon; number: string; title: string; text: string }> = [
-  {
-    icon: CircleDollarSign,
-    number: "01",
-    title: "Escolha seu plano",
-    text: "Basic para organizar no aplicativo ou Pro para incluir o WhatsApp financeiro.",
-  },
-  {
-    icon: MessageCircle,
-    number: "02",
-    title: "Conte a primeira movimentação",
-    text: "Fale, digite ou fotografe. A MIA pergunta somente o que estiver faltando.",
-  },
-  {
-    icon: ListChecks,
-    number: "03",
-    title: "Acompanhe o mês pronto",
-    text: "Painel, calendário, categorias e lembretes passam a trabalhar com a sua rotina.",
-  },
+const TRUST: Array<{ icon: LucideIcon; title: string; text: string }> = [
+  { icon: Lock, title: "Sem acesso ao banco", text: "Você nunca entrega senha bancária." },
+  { icon: ShieldCheck, title: "Você confirma", text: "Nada sensível é feito sem sua confirmação." },
+  { icon: Smartphone, title: "Números autorizados", text: "Só o seu celular conversa com sua conta." },
 ];
 
 export function FinanceLanding({
@@ -246,7 +109,7 @@ export function FinanceLanding({
   loginHref = "/entrar?modo=login",
   brandName = brand.name,
   assistantName = brand.assistantName,
-  tagline = "Sua assessora financeira com IA",
+  tagline = SLOGAN,
   logoUrl = null,
   avatarUrl = null,
   legalName = legalProfile.name,
@@ -255,684 +118,375 @@ export function FinanceLanding({
   contactAddress = legalProfile.address,
 }: Props) {
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
-  const landingRef = useRef<HTMLDivElement>(null);
-  const personalize = (value: string) => personalizeAssistantText(value, assistantName);
-  const displayPlans = useMemo(
-    () =>
-      plans.map((plan) => ({
-        ...plan,
-        description: personalizeAssistantText(plan.description, assistantName),
-        features: plan.features.map((feature) => personalizeAssistantText(feature, assistantName)),
-      })),
-    [plans, assistantName],
-  );
-  // Ordem fixa: Grátis, depois pagos do menor para o maior preço.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const avatar = avatarUrl || fallbackAvatarUrl;
+  const p = (v: string) => personalizeAssistantText(v, assistantName);
+
   const orderedPlans = useMemo(
     () =>
-      [...displayPlans].sort(
-        (a, b) =>
-          Number(!!b.free) - Number(!!a.free) ||
-          Number(a.price.replace(/\./g, "").replace(",", ".")) -
-            Number(b.price.replace(/\./g, "").replace(",", ".")),
-      ),
-    [displayPlans],
+      plans
+        .map((plan) => ({
+          ...plan,
+          description: p(plan.description),
+          features: plan.features.map(p),
+        }))
+        .sort(
+          (a, b) =>
+            Number(!!b.free) - Number(!!a.free) ||
+            Number(a.price.replace(/\./g, "").replace(",", ".")) - Number(b.price.replace(/\./g, "").replace(",", ".")),
+        ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [plans, assistantName],
   );
   const planSignupHref = (slug: string) =>
     `${signupHref}${signupHref.includes("?") ? "&" : "?"}plano=${encodeURIComponent(slug)}`;
   const freePlan = orderedPlans.find((plan) => plan.free);
   const trialHref = freePlan ? planSignupHref(freePlan.slug) : plansHref;
+  const featuredSlug =
+    orderedPlans.find((x) => x.featured)?.slug ?? orderedPlans[Math.floor(orderedPlans.length / 2)]?.slug;
 
   useEffect(() => {
-    const root = landingRef.current;
+    const root = rootRef.current;
     if (!root) return;
-
     const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-reveal], [data-stagger]"));
     if (!("IntersectionObserver" in window)) {
-      targets.forEach((target) => target.classList.add("cl-visible"));
+      targets.forEach((t) => t.classList.add("cl-visible"));
       return;
     }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("cl-visible");
-          observer.unobserve(entry.target);
-        });
-      },
-      { rootMargin: "0px 0px -9%", threshold: 0.08 },
+    const obs = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("cl-visible");
+          obs.unobserve(e.target);
+        }),
+      { rootMargin: "0px 0px -8%", threshold: 0.08 },
     );
-
-    targets.forEach((target) => observer.observe(target));
-    return () => observer.disconnect();
+    targets.forEach((t) => obs.observe(t));
+    return () => obs.disconnect();
   }, []);
 
+  const onHeroMove = (e: React.PointerEvent<HTMLElement>) => {
+    const el = heroRef.current;
+    if (!el || e.pointerType !== "mouse") return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+
+  const navLinks = [
+    ["#como-funciona", "Como funciona"],
+    ["#mia", `Conheça a ${assistantName}`],
+    ["#recursos", "Recursos"],
+    ["#planos", "Planos"],
+    ["#faq", "Dúvidas"],
+  ];
+
   return (
-    <div
-      ref={landingRef}
-      data-force-motion="gentle"
-      className="min-h-screen overflow-hidden bg-[#08060d] text-white selection:bg-violet-500/40"
-    >
-      <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5">
-        <nav className="cl-nav mx-auto flex h-14 max-w-[1120px] items-center rounded-2xl border border-white/10 bg-[#100b18]/88 px-3.5 shadow-2xl backdrop-blur-2xl sm:px-5">
+    <div ref={rootRef} data-force-motion="gentle" className="min-h-screen overflow-x-hidden bg-ln-bg pb-24 font-sans text-ln-ink lg:pb-0">
+      {/* Topo */}
+      <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3">
+        <nav className="cl-nav ln-glass mx-auto flex h-14 max-w-6xl items-center rounded-2xl px-3.5 sm:px-5">
           <a href="#inicio" className="flex min-w-0 items-center gap-2.5">
             <Logo logoUrl={logoUrl} name={brandName} />
-            <span className="truncate font-display text-base font-black tracking-[-.04em]">
-              {brandName}
-            </span>
+            <span className="truncate font-sora text-base font-bold tracking-tight">{brandName}</span>
           </a>
-
-          <div className="ml-auto hidden items-center gap-7 text-[13px] font-bold text-white/62 lg:flex">
-            <a href="#como-funciona" className="transition hover:text-white">
-              Como funciona
-            </a>
-            <a href="#recursos" className="transition hover:text-white">
-              Recursos
-            </a>
-            <a href="#planos" className="transition hover:text-white">
-              Planos
-            </a>
+          <div className="ml-auto hidden items-center gap-6 text-[13px] font-semibold text-ln-muted lg:flex">
+            {navLinks.map(([href, label]) => (
+              <a key={href} href={href} className="transition hover:text-ln-ink">{label}</a>
+            ))}
           </div>
-
-          <div className="ml-auto flex items-center gap-1.5 lg:ml-8">
-            <a
-              href={loginHref}
-              className="hidden rounded-xl px-3 py-2 text-[13px] font-extrabold text-white/68 transition hover:bg-white/5 hover:text-white sm:block"
-            >
-              Entrar
+          <div className="ml-auto flex items-center gap-1.5 lg:ml-6">
+            <a href={loginHref} className="hidden rounded-xl px-3 py-2 text-[13px] font-bold text-ln-muted transition hover:text-ln-ink sm:block">Entrar</a>
+            <a href={trialHref} className="hidden h-10 items-center gap-1.5 rounded-xl ln-gradient px-4 text-[13px] font-bold text-ln-ink transition hover:-translate-y-0.5 sm:inline-flex">
+              Começar <ArrowRight className="size-3.5" />
             </a>
-            <a
-              href={trialHref}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white px-4 text-[13px] font-black text-violet-800 transition hover:-translate-y-0.5"
-            >
-              Testar grátis <ArrowRight className="size-3.5" />
-            </a>
+            <button type="button" aria-label="Abrir menu" onClick={() => setMenuOpen(true)} className="grid size-10 place-items-center rounded-xl ln-glass lg:hidden">
+              <Menu className="size-5" />
+            </button>
           </div>
         </nav>
       </header>
 
+      {/* Menu mobile (abre de baixo) */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true">
+          <button aria-label="Fechar menu" className="absolute inset-0 bg-ln-bg/70 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+          <div className="ln-bubble absolute inset-x-0 bottom-0 rounded-t-[28px] border-t border-ln-line bg-ln-surface p-5 pb-8">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ln-line" />
+            <div className="flex items-center justify-between">
+              <span className="font-sora font-bold">{brandName}</span>
+              <button aria-label="Fechar" onClick={() => setMenuOpen(false)} className="grid size-10 place-items-center rounded-xl ln-glass"><X className="size-5" /></button>
+            </div>
+            <div className="mt-4 grid gap-1">
+              {navLinks.map(([href, label]) => (
+                <a key={href} href={href} onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-3.5 text-base font-semibold transition hover:bg-ln-glass">{label}</a>
+              ))}
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <a href={loginHref} className="flex h-12 items-center justify-center rounded-2xl ln-glass font-bold">Entrar</a>
+              <a href={trialHref} className="flex h-12 items-center justify-center rounded-2xl ln-gradient font-bold">Começar grátis</a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main>
-        <section id="inicio" className="relative overflow-hidden px-5 pb-10 pt-24 sm:pt-28">
-          <div className="cl-hero-aurora absolute inset-0 bg-[radial-gradient(circle_at_78%_29%,rgba(124,58,237,.38),transparent_29%),radial-gradient(circle_at_13%_25%,rgba(217,70,239,.13),transparent_25%),linear-gradient(180deg,#08060d,#150a22_66%,#08060d)]" />
-          <div className="relative mx-auto grid min-h-[520px] max-w-[1120px] items-center gap-8 lg:grid-cols-[1.04fr_.96fr]">
-            <div className="cl-hero-copy z-10 max-w-3xl text-center lg:text-left">
-              <Pill dark>
-                <Sparkles className="size-3.5" /> Sua assessora financeira com IA
-              </Pill>
-              <h1 className="mt-4 max-w-[660px] font-display text-[clamp(2.8rem,5vw,4.4rem)] font-black leading-[.93] tracking-[-.065em]">
-                Você fala.
-                <span className="mt-2 block bg-gradient-to-r from-violet-300 via-fuchsia-300 to-white bg-clip-text text-transparent">
-                  A {assistantName} organiza seu dinheiro.
-                </span>
+        {/* Abertura */}
+        <section id="inicio" ref={heroRef} onPointerMove={onHeroMove} className="relative overflow-hidden px-5 pb-16 pt-28 sm:pt-32 lg:pb-24">
+          <div className="ln-grid-bg pointer-events-none absolute inset-0" />
+          <div className="ln-spotlight pointer-events-none absolute inset-0" />
+          <div className="ln-blob pointer-events-none absolute -right-32 top-10 size-96 rounded-full bg-ln-magenta/30 blur-3xl" />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_.9fr]">
+            <div className="cl-hero-copy text-center lg:text-left">
+              <div className="ln-glass mx-auto inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold lg:mx-0">
+                <img src={avatar} alt="" className="size-5 rounded-full object-cover" />
+                Conheça a {assistantName}, sua assistente com IA
+              </div>
+              <h1 className="mt-6 font-sora text-[clamp(2.6rem,9vw,5rem)] font-extrabold leading-[0.98] tracking-[-0.045em]">
+                Fale. <span className="ln-gradient-text">A {assistantName} anota.</span>
+                <span className="block text-ln-muted">Seu dinheiro faz sentido.</span>
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-[16px] font-medium leading-7 text-white/68 sm:text-[17px] lg:mx-0">
-                Envie um áudio, uma mensagem ou um comprovante. Ela registra, lembra suas próximas
-                contas e mostra o mês com clareza.
+              <p className="mx-auto mt-6 max-w-lg text-base leading-7 text-ln-muted sm:text-lg lg:mx-0">
+                {SLOGAN} Mande um áudio, uma foto ou uma mensagem — o {brandName} organiza gastos, contas e metas para você.
               </p>
-              <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
-                <a
-                  href={trialHref}
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 text-[14px] font-black shadow-[0_24px_55px_-20px_rgba(147,51,234,.9)] transition hover:-translate-y-0.5"
-                >
-                  Testar grátis{" "}
-                  <ArrowRight className="size-4 transition group-hover:translate-x-1" />
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+                <a href={trialHref} className="group inline-flex h-14 items-center justify-center gap-2 rounded-2xl ln-gradient px-7 text-base font-bold ln-glow transition hover:-translate-y-0.5">
+                  Começar grátis <ArrowRight className="size-4 transition group-hover:translate-x-1" />
+                </a>
+                <a href="#como-funciona" className="inline-flex h-14 items-center justify-center rounded-2xl ln-glass px-7 text-base font-semibold transition hover:bg-ln-surface">
+                  Ver como funciona
                 </a>
               </div>
-              <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[12px] font-bold text-white/58 lg:justify-start">
-                {["Áudio, texto e foto", "Lembretes de contas", "Dashboard simples"].map((item) => (
-                  <span key={item} className="inline-flex items-center gap-1.5">
-                    <Check className="size-4 text-emerald-400" /> {item}
-                  </span>
-                ))}
+              <div className="mt-7 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-ln-muted lg:justify-start">
+                <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> Sem cartão no plano grátis</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> Funciona no WhatsApp</span>
               </div>
             </div>
-
-            <div className="relative mx-auto h-[430px] w-full max-w-[500px] sm:h-[500px]">
-              <div className="cl-halo absolute left-1/2 top-1/2 size-[350px] rounded-full border border-violet-200/15 bg-[radial-gradient(circle,rgba(167,139,250,.25),rgba(88,28,135,.06)_54%,transparent_70%)] sm:size-[430px]" />
-              <div className="cl-orbit absolute left-1/2 top-1/2 size-[390px] rounded-full border border-dashed border-violet-300/20 sm:size-[470px]" />
-              <img
-                src={avatarUrl || fallbackAvatarUrl}
-                alt={`${assistantName}, assessora financeira com IA`}
-                className="cl-avatar absolute bottom-[-34px] left-1/2 z-10 h-[485px] max-w-none object-contain object-bottom drop-shadow-[0_38px_42px_rgba(0,0,0,.48)] sm:h-[555px]"
-              />
-              <Float
-                className="left-0 top-[18%] sm:-left-[3%]"
-                icon={<Mic className="size-4 text-fuchsia-300" />}
-                title="Registro por áudio"
-                text="Grave sua mensagem"
-              />
-              <Float
-                className="right-0 top-[48%] sm:-right-[5%]"
-                icon={<PieChart className="size-4 text-emerald-300" />}
-                title="Visão do mês"
-                text="Suas movimentações"
-                delay="1.2s"
-              />
-            </div>
+            <LandingPhone assistantName={assistantName} avatar={avatar} />
           </div>
         </section>
 
-        <section className="bg-[#f7f2fb] px-5 py-14 text-[#21152e] sm:py-16">
-          <div data-reveal className="mx-auto max-w-[1120px]">
-            <Heading
-              centered
-              eyebrow="01 · A rotina real"
-              title="Organizar o dinheiro não deveria virar outro trabalho."
-              description="O problema não é falta de vontade. É depender de memória, formulário e planilha para entender uma rotina que acontece o dia inteiro."
-            />
-            <div data-stagger className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {PAIN_POINTS.map(({ icon: Icon, title, text }) => (
-                <article
-                  key={title}
-                  className="rounded-[22px] border border-violet-100 bg-white p-5 shadow-[0_22px_50px_-42px_rgba(55,28,77,.5)]"
-                >
-                  <div className="grid size-11 place-items-center rounded-2xl bg-rose-50 text-rose-600">
-                    <Icon className="size-5" />
-                  </div>
-                  <h3 className="mt-4 text-[15px] font-black leading-5">{title}</h3>
-                  <p className="mt-2 text-[12px] font-medium leading-5 text-[#75667e]">{text}</p>
+        {/* Faixa */}
+        <div className="overflow-hidden border-y border-ln-line py-4">
+          <div className="ln-marquee flex w-max gap-10">
+            {[...MARQUEE, ...MARQUEE].map(([Icon, label], i) => (
+              <span key={i} className="inline-flex items-center gap-2 whitespace-nowrap font-sora text-sm font-semibold text-ln-muted">
+                <Icon className="size-4 text-ln-magenta" /> {label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Como funciona */}
+        <Section id="como-funciona" eyebrow="Como funciona" title="Três passos. Nenhuma planilha.">
+          <div data-stagger className="mt-10 grid gap-4 md:grid-cols-3">
+            {STEPS.map(({ icon: Icon, title, text, example }, i) => (
+              <article key={title} className="group relative overflow-hidden rounded-3xl ln-glass p-6 transition hover:-translate-y-1">
+                <span className="absolute right-5 top-3 font-sora text-6xl font-extrabold text-ln-line">0{i + 1}</span>
+                <div className="grid size-12 place-items-center rounded-2xl ln-gradient"><Icon className="size-5" /></div>
+                <h3 className="mt-5 font-sora text-xl font-bold">{p(title)}</h3>
+                <p className="mt-2 text-sm leading-6 text-ln-muted">{p(text)}</p>
+                <div className="mt-5 rounded-2xl border border-ln-line bg-ln-bg/60 px-4 py-3 text-[13px] font-medium">{example}</div>
+              </article>
+            ))}
+          </div>
+        </Section>
+
+        {/* Conheça a MIA */}
+        <Section id="mia" eyebrow={`Conheça a ${assistantName}`} title="Ela entende do seu jeito.">
+          <div className="mt-10 grid items-center gap-10 lg:grid-cols-[.8fr_1.2fr]">
+            <div data-reveal className="relative mx-auto">
+              <span className="ln-aura absolute -inset-6 rounded-full ln-gradient opacity-50 blur-2xl" />
+              <img src={avatar} alt={assistantName} className="relative size-56 rounded-full border-4 border-ln-line object-cover sm:size-72" />
+              <div className="ln-floaty ln-glass absolute -bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-semibold">
+                <Zap className="size-4 text-ln-lime" /> Responde em segundos
+              </div>
+            </div>
+            <div data-stagger className="grid grid-cols-2 gap-3 sm:gap-4">
+              {UNDERSTANDS.map(({ icon: Icon, title, text }) => (
+                <article key={title} className="rounded-3xl ln-glass p-5 transition hover:border-ln-magenta/50">
+                  <Icon className="ln-floaty size-7 text-ln-magenta" />
+                  <h3 className="mt-4 font-sora text-base font-bold">{title}</h3>
+                  <p className="mt-1 text-[13px] leading-5 text-ln-muted">{text}</p>
                 </article>
               ))}
             </div>
-            <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-[22px] bg-[#21132f] px-6 py-5 text-center text-white sm:flex-row sm:text-left">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-[.14em] text-violet-300">
-                  O jeito mais simples
+          </div>
+        </Section>
+
+        {/* Painel */}
+        <Section id="por-dentro" eyebrow="Por dentro do painel" title="O mês inteiro, num só olhar.">
+          <div data-reveal className="mt-10 rounded-[32px] ln-glass p-4 sm:p-7 ln-glow">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[
+                ["Saldo do período", "R$ 2.418,60", "text-ln-ink"],
+                ["Entrou", "R$ 5.200,00", "text-ln-lime"],
+                ["Saiu", "R$ 2.781,40", "text-ln-magenta"],
+                ["Sobra prevista", "R$ 1.136,20", "text-ln-ink"],
+              ].map(([label, value, color]) => (
+                <div key={label} className="rounded-2xl border border-ln-line bg-ln-bg/60 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-ln-muted">{label}</div>
+                  <div className={`mt-2 font-sora text-lg font-bold sm:text-2xl ${color}`}>{value}</div>
                 </div>
-                <p className="mt-1 text-[15px] font-black">
-                  Se aconteceu com seu dinheiro, você conta para a {assistantName}.
-                </p>
-              </div>
-              <a
-                href="#como-funciona"
-                className="inline-flex shrink-0 items-center gap-2 text-sm font-black text-fuchsia-200 transition hover:text-white"
-              >
-                Veja o fluxo <ArrowRight className="size-4" />
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="como-funciona"
-          className="scroll-mt-20 bg-white px-5 py-12 text-[#21152e] sm:py-14"
-        >
-          <div data-reveal className="mx-auto max-w-[1120px]">
-            <Heading
-              centered
-              eyebrow="02 · Veja acontecer"
-              title="Você fala. Ela organiza. O painel muda."
-              description="Converse com a MIA na sua conta para organizar suas movimentações."
-            />
-            <div className="mt-7 grid gap-6 md:grid-cols-3">
-              {START_STEPS.map(({ icon: Icon, number, title, text }) => (
-                <article key={number} className="border-t border-border pt-4">
-                  <Icon className="size-6 text-primary" />
-                  <h3 className="mt-3 text-base font-bold">{title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{personalize(text)}</p>
-                </article>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section id="rotina" className="scroll-mt-20 bg-[#0c0712] px-5 py-14 text-white sm:py-16">
-          <div data-reveal className="mx-auto max-w-[1120px]">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="text-[10px] font-black uppercase tracking-[.16em] text-fuchsia-300">
-                03 · Cabe no seu dia
-              </div>
-              <h2 className="mt-3 font-display text-[clamp(2.15rem,4vw,3.65rem)] font-black leading-[.97] tracking-[-.055em]">
-                Fale do jeito que você lembra.
-              </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-[15px] font-medium leading-7 text-white/58">
-                A {assistantName} transforma frases comuns em registros, lembretes e respostas
-                úteis. Sem aprender comando especial.
-              </p>
-            </div>
-            <div data-stagger className="mt-9 grid gap-4 lg:grid-cols-3">
-              {DAILY_MOMENTS.map(({ icon: Icon, number, title, example, result }) => (
-                <article
-                  key={number}
-                  className="group relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[.055] p-5 transition hover:-translate-y-1 hover:border-violet-400/40"
-                >
-                  <div className="absolute -right-4 -top-8 font-display text-[88px] font-black text-white/[.035]">
-                    {number}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="grid size-11 place-items-center rounded-2xl bg-violet-500/18 text-violet-200">
-                      <Icon className="size-5" />
-                    </div>
-                    <div>
-                      <div className="text-[9px] font-black uppercase tracking-[.14em] text-violet-300">
-                        Situação {number}
-                      </div>
-                      <h3 className="mt-1 text-[16px] font-black">{title}</h3>
-                    </div>
-                  </div>
-                  <div className="mt-5 rounded-2xl bg-white p-4 text-[13px] font-black leading-5 text-[#2b1935] shadow-xl">
-                    {example}
-                  </div>
-                  <div className="mt-4 flex items-start gap-2 text-[12px] font-medium leading-5 text-white/58">
-                    <Check className="mt-0.5 size-4 shrink-0 text-emerald-400" />
-                    {result}
-                  </div>
-                </article>
+            <div className="mt-5 flex h-40 items-end gap-2 rounded-2xl border border-ln-line bg-ln-bg/60 p-4 sm:h-52">
+              {[40, 62, 48, 75, 55, 88, 66, 92, 58, 80, 70, 96].map((h, i) => (
+                <div key={i} className="ln-bar flex-1 rounded-t-lg ln-gradient" style={{ height: `${h}%`, transitionDelay: `${i * 60}ms` }} />
               ))}
             </div>
+            <p className="mt-3 text-center text-[11px] text-ln-muted">Ilustração com valores de exemplo.</p>
           </div>
-        </section>
+        </Section>
 
-        <section
-          id="por-dentro"
-          className="scroll-mt-20 bg-[#f7f2fb] px-5 py-12 text-[#21152e] sm:py-14"
-        >
-          <div
-            data-reveal
-            className="mx-auto grid max-w-[1120px] items-center gap-8 lg:grid-cols-[.7fr_1.3fr]"
-          >
-            <div>
-              <Pill>
-                <BarChart3 className="size-3.5" /> 04 · Por dentro do painel
-              </Pill>
-              <h2 className="mt-4 font-display text-[clamp(2.15rem,3.8vw,3.45rem)] font-black leading-[.97] tracking-[-.055em]">
-                Abra e entenda.<span className="block text-violet-700">Sem fazer conta.</span>
-              </h2>
-              <p className="mt-4 max-w-xl text-[15px] font-medium leading-7 text-[#685873]">
-                Saldo, o que entrou, o que saiu e onde você mais gastou aparecem primeiro. A{" "}
-                {assistantName}
-                destaca somente o que merece sua atenção.
-              </p>
-              <div className="mt-6 space-y-2.5">
-                <Outcome
-                  icon={TrendingUp}
-                  title="Entenda o mês"
-                  text="Saldo, entradas, saídas e categorias em uma tela."
-                />
-                <Outcome
-                  icon={CalendarDays}
-                  title="Não esqueça contas"
-                  text="Vencimentos organizados com lembretes antes da data."
-                />
-                <Outcome
-                  icon={Mic}
-                  title="Registre sem formulário"
-                  text="Fale, digite ou envie uma foto e siga o seu dia."
-                />
-              </div>
-            </div>
-            <div className="flex justify-center">
-              <Button asChild size="lg"><a href={loginHref}>Acessar meu painel <ArrowRight /></a></Button>
-            </div>
+        {/* Recursos */}
+        <Section id="recursos" eyebrow="Recursos" title="Tudo o que você precisa, nada que atrapalhe.">
+          <div data-stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {FEATURES.map(({ icon: Icon, title, text, wide }) => (
+              <article key={title} className={`rounded-3xl ln-glass p-6 transition hover:-translate-y-1 ${wide ? "sm:col-span-2" : ""}`}>
+                <Icon className="size-6 text-ln-lime" />
+                <h3 className="mt-4 font-sora text-lg font-bold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ln-muted">{text}</p>
+              </article>
+            ))}
           </div>
+        </Section>
 
-          <div className="mx-auto mt-8 flex max-w-[1120px] flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-violet-100 pt-6 text-xs font-black text-[#6b5b75]">
-            <Channel icon={Mic}>Áudio</Channel>
-            <Channel icon={MessageCircle}>Texto</Channel>
-            <Channel icon={Camera}>Comprovante</Channel>
-            <Channel icon={Smartphone}>Aplicativo</Channel>
-            <Channel icon={Zap}>WhatsApp no Pro</Channel>
-          </div>
-        </section>
-
-        <section id="recursos" className="scroll-mt-20 bg-white px-5 py-14 text-[#21152e] sm:py-16">
-          <div data-reveal className="mx-auto max-w-[1120px]">
-            <Heading
-              centered
-              eyebrow="05 · O sistema completo"
-              title="Tudo que você precisa para sair do improviso."
-              description="A conversa deixa o uso simples. Por trás dela, cada informação vai para o lugar certo e continua disponível quando você precisar."
-            />
-            <div data-stagger className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {FINANCE_FEATURES.map(({ icon: Icon, title, text, tag }) => (
-                <article
-                  key={title}
-                  className="group rounded-[22px] border border-violet-100 bg-[#fbf9fd] p-5 transition hover:-translate-y-1 hover:border-violet-300 hover:bg-white hover:shadow-[0_24px_55px_-42px_rgba(78,35,110,.6)]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="grid size-11 place-items-center rounded-2xl bg-violet-100 text-violet-700">
-                      <Icon className="size-5" />
-                    </div>
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-black uppercase tracking-[.12em] text-violet-600 ring-1 ring-violet-100">
-                      {tag}
-                    </span>
-                  </div>
-                  <h3 className="mt-4 text-[15px] font-black">{title}</h3>
-                  <p className="mt-2 text-[12px] font-medium leading-5 text-[#75667e]">{text}</p>
-                </article>
-              ))}
-            </div>
-            <div className="mt-7 flex flex-col items-center justify-between gap-4 rounded-[22px] border border-violet-100 bg-violet-50 px-6 py-5 text-center sm:flex-row sm:text-left">
-              <div className="flex items-center gap-3">
-                <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white text-violet-700 shadow-sm">
-                  <Smartphone className="size-5" />
-                </div>
+        {/* Segurança */}
+        <Section eyebrow="Você no controle" title="Segurança sem complicação.">
+          <div data-stagger className="mt-10 grid gap-4 md:grid-cols-3">
+            {TRUST.map(({ icon: Icon, title, text }) => (
+              <article key={title} className="flex items-start gap-4 rounded-3xl ln-glass p-5">
+                <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-ln-violet/25"><Icon className="size-5 text-ln-ink" /></div>
                 <div>
-                  <div className="text-sm font-black">Use no computador ou instale no celular.</div>
-                  <div className="mt-1 text-xs font-medium text-[#75667e]">
-                    A mesma conta, o mesmo painel e os mesmos dados em qualquer tela.
-                  </div>
+                  <h3 className="font-sora font-bold">{title}</h3>
+                  <p className="mt-1 text-sm text-ln-muted">{text}</p>
                 </div>
-              </div>
-            </div>
+              </article>
+            ))}
           </div>
-        </section>
+        </Section>
 
-        <section className="bg-[#f7f2fb] px-5 py-14 text-[#21152e] sm:py-16">
-          <div data-reveal className="mx-auto max-w-[1000px]">
-            <Heading
-              centered
-              eyebrow="06 · A diferença na prática"
-              title="Controle financeiro sem virar operador de planilha."
-              description="A MIA não mostra apenas uma lista de números. Ela reduz o trabalho entre o que aconteceu e a decisão que você precisa tomar."
-            />
-            <div className="mt-9 overflow-hidden rounded-[26px] border border-violet-100 bg-white shadow-[0_30px_70px_-52px_rgba(55,28,77,.65)]">
-              <div className="grid grid-cols-[1fr_1fr] border-b border-violet-100 bg-[#21132f] text-white sm:grid-cols-[.72fr_1fr_1fr]">
-                <div className="hidden px-5 py-4 text-[10px] font-black uppercase tracking-[.12em] text-white/45 sm:block">
-                  No dia a dia
-                </div>
-                <div className="px-4 py-4 text-[11px] font-black uppercase tracking-[.1em] text-white/55 sm:px-5">
-                  Controle tradicional
-                </div>
-                <div className="bg-violet-700 px-4 py-4 text-[11px] font-black uppercase tracking-[.1em] sm:px-5">
-                  Com a {assistantName}
-                </div>
-              </div>
-              {COMPARISON_ROWS.map(([action, before, after]) => (
-                <div
-                  key={action}
-                  className="grid grid-cols-[1fr_1fr] border-b border-violet-100 last:border-b-0 sm:grid-cols-[.72fr_1fr_1fr]"
-                >
-                  <div className="col-span-2 border-b border-violet-50 bg-[#fbf9fd] px-4 py-2 text-[10px] font-black uppercase tracking-[.1em] text-violet-700 sm:col-span-1 sm:border-b-0 sm:px-5 sm:py-4">
-                    {action}
-                  </div>
-                  <div className="flex items-start gap-2 px-4 py-4 text-[12px] font-medium leading-5 text-[#84758c] sm:px-5">
-                    <span className="mt-1 size-1.5 shrink-0 rounded-full bg-rose-400" />
-                    {before}
-                  </div>
-                  <div className="flex items-start gap-2 bg-violet-50/70 px-4 py-4 text-[12px] font-bold leading-5 text-[#4c315d] sm:px-5">
-                    <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-                    {after}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-[#0c0712] px-5 py-14 text-white sm:py-16">
-          <div
-            data-reveal
-            className="mx-auto grid max-w-[1120px] items-center gap-8 lg:grid-cols-[.72fr_1.28fr]"
-          >
-            <div>
-              <Pill dark>
-                <ShieldCheck className="size-3.5" /> 07 · Você continua no controle
-              </Pill>
-              <h2 className="mt-4 font-display text-[clamp(2.15rem,3.8vw,3.45rem)] font-black leading-[.97] tracking-[-.055em]">
-                A IA prepara.<span className="block text-violet-300">Você confirma.</span>
-              </h2>
-              <p className="mt-4 max-w-xl text-[15px] font-medium leading-7 text-white/58">
-                A {assistantName} pergunta o que estiver faltando, mostra o que entendeu e mantém
-                cada conta protegida. Ela organiza informações — não movimenta seu dinheiro.
+        {/* Planos */}
+        <Section id="planos" eyebrow="Planos" title="Escolha seu ritmo.">
+          <div data-stagger className="mx-auto mt-10 grid max-w-md grid-cols-1 gap-5 lg:max-w-none lg:grid-cols-3 lg:items-stretch">
+            {orderedPlans.length === 0 && (
+              <p role="status" className="col-span-full py-8 text-center text-ln-muted">
+                {plansUnavailable ? "Não foi possível carregar os planos. Tente novamente em instantes." : "Nenhum plano disponível no momento."}
               </p>
-              <a
-                href="#faq"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-black text-fuchsia-200"
-              >
-                Tire suas dúvidas <ArrowRight className="size-4" />
-              </a>
-            </div>
-            <div data-stagger className="grid gap-3 sm:grid-cols-2">
-              <TrustCard
-                icon={BadgeCheck}
-                title="Confirmação antes de registrar"
-                text="Quando uma informação é importante, você vê o resumo antes de concluir."
-              />
-              <TrustCard
-                icon={Lock}
-                title="Acesso protegido por conta"
-                text="Seus dados ficam separados e vinculados ao seu acesso."
-              />
-              <TrustCard
-                icon={WalletCards}
-                title="Sem acesso ao seu banco"
-                text="Nesta versão, contas e cartões são organizados manualmente; não há conexão bancária."
-              />
-              <TrustCard
-                icon={ShieldCheck}
-                title="WhatsApp autorizado no Pro"
-                text="O canal financeiro aceita somente os celulares vinculados à conta."
-              />
-            </div>
-          </div>
-        </section>
-
-        <section id="planos" className="scroll-mt-20 bg-white px-5 py-14 text-[#21152e] sm:py-16">
-          <div data-reveal className="mx-auto max-w-[1120px]">
-            <Heading
-              centered
-              eyebrow="08 · Planos simples"
-              title="Escolha o quanto quer automatizar."
-              description="Comece com o essencial ou leve a MIA também para o WhatsApp."
-            />
-            <div data-stagger className="mx-auto mt-8 grid max-w-md grid-cols-1 gap-5 lg:max-w-6xl lg:grid-cols-3">
-              {orderedPlans.length === 0 && (
-                <p role="status" className="col-span-full py-8 text-center text-muted-foreground">
-                  {plansUnavailable ? "Não foi possível carregar os planos. Tente novamente em instantes." : "Nenhum plano disponível no momento."}
-                </p>
-              )}
-              {orderedPlans.map((plan) => (
+            )}
+            {orderedPlans.map((plan) => {
+              const hot = plan.slug === featuredSlug;
+              return (
                 <article
                   key={plan.slug}
-                  className={`relative flex flex-col rounded-[24px] border p-6 ${plan.featured ? "border-violet-500 bg-[#21132f] text-white shadow-[0_30px_70px_-35px_rgba(91,33,182,.9)]" : "border-violet-100 bg-[#fbf9fd]"}`}
+                  className={`relative flex flex-col rounded-[28px] p-6 sm:p-7 ${hot ? "ln-gradient ln-glow lg:scale-105" : "ln-glass"}`}
                 >
-                  {plan.featured && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-violet-600 px-4 py-1.5 text-[10px] font-black uppercase tracking-[.12em] text-white">
+                  {hot && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-ln-lime px-4 py-1 text-[11px] font-bold uppercase tracking-wider text-ln-bg">
                       Mais escolhido
                     </span>
                   )}
-                  <div
-                    className={`text-[11px] font-black uppercase tracking-[.13em] ${plan.featured ? "text-violet-300" : "text-violet-600"}`}
-                  >
-                    {plan.name}
-                  </div>
+                  <div className="font-sora text-sm font-bold uppercase tracking-widest">{plan.name}</div>
                   {plan.free ? (
-                    <div className="mt-4 font-display text-4xl font-black tracking-[-.05em]">
-                      SEM CUSTO
-                    </div>
+                    <div className="mt-4 font-sora text-4xl font-extrabold">SEM CUSTO</div>
                   ) : (
                     <div className="mt-4 flex items-end gap-1">
-                      <span className="mb-2 text-sm font-black">R$</span>
-                      <span className="font-display text-5xl font-black tracking-[-.06em]">
-                        {plan.price}
-                      </span>
-                      <span
-                        className={`mb-2 text-xs font-bold ${plan.featured ? "text-white/55" : "text-[#7b6c84]"}`}
-                      >
-                        /mês
-                      </span>
+                      <span className="mb-2 text-sm font-bold">R$</span>
+                      <span className="font-sora text-5xl font-extrabold tracking-tight">{plan.price}</span>
+                      <span className="mb-2 text-sm opacity-70">/mês</span>
                     </div>
                   )}
-                  <p
-                    className={`mt-4 text-sm font-medium leading-6 ${plan.featured ? "text-white/65" : "text-[#6b5b75]"}`}
-                  >
-                    {plan.description}
-                  </p>
+                  <p className="mt-3 text-sm leading-6 opacity-80">{plan.description}</p>
                   {(plan.trialDays || 0) > 0 && (
-                    <div
-                      className={`mt-4 rounded-xl px-3 py-2 text-xs font-black ${plan.featured ? "bg-emerald-400/13 text-emerald-300" : "bg-emerald-50 text-emerald-700"}`}
-                    >
-                      {plan.free
-                        ? `${plan.trialDays} dias grátis · sem cartão`
-                        : `${plan.trialDays} dias para testar · condições no checkout`}
+                    <div className="mt-4 rounded-xl bg-ln-bg/40 px-3 py-2 text-xs font-bold text-ln-lime">
+                      {plan.free ? `${plan.trialDays} dias grátis · sem cartão` : `${plan.trialDays} dias para testar · condições no checkout`}
                     </div>
                   )}
-                  <div className="my-6 h-px bg-current opacity-10" />
-                  <div className="flex-1 space-y-3">
-                    {plan.features.map((feature) => (
-                      <div key={feature} className="flex items-start gap-2.5 text-sm font-bold">
-                        <Check className="mt-0.5 size-4 shrink-0 text-emerald-500" /> {feature}
-                      </div>
+                  <div className="my-5 h-px bg-ln-line" />
+                  <ul className="flex-1 space-y-2.5">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2.5 text-sm font-medium">
+                        <Check className="mt-0.5 size-4 shrink-0 text-ln-lime" /> {f}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                   <a
                     href={planSignupHref(plan.slug)}
-                    className={`mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-xl text-sm font-black ${plan.featured ? "bg-white text-violet-800" : "bg-violet-700 text-white"}`}
+                    className={`mt-7 inline-flex h-13 min-h-12 items-center justify-center gap-2 rounded-2xl text-sm font-bold transition hover:-translate-y-0.5 ${hot ? "bg-ln-ink text-ln-bg" : "ln-gradient"}`}
                   >
                     Começar com {plan.name} <ArrowRight className="size-4" />
                   </a>
                 </article>
-              ))}
-            </div>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-bold text-[#6b5b75]">
-              <span className="inline-flex items-center gap-2">
-                <ShieldCheck className="size-4 text-violet-600" /> Conta protegida
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <Check className="size-4 text-emerald-600" /> Cancele conforme o plano
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <Smartphone className="size-4 text-violet-600" /> Use como aplicativo
-              </span>
-            </div>
+              );
+            })}
           </div>
-        </section>
+        </Section>
 
-        <section className="bg-[#f7f2fb] px-5 py-14 text-[#21152e] sm:py-16">
-          <div data-reveal className="mx-auto max-w-[1120px]">
-            <Heading
-              centered
-              eyebrow="09 · Do primeiro acesso à clareza"
-              title="Começar leva uma conversa."
-              description="Você não precisa importar planilha nem configurar um sistema inteiro antes de usar. O controle nasce a partir do primeiro registro."
-            />
-            <div data-stagger className="mx-auto mt-9 grid max-w-5xl gap-4 lg:grid-cols-3">
-              {START_STEPS.map(({ icon: Icon, number, title, text }) => (
-                <article
-                  key={number}
-                  className="relative overflow-hidden rounded-[24px] border border-violet-100 bg-white p-6 shadow-[0_24px_58px_-48px_rgba(55,28,77,.65)]"
+        {/* FAQ */}
+        <Section id="faq" eyebrow="Dúvidas" title="Perguntas diretas.">
+          <div data-reveal className="mx-auto mt-10 max-w-3xl divide-y divide-ln-line overflow-hidden rounded-3xl ln-glass">
+            {FAQS.map(([q, a], i) => (
+              <div key={q}>
+                <button
+                  type="button"
+                  aria-expanded={faqOpen === i}
+                  onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                  className="flex min-h-14 w-full items-center justify-between gap-4 px-5 py-4 text-left font-semibold sm:px-6"
                 >
-                  <div className="absolute right-5 top-4 font-display text-5xl font-black text-violet-100">
-                    {number}
-                  </div>
-                  <div className="grid size-11 place-items-center rounded-2xl bg-violet-100 text-violet-700">
-                    <Icon className="size-5" />
-                  </div>
-                  <h3 className="mt-5 text-[16px] font-black">{title}</h3>
-                  <p className="mt-2 text-[12px] font-medium leading-5 text-[#75667e]">{text}</p>
-                </article>
-              ))}
-            </div>
-            <div className="mx-auto mt-6 flex max-w-5xl flex-col items-center justify-between gap-4 rounded-[22px] border border-violet-200 bg-violet-50 px-6 py-5 text-center sm:flex-row sm:text-left">
-              <div className="flex items-center gap-3">
-                <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-white text-violet-700 shadow-sm">
-                  <Clock className="size-4.5" />
-                </div>
-                <div>
-                  <div className="text-sm font-black">Teste antes de decidir.</div>
-                  <div className="mt-1 text-xs font-medium text-[#75667e]">
-                    Os dias e as condições aparecem no plano antes da confirmação.
-                  </div>
+                  <span>{p(q)}</span>
+                  <ChevronDown className={`size-5 shrink-0 text-ln-magenta transition ${faqOpen === i ? "rotate-180" : ""}`} />
+                </button>
+                <div className={`grid transition-all duration-300 ${faqOpen === i ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <p className="overflow-hidden px-5 text-sm leading-6 text-ln-muted sm:px-6">
+                    <span className="block pb-5">{p(a)}</span>
+                  </p>
                 </div>
               </div>
-              <a
-                href={trialHref}
-                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 text-sm font-black text-white"
-              >
-                Criar minha conta <ArrowRight className="size-4" />
-              </a>
-            </div>
+            ))}
           </div>
-        </section>
+        </Section>
 
-        <section id="faq" className="scroll-mt-20 bg-white px-5 py-12 text-[#21152e] sm:py-14">
-          <div
-            data-reveal
-            className="mx-auto grid max-w-[1050px] gap-8 lg:grid-cols-[.62fr_1.38fr]"
-          >
-            <div>
-              <Pill>10 · Perguntas diretas</Pill>
-              <h2 className="mt-4 font-display text-[clamp(2.25rem,4.2vw,3.55rem)] font-black leading-[.97] tracking-[-.055em]">
-                Simples antes<span className="block text-violet-700">mesmo de começar.</span>
-              </h2>
-              <p className="mt-4 text-[14px] font-medium leading-6 text-[#6b5b75]">
-                O essencial sobre uso, segurança e canais.
-              </p>
-            </div>
-            <div className="divide-y divide-violet-100 overflow-hidden rounded-[24px] border border-violet-100 bg-white">
-              {FAQS.map(([question, answer], index) => (
-                <div key={question}>
-                  <button
-                    type="button"
-                    onClick={() => setFaqOpen(faqOpen === index ? null : index)}
-                    className="flex w-full items-center justify-between gap-5 px-5 py-4 text-left text-[14px] font-black sm:px-6"
-                  >
-                    <span>{personalize(question)}</span>
-                    <ChevronDown
-                      className={`size-5 shrink-0 text-violet-600 transition ${faqOpen === index ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {faqOpen === index && (
-                    <p className="px-5 pb-5 text-[13px] font-medium leading-6 text-[#6b5b75] sm:px-6">
-                      {personalize(answer)}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-[#0c0712] px-5 py-10">
-          <div
-            data-reveal
-            className="cl-cta-pulse mx-auto max-w-4xl overflow-hidden rounded-[26px] border border-violet-300/15 bg-[radial-gradient(circle_at_80%_20%,rgba(217,70,239,.25),transparent_30%),linear-gradient(125deg,#3b1480,#7c3aed_55%,#a21caf)] p-7 text-center shadow-2xl sm:p-9"
-          >
-            <h2 className="mx-auto max-w-3xl font-display text-[clamp(2.1rem,4vw,3.5rem)] font-black leading-[.97] tracking-[-.055em]">
+        {/* Chamada final */}
+        <section className="px-5 py-16">
+          <div data-reveal className="relative mx-auto max-w-5xl overflow-hidden rounded-[36px] ln-gradient p-8 text-center ln-glow sm:p-14">
+            <div className="ln-blob absolute -left-20 -top-20 size-72 rounded-full bg-ln-lime/25 blur-3xl" />
+            <img src={avatar} alt="" className="relative mx-auto size-16 rounded-full border-2 border-ln-ink/40 object-cover" />
+            <h2 className="relative mx-auto mt-5 max-w-2xl font-sora text-[clamp(2rem,6vw,3.5rem)] font-extrabold leading-tight tracking-tight">
               Organize o mês começando por uma frase.
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-[15px] font-medium leading-6 text-white/70">
-              A {assistantName} entende o pedido e transforma o resto em clareza.
-            </p>
-            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-              <a
-                href={trialHref}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-[14px] font-black text-violet-800"
-              >
-                Testar grátis <ArrowRight className="size-4" />
-              </a>
-            </div>
+            <p className="relative mx-auto mt-4 max-w-lg text-ln-ink/80">{SLOGAN}</p>
+            <a href={trialHref} className="relative mt-8 inline-flex h-14 items-center gap-2 rounded-2xl bg-ln-ink px-8 font-bold text-ln-bg transition hover:-translate-y-0.5">
+              Começar grátis agora <ArrowRight className="size-4" />
+            </a>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-white/8 bg-[#08060d] px-5 pb-7 pt-12">
-        <div data-reveal className="mx-auto max-w-[1120px]">
-          <div className="grid gap-9 border-b border-white/8 pb-9 sm:grid-cols-2 lg:grid-cols-[1.3fr_.7fr_.8fr_1.1fr]">
+      <footer className="border-t border-ln-line px-5 pb-8 pt-12">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-9 border-b border-ln-line pb-9 sm:grid-cols-2 lg:grid-cols-[1.3fr_.7fr_.8fr_1.1fr]">
             <div>
               <div className="flex items-center gap-3">
                 <Logo logoUrl={logoUrl} name={brandName} />
                 <div>
-                  <div className="font-display text-lg font-black tracking-[-.035em]">
-                    {brandName}
-                  </div>
-                  <div className="mt-0.5 text-xs font-bold text-violet-300">{tagline}</div>
+                  <div className="font-sora text-lg font-bold">{brandName}</div>
+                  <div className="text-xs font-semibold text-ln-magenta">{tagline}</div>
                 </div>
               </div>
-              <p className="mt-4 max-w-sm text-sm font-medium leading-6 text-white/48">
-                Controle financeiro por conversa, com lembretes e um painel que qualquer pessoa
-                entende.
+              <p className="mt-4 max-w-sm text-sm leading-6 text-ln-muted">
+                Controle financeiro por conversa com a {assistantName}, com lembretes e um painel que qualquer pessoa entende.
               </p>
             </div>
-
             <FooterColumn title="Produto">
               <a href="#como-funciona">Como funciona</a>
-              <a href="#por-dentro">Por dentro</a>
+              <a href="#mia">Conheça a {assistantName}</a>
               <a href="#recursos">Recursos</a>
               <a href="#planos">Planos</a>
             </FooterColumn>
-
             <FooterColumn title="Acesso e políticas">
               <a href={loginHref}>Entrar</a>
               <a href="#faq">Perguntas frequentes</a>
@@ -940,27 +494,15 @@ export function FinanceLanding({
               <a href="/privacidade">Privacidade</a>
               <a href="/reembolso">Cancelamento e reembolso</a>
             </FooterColumn>
-
             <div data-company-footer>
-              <div className="text-[10px] font-black uppercase tracking-[.16em] text-violet-300">
-                Empresa e atendimento
-              </div>
-              <div className="mt-4 space-y-3 text-[13px] font-medium leading-5 text-white/52">
-                <div className="font-black text-white/85">{legalName || brandName}</div>
+              <div className="text-[10px] font-bold uppercase tracking-[.16em] text-ln-magenta">Empresa e atendimento</div>
+              <div className="mt-4 space-y-3 text-[13px] leading-5 text-ln-muted">
+                <div className="font-bold text-ln-ink">{legalName || brandName}</div>
                 {legalDocument && <div>CNPJ: {legalDocument}</div>}
                 {contactAddress && <div>{contactAddress}</div>}
-                {contactEmail && (
-                  <a className="block hover:text-white" href={`mailto:${contactEmail}`}>
-                    {contactEmail}
-                  </a>
-                )}
+                {contactEmail && <a className="block hover:text-ln-ink" href={`mailto:${contactEmail}`}>{contactEmail}</a>}
                 {supportConfigured ? (
-                  <a
-                    href={supportWhatsappUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 font-black text-emerald-300 hover:text-emerald-200"
-                  >
+                  <a href={supportWhatsappUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-bold text-ln-lime">
                     <MessageCircle className="size-4" /> WhatsApp {supportWhatsappDisplay}
                   </a>
                 ) : (
@@ -969,61 +511,49 @@ export function FinanceLanding({
               </div>
             </div>
           </div>
-
-          <div className="flex flex-col gap-3 pt-6 text-[11px] font-medium text-white/32 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              © {new Date().getFullYear()} {legalName || brandName}. Todos os direitos reservados.
-            </div>
+          <div className="pt-6 text-[11px] text-ln-muted">
+            © {new Date().getFullYear()} {legalName || brandName}. Todos os direitos reservados.
           </div>
         </div>
       </footer>
+
+      {/* Barra fixa mobile */}
+      <div className="fixed inset-x-0 bottom-0 z-40 p-3 lg:hidden">
+        <a href={trialHref} className="ln-glass flex h-14 items-center justify-between gap-3 rounded-2xl bg-ln-surface/80 pl-2 pr-2">
+          <span className="flex items-center gap-2.5">
+            <img src={avatar} alt="" className="size-10 rounded-xl object-cover" />
+            <span className="text-sm font-semibold leading-tight">Fale com a {assistantName}<span className="block text-xs text-ln-muted">Comece sem custo</span></span>
+          </span>
+          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl ln-gradient px-4 text-sm font-bold">
+            Começar <ArrowRight className="size-4" />
+          </span>
+        </a>
+      </div>
     </div>
   );
 }
 
-function Outcome({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
+function Section({ id, eyebrow, title, children }: { id?: string; eyebrow: string; title: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-violet-100 bg-white p-3.5">
-      <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-100 text-violet-700">
-        <Icon className="size-4.5" />
+    <section id={id} className="scroll-mt-20 px-5 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl">
+        <div data-reveal className="mx-auto max-w-2xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full ln-glass px-3 py-1 text-[11px] font-bold uppercase tracking-[.16em] text-ln-magenta">
+            <ReceiptText className="size-3.5" /> {eyebrow}
+          </div>
+          <h2 className="mt-4 font-sora text-[clamp(2rem,6vw,3.4rem)] font-extrabold leading-[1.02] tracking-[-0.04em]">{title}</h2>
+        </div>
+        {children}
       </div>
-      <div>
-        <div className="text-sm font-black">{title}</div>
-        <div className="mt-0.5 text-xs font-medium leading-5 text-[#75667e]">{text}</div>
-      </div>
-    </div>
-  );
-}
-
-function TrustCard({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
-  return (
-    <article className="rounded-[22px] border border-white/10 bg-white/[.055] p-5">
-      <div className="grid size-10 place-items-center rounded-2xl bg-violet-400/15 text-violet-200">
-        <Icon className="size-4.5" />
-      </div>
-      <h3 className="mt-4 text-[14px] font-black">{title}</h3>
-      <p className="mt-2 text-[12px] font-medium leading-5 text-white/52">{text}</p>
-    </article>
-  );
-}
-
-function Channel({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-2">
-      <Icon className="size-4 text-violet-600" /> {children}
-    </span>
+    </section>
   );
 }
 
 function FooterColumn({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <div className="text-[10px] font-black uppercase tracking-[.16em] text-violet-300">
-        {title}
-      </div>
-      <div className="mt-4 flex flex-col gap-3 text-[13px] font-bold text-white/52 [&_a]:transition [&_a:hover]:text-white">
-        {children}
-      </div>
+      <div className="text-[10px] font-bold uppercase tracking-[.16em] text-ln-magenta">{title}</div>
+      <div className="mt-4 flex flex-col gap-3 text-[13px] font-semibold text-ln-muted [&_a:hover]:text-ln-ink [&_a]:transition">{children}</div>
     </div>
   );
 }
@@ -1031,73 +561,8 @@ function FooterColumn({ title, children }: { title: string; children: ReactNode 
 function Logo({ logoUrl, name }: { logoUrl?: string | null; name: string }) {
   if (logoUrl) return <img src={logoUrl} alt={name} className="size-9 rounded-xl object-contain" />;
   return (
-    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 font-black text-white shadow-lg">
+    <span className="grid size-9 shrink-0 place-items-center rounded-xl ln-gradient font-sora font-bold text-ln-ink">
       {name.charAt(0).toUpperCase()}
     </span>
-  );
-}
-
-function Pill({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
-  return (
-    <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[10px] font-black uppercase tracking-[.14em] ${dark ? "border-white/12 bg-white/7 text-violet-200" : "border-violet-200 bg-white text-violet-700"}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Heading({
-  eyebrow,
-  title,
-  description,
-  centered = false,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  centered?: boolean;
-}) {
-  return (
-    <div className={centered ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
-      <div className="text-[10px] font-black uppercase tracking-[.16em] text-violet-600">
-        {eyebrow}
-      </div>
-      <h2 className="mt-3 font-display text-[clamp(2.15rem,4vw,3.65rem)] font-black leading-[.97] tracking-[-.055em]">
-        {title}
-      </h2>
-      <p
-        className={`mt-4 max-w-2xl text-[15px] font-medium leading-7 text-[#6b5b75] ${centered ? "mx-auto" : ""}`}
-      >
-        {description}
-      </p>
-    </div>
-  );
-}
-
-function Float({
-  className,
-  icon,
-  title,
-  text,
-  delay = "0s",
-}: {
-  className: string;
-  icon: ReactNode;
-  title: string;
-  text: string;
-  delay?: string;
-}) {
-  return (
-    <div
-      className={`cl-float absolute z-20 hidden min-w-[150px] rounded-2xl border border-white/12 bg-[#160f20]/88 p-3 shadow-2xl backdrop-blur-xl sm:block ${className}`}
-      style={{ animationDelay: delay }}
-    >
-      <div className="flex items-center gap-2">
-        <span>{icon}</span>
-        <span className="text-[11px] font-black">{title}</span>
-      </div>
-      <div className="mt-1.5 text-[10px] font-bold text-white/46">{text}</div>
-    </div>
   );
 }

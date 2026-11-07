@@ -715,3 +715,73 @@ body {
     transition-duration: 0.58s, 0.68s !important;
   }
 }
+
+/* ===== Landing MIAnota (tokens + efeitos) ===== */
+:root {
+  --ln-bg: oklch(0.13 0.03 300);
+  --ln-surface: oklch(0.19 0.05 300);
+  --ln-ink: oklch(0.98 0.01 300);
+  --ln-muted: oklch(0.75 0.03 300);
+  --ln-violet: oklch(0.56 0.25 293);
+  --ln-magenta: oklch(0.65 0.26 330);
+  --ln-lime: oklch(0.9 0.2 125);
+  --ln-line: oklch(1 0 0 / 0.1);
+  --ln-glass: oklch(1 0 0 / 0.05);
+  --ln-gradient: linear-gradient(120deg, var(--ln-violet), var(--ln-magenta));
+  --ln-glow: 0 30px 80px -30px color-mix(in oklab, var(--ln-violet) 70%, transparent);
+}
+@theme inline {
+  --color-ln-bg: var(--ln-bg);
+  --color-ln-surface: var(--ln-surface);
+  --color-ln-ink: var(--ln-ink);
+  --color-ln-muted: var(--ln-muted);
+  --color-ln-violet: var(--ln-violet);
+  --color-ln-magenta: var(--ln-magenta);
+  --color-ln-lime: var(--ln-lime);
+  --color-ln-line: var(--ln-line);
+  --color-ln-glass: var(--ln-glass);
+  --font-sora: "Sora", "Manrope", ui-sans-serif, sans-serif;
+}
+@utility ln-glass {
+  background: var(--ln-glass);
+  border: 1px solid var(--ln-line);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+@utility ln-gradient-text {
+  background: linear-gradient(100deg, var(--ln-ink) 10%, color-mix(in oklab, var(--ln-magenta) 80%, white) 55%, var(--ln-lime));
+  background-clip: text;
+  color: transparent;
+}
+@utility ln-gradient {
+  background: var(--ln-gradient);
+}
+@utility ln-glow {
+  box-shadow: var(--ln-glow);
+}
+.ln-spotlight {
+  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 20%), color-mix(in oklab, var(--ln-violet) 30%, transparent), transparent 60%);
+}
+.ln-grid-bg {
+  background-image: linear-gradient(var(--ln-line) 1px, transparent 1px), linear-gradient(90deg, var(--ln-line) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%);
+}
+.ln-marquee { animation: ln-marquee 28s linear infinite; }
+.ln-blob { animation: ln-blob 14s ease-in-out infinite; }
+.ln-aura { animation: ln-aura 3.2s ease-in-out infinite; }
+.ln-floaty { animation: ln-floaty 5s ease-in-out infinite; }
+.ln-bubble { animation: ln-bubble 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.ln-dot { animation: ln-dot 1s ease-in-out infinite; }
+.ln-bar { transform-origin: bottom; transform: scaleY(0.1); transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1); }
+.cl-visible .ln-bar { transform: scaleY(1); }
+.ln-wave > span { animation: ln-wave 1s ease-in-out infinite; transform-origin: center; }
+@keyframes ln-marquee { to { transform: translateX(-50%); } }
+@keyframes ln-blob { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-20px) scale(1.12); } }
+@keyframes ln-aura { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.12); opacity: 1; } }
+@keyframes ln-floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes ln-bubble { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes ln-dot { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+@keyframes ln-wave { 0%,100% { transform: scaleY(.4); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .ln-marquee, .ln-blob, .ln-aura, .ln-floaty, .ln-wave > span { animation: none !important; }
+}
