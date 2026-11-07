@@ -4,7 +4,8 @@
 - [x] Integrar Resend ao cadastro público e Master concluídos, com plano selecionado e link de acesso; planos pendentes informam liberação após pagamento.
 - [x] Impedir disparos para cadastros antigos e duplicação em novas tentativas; dois cadastros existentes continuam inelegíveis.
 - [x] Dezoito testes passaram, incluindo envio isolado com plano salvo e concorrência, e compilação sem erros; não criado cadastro novo nem enviado e-mail para clientes existentes nesta rodada.
-- [ ] Confirmar boas-vindas em novo cadastro real após publicar esta alteração; exige cadastro novo autorizado.
+- [x] Publicação e cadastro gratuito TESTE AUTORIZADO BOAS-VINDAS 20261107 0229 pela interface publicada; persistência e eventos Enviado/Entregue confirmados no Master sem cobranças ou envios para antigos.
+- [ ] Conferir visualmente o corpo recebido na caixa de entrada — chave Resend permite apenas envio, leitura do e-mail retornou 401; plano salvo e link do conteúdo enviado conferidos no código.
 
 ## Validação publicada do Resend (07/11/2026)
 - [x] Confirmada rota POST `/api/public/email/resend` na árvore gerada; 404 causado por versão publicada anterior, resolvido com publicação.
