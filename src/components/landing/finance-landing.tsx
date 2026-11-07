@@ -23,7 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import miaFace from "@/assets/mia-face.jpg";
-import miaFull from "@/assets/mia-stage.png";
+import miaFinal from "@/assets/mia-final-apresentacao.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   brand,
@@ -397,7 +397,7 @@ export function FinanceLanding({
               <p className="relative mt-3 text-xs text-ln-ink/80">{SLOGAN}</p>
             </div>
             <div className="relative mx-auto flex w-full max-w-sm items-end justify-center gap-4 md:max-w-none md:self-stretch">
-              <img src={miaFull} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="relative h-[340px] w-auto shrink-0 object-contain md:absolute md:bottom-12 md:h-[510px] lg:h-[550px]" />
+              <img src={miaFinal.url} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="relative h-[340px] w-auto shrink-0 object-contain md:absolute md:bottom-12 md:h-[510px] lg:h-[550px]" />
             </div>
           </div>
         </section>
