@@ -60,7 +60,7 @@ function applyBrandToDocument(value: CloneBrand) {
   setMeta('meta[name="apple-mobile-web-app-title"]', "content", value.shortName);
   setMeta('meta[name="author"]', "content", value.name);
 
-  const icon = value.iconUrl || value.logoUrl || "/icons/mia-app.svg";
+  const icon = value.iconUrl || value.logoUrl || "/favicon.png";
   setMeta('link[rel="icon"]', "href", icon);
   setMeta(
     'link[rel="apple-touch-icon"]',

@@ -136,8 +136,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "manifest", href: "/api/manifest.webmanifest" },
         {
           rel: "icon",
-          href: cloneBrand.iconUrl || cloneBrand.logoUrl || "/icons/mia-app.svg",
-          type: cloneBrand.iconUrl || cloneBrand.logoUrl ? undefined : "image/svg+xml",
+          href: cloneBrand.iconUrl || cloneBrand.logoUrl || "/favicon.png",
+          type: cloneBrand.iconUrl || cloneBrand.logoUrl ? undefined : "image/png",
         },
         {
           rel: "apple-touch-icon",
