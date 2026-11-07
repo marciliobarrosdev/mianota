@@ -216,7 +216,7 @@ function TodayPage() {
               do painel.
             </p>
             <button
-              onClick={() => window.dispatchEvent(new Event("marcia:request-install"))}
+              onClick={() => window.dispatchEvent(new Event("mia:request-install"))}
               className="mt-4 inline-flex h-9 items-center gap-2 rounded-xl bg-white px-3 text-xs font-extrabold text-[color:var(--brand-text)] shadow-lg"
             >
               <Download className="size-3.5" /> Instalar aplicativo

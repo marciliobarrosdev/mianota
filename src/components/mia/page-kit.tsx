@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Check, Clock3, Sparkles } from "lucide-react";
-import fallbackAvatarUrl from "@/assets/marcia-avatar-640.png";
+import fallbackAvatarUrl from "@/assets/mia-avatar-640.png";
 import { useBrand } from "@/contexts/brand-context";
 
 export function PageHeader({
@@ -71,7 +71,7 @@ export function MiaAssistantCard({
       <img
         src={branding.avatarUrl || fallbackAvatarUrl}
         alt={`${branding.assistantName}, assistente virtual`}
-        className={`pointer-events-none absolute -bottom-4 right-[-12px] w-[145px] object-contain object-bottom drop-shadow-[0_18px_18px_rgba(76,29,149,.18)] ${working ? "marcia-thinking" : ""} ${compact ? "max-h-[154px]" : "max-h-[205px] sm:w-[178px]"}`}
+        className={`pointer-events-none absolute -bottom-4 right-[-12px] w-[145px] object-contain object-bottom drop-shadow-[0_18px_18px_rgba(76,29,149,.18)] ${working ? "mia-thinking" : ""} ${compact ? "max-h-[154px]" : "max-h-[205px] sm:w-[178px]"}`}
       />
     </div>
   );
@@ -108,10 +108,10 @@ export function MiaAiWorking({
       role="status"
       aria-live="polite"
       aria-busy="true"
-      className="marcia-rise relative mt-3 overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-r from-violet-50 via-white to-fuchsia-50 p-3 shadow-[0_16px_40px_-28px_rgba(124,58,237,.75)]"
+      className="mia-rise relative mt-3 overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-r from-violet-50 via-white to-fuchsia-50 p-3 shadow-[0_16px_40px_-28px_rgba(124,58,237,.75)]"
     >
       <div className="absolute inset-x-0 top-0 h-0.5 overflow-hidden bg-violet-100">
-        <span className="marcia-loading-line block h-full w-1/3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-400 to-violet-600" />
+        <span className="mia-loading-line block h-full w-1/3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-400 to-violet-600" />
       </div>
       <div className="flex items-center gap-3">
         <div className="relative grid size-14 shrink-0 place-items-end overflow-hidden rounded-2xl bg-[color:var(--brand-soft)] ring-1 ring-[color:var(--brand-soft-strong)]">
@@ -120,7 +120,7 @@ export function MiaAiWorking({
             src={branding.avatarUrl || fallbackAvatarUrl}
             alt=""
             aria-hidden="true"
-            className="marcia-thinking relative z-10 h-[60px] w-auto object-contain object-bottom"
+            className="mia-thinking relative z-10 h-[60px] w-auto object-contain object-bottom"
           />
         </div>
         <div className="min-w-0 flex-1">
@@ -132,13 +132,13 @@ export function MiaAiWorking({
               {[0, 1, 2].map((dot) => (
                 <span
                   key={dot}
-                  className="marcia-thinking-dot size-1.5 rounded-full bg-violet-600"
+                  className="mia-thinking-dot size-1.5 rounded-full bg-violet-600"
                   style={{ animationDelay: `${dot * 160}ms` }}
                 />
               ))}
             </span>
           </div>
-          <p key={messageIndex} className="marcia-rise mt-0.5 text-xs text-violet-700">
+          <p key={messageIndex} className="mia-rise mt-0.5 text-xs text-violet-700">
             {messages[messageIndex]}
           </p>
         </div>

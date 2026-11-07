@@ -39,8 +39,8 @@ export function useFinanceDashboard(
 
   useEffect(() => {
     const onUpdate = () => void refresh();
-    window.addEventListener("marcia:finance-updated", onUpdate);
-    return () => window.removeEventListener("marcia:finance-updated", onUpdate);
+    window.addEventListener("mia:finance-updated", onUpdate);
+    return () => window.removeEventListener("mia:finance-updated", onUpdate);
   }, [refresh]);
 
   return { data, loading, error, refresh };

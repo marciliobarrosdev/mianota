@@ -30,8 +30,8 @@ export function PwaInstallGuide() {
       setDismissed(false);
       setRequested(true);
     };
-    window.addEventListener("marcia:request-install", openGuide);
-    return () => window.removeEventListener("marcia:request-install", openGuide);
+    window.addEventListener("mia:request-install", openGuide);
+    return () => window.removeEventListener("mia:request-install", openGuide);
   }, []);
 
   const shouldShow = requested && isReady && !isInstalled && !dismissed;

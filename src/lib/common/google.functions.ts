@@ -94,7 +94,7 @@ export const disconnectGoogle = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const syncMarciaAppointmentToGoogle = createServerFn({ method: "POST" })
+export const syncMiaAppointmentToGoogle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { companyId?: string; appointmentId?: string }) => {
     const companyId = String(input?.companyId || "").trim();

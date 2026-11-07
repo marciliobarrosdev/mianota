@@ -314,7 +314,7 @@ body {
   background: rgba(124, 58, 237, 0.22);
 }
 
-@keyframes marcia-float {
+@keyframes mia-float {
   0%,
   100% {
     transform: translate3d(-50%, 0, 0) rotate(-0.35deg);
@@ -324,7 +324,7 @@ body {
   }
 }
 
-@keyframes marcia-orbit {
+@keyframes mia-orbit {
   from {
     transform: translate(-50%, -50%) rotate(0deg);
   }
@@ -333,7 +333,7 @@ body {
   }
 }
 
-@keyframes marcia-rise {
+@keyframes mia-rise {
   from {
     opacity: 0;
     transform: translateY(16px) scale(0.985);
@@ -344,7 +344,7 @@ body {
   }
 }
 
-@keyframes marcia-shine {
+@keyframes mia-shine {
   0% {
     transform: translateX(-130%) skewX(-18deg);
   }
@@ -354,7 +354,7 @@ body {
   }
 }
 
-@keyframes marcia-thinking {
+@keyframes mia-thinking {
   0%,
   100% {
     transform: translateY(0) rotate(-1deg) scale(1);
@@ -364,7 +364,7 @@ body {
   }
 }
 
-@keyframes marcia-loading-line {
+@keyframes mia-loading-line {
   from {
     transform: translateX(-120%);
   }
@@ -373,7 +373,7 @@ body {
   }
 }
 
-@keyframes marcia-thinking-dot {
+@keyframes mia-thinking-dot {
   0%,
   60%,
   100% {
@@ -386,7 +386,7 @@ body {
   }
 }
 
-@keyframes marcia-core-orbit {
+@keyframes mia-core-orbit {
   0%,
   100% {
     opacity: 0.62;
@@ -402,7 +402,7 @@ body {
   }
 }
 
-@keyframes marcia-workflow-progress {
+@keyframes mia-workflow-progress {
   from {
     width: 0;
   }
@@ -411,7 +411,7 @@ body {
   }
 }
 
-@keyframes marcia-onboarding-orbit {
+@keyframes mia-onboarding-orbit {
   0%,
   100% {
     transform: translateX(-50%) rotate(-2deg) scale(0.98);
@@ -423,7 +423,7 @@ body {
   }
 }
 
-@keyframes marcia-onboarding-thinking {
+@keyframes mia-onboarding-thinking {
   0%,
   100% {
     transform: translateX(-50%) translateY(0) rotate(-1deg) scale(1);
@@ -528,36 +528,36 @@ body {
   }
 }
 
-.marcia-float {
-  animation: marcia-float 5.6s ease-in-out infinite;
+.mia-float {
+  animation: mia-float 5.6s ease-in-out infinite;
 }
-.marcia-rise {
-  animation: marcia-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+.mia-rise {
+  animation: mia-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-.marcia-thinking {
-  animation: marcia-thinking 1.45s ease-in-out infinite;
+.mia-thinking {
+  animation: mia-thinking 1.45s ease-in-out infinite;
   transform-origin: 50% 100%;
 }
-.marcia-loading-line {
-  animation: marcia-loading-line 1.55s ease-in-out infinite;
+.mia-loading-line {
+  animation: mia-loading-line 1.55s ease-in-out infinite;
 }
-.marcia-thinking-dot {
-  animation: marcia-thinking-dot 1.05s ease-in-out infinite;
+.mia-thinking-dot {
+  animation: mia-thinking-dot 1.05s ease-in-out infinite;
 }
-.marcia-core-orbit {
-  animation: marcia-core-orbit 3.8s ease-in-out infinite;
+.mia-core-orbit {
+  animation: mia-core-orbit 3.8s ease-in-out infinite;
 }
-.marcia-workflow-progress {
-  animation: marcia-workflow-progress 3s linear both;
+.mia-workflow-progress {
+  animation: mia-workflow-progress 3s linear both;
 }
-.marcia-onboarding-orbit {
-  animation: marcia-onboarding-orbit 5.8s ease-in-out infinite;
+.mia-onboarding-orbit {
+  animation: mia-onboarding-orbit 5.8s ease-in-out infinite;
   box-shadow:
     0 0 80px rgba(192, 132, 252, 0.18),
     inset 0 0 60px rgba(168, 85, 247, 0.08);
 }
-.marcia-onboarding-thinking {
-  animation: marcia-onboarding-thinking 1.45s ease-in-out infinite;
+.mia-onboarding-thinking {
+  animation: mia-onboarding-thinking 1.45s ease-in-out infinite;
   transform-origin: 50% 100%;
 }
 .cl-avatar {
@@ -640,7 +640,7 @@ body {
 [data-stagger].cl-visible > :nth-child(8) {
   transition-delay: 490ms;
 }
-.marcia-glass {
+.mia-glass {
   background: color-mix(in srgb, var(--panel) 82%, transparent);
   border: 1px solid var(--hairline);
   box-shadow: var(--shadow-card);
@@ -692,19 +692,19 @@ body {
   }
   [data-force-motion="gentle"] .cl-nav,
   [data-force-motion="gentle"] .cl-hero-copy,
-  [data-force-motion="gentle"] .marcia-rise {
+  [data-force-motion="gentle"] .mia-rise {
     animation-duration: 0.8s !important;
     animation-iteration-count: 1 !important;
   }
-  [data-force-motion="gentle"] .marcia-thinking {
+  [data-force-motion="gentle"] .mia-thinking {
     animation-duration: 1.45s !important;
     animation-iteration-count: infinite !important;
   }
-  [data-force-motion="gentle"] .marcia-thinking-dot {
+  [data-force-motion="gentle"] .mia-thinking-dot {
     animation-duration: 1.05s !important;
     animation-iteration-count: infinite !important;
   }
-  [data-force-motion="gentle"] .marcia-core-orbit {
+  [data-force-motion="gentle"] .mia-core-orbit {
     animation-duration: 3.8s !important;
     animation-iteration-count: infinite !important;
   }

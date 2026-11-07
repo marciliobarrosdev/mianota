@@ -1,12 +1,12 @@
-# Manual de Remix — MárcIA
+# Manual — MIAnota (assistente MIA)
 
 Este é o roteiro de entrega por Remix. O aluno não precisa entender GitHub, servidor, banco, Supabase, SQL, migration ou variável de ambiente. As integrações são preenchidas dentro do próprio sistema, em Master → Integrações, sem usar o chat ou créditos de edição.
 
-> **Estado da prova em 9 de outubro de 2026:** o Remix externo “MárcIA Aluno QA Nathalia” abriu editor e LP, nasceu não publicado, mostrou 53 tabelas sem registros, zero usuários e nenhum valor de Secret herdado. A cópia e o isolamento externos deixaram de ser um bloqueio. Ainda faltam, no ensaio de liberação, o claim real de um proprietário e os testes E2E de WhatsApp e Google; este manual não os apresenta como concluídos.
+> **Estado da prova em 9 de outubro de 2026:** o Remix externo “MIA Aluno QA Nathalia” abriu editor e LP, nasceu não publicado, mostrou 53 tabelas sem registros, zero usuários e nenhum valor de Secret herdado. A cópia e o isolamento externos deixaram de ser um bloqueio. Ainda faltam, no ensaio de liberação, o claim real de um proprietário e os testes E2E de WhatsApp e Google; este manual não os apresenta como concluídos.
 
 ## 1. Criar sua cópia
 
-1. Abra o link oficial da MárcIA.
+1. Abra o link oficial da MIA.
 2. Entre na sua conta Lovable.
 3. Clique em **Remix**.
 4. Dê um nome ao projeto.
@@ -18,7 +18,7 @@ O aluno não cria nem edita `.env`: o arquivo do projeto contém apenas os bindi
 
 ### Integrações sem usar créditos de edição
 
-WhatsApp, Google Agenda e Stripe são preenchidos dentro do sistema, em **Master → Integrações**. Não é preciso abrir Cloud nem Secrets. As chaves ficam criptografadas e nunca são exibidas de novo.
+WhatsApp, Google Agenda, InfinitePay e Resend são preenchidos dentro do sistema, em **Master → Integrações**. Não é preciso abrir Cloud nem Secrets. As chaves ficam criptografadas e nunca são exibidas de novo.
 
 ## 2. Ativar e personalizar
 
@@ -35,7 +35,7 @@ Em seguida, o aluno conclui:
 
 Em **Super Admin → Configurações**, logo, ícone e avatar podem ser enviados direto do celular ou computador (PNG, JPG ou WebP, até 5 MB). O ícone enviado precisa ser quadrado. Colar uma URL HTTPS continua disponível como alternativa.
 
-A agenda interna é a fonte oficial. Sem horários cadastrados, a MárcIA não oferece disponibilidade. O responsável, a configuração inicial e os planos não podem depender de dados copiados, pois registros não acompanham o Remix.
+A agenda interna é a fonte oficial. Sem horários cadastrados, a MIA não oferece disponibilidade. O responsável, a configuração inicial e os planos não podem depender de dados copiados, pois registros não acompanham o Remix.
 
 ## 3. Conectar o WhatsApp
 
@@ -67,7 +67,7 @@ Depois do provisionamento, conecte a conta Google que receberá os agendamentos 
 
 Na tela da assistente, descreva o negócio em linguagem simples. O sistema usa Lovable AI. Cada Remix recebe automaticamente uma chave gerenciada pela Lovable: não peça nem cadastre `LOVABLE_API_KEY` para o aluno. Antes do teste, confira apenas os créditos e limites de IA disponíveis no plano do clone.
 
-O aluno não informa chave OpenAI, Claude ou Gemini. A Lovable gerencia a inteligência padrão do projeto. A MárcIA nunca deve inventar preço, política ou horário ausente.
+O aluno não informa chave OpenAI, Claude ou Gemini. A Lovable gerencia a inteligência padrão do projeto. A MIA nunca deve inventar preço, política ou horário ausente.
 
 ## 6. Preparar cobrança automática (opcional)
 

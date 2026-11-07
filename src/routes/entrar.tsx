@@ -19,7 +19,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
-import fallbackAvatarUrl from "@/assets/marcia-avatar-640.png";
+import fallbackAvatarUrl from "@/assets/mia-avatar-640.png";
 import { useBrand } from "@/contexts/brand-context";
 import { BrandLogo } from "@/components/brand-logo";
 import { clearAppAccessCache } from "@/lib/common/app-access-cache";

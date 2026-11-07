@@ -5,7 +5,7 @@ import { registerMiaWorker } from "./mia-worker";
 
 type PushState = "idle" | "checking" | "activating" | "active" | "error";
 
-type UseMarciaNotificationsOptions = {
+type UseMiaNotificationsOptions = {
   companyId?: string | null;
   userId?: string | null;
 };
@@ -33,7 +33,7 @@ function messageFrom(error: unknown) {
   return "Não foi possível ativar as notificações neste aparelho.";
 }
 
-export function useMarciaNotifications({ companyId, userId }: UseMarciaNotificationsOptions) {
+export function useMiaNotifications({ companyId, userId }: UseMiaNotificationsOptions) {
   const supported = useMemo(canUsePush, []);
   const [permission, setPermission] = useState<NotificationPermission>(() =>
     typeof Notification === "undefined" ? "default" : Notification.permission,

@@ -30,7 +30,7 @@ import {
   maskBrazilianPhoneInput,
   normalizeValidBrazilianPhone,
 } from "@/lib/common/phone";
-import { syncMarciaAppointmentToGoogle } from "@/lib/common/google.functions";
+import { syncMiaAppointmentToGoogle } from "@/lib/common/google.functions";
 import { operationLocalInputToIso, isoToOperationLocalInput } from "@/lib/common/timezone";
 
 const control =
@@ -43,7 +43,7 @@ export function NewAppointmentDialog({
   companyId: string;
   onCreated?: () => void;
 }) {
-  const syncGoogle = useServerFn(syncMarciaAppointmentToGoogle);
+  const syncGoogle = useServerFn(syncMiaAppointmentToGoogle);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState<MiaCustomer[]>([]);

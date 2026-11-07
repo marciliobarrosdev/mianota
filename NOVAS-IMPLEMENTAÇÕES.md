@@ -158,3 +158,12 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Nenhuma referência remanescente aos identificadores do teste nos campos de empresa/usuário das tabelas públicas; cadastro e conta de autenticação ausentes. A interface Master confirmou a ausência do assinante.
 - Histórico integral de eventos de e-mail preservado: resumo criptográfico `2ad64d2968acae6f036c5c13ac59aa0a` idêntico antes/depois, incluindo Enviado e Entregue da mensagem `01a1b3d7-bdd4-7a44-be93-4ca03ec11d82`, ainda visíveis no Master E-mails. Auditoria administrativa não removida.
 - Os dois cadastros reais mantêm conteúdo integral idêntico antes/depois (`f4ecff99ae8bfe7524c47c282724af80`). Nenhum pagamento, envio de e-mail, alteração de código funcional ou migração realizada nesta limpeza.
+
+## 21. Organização geral do código (07/11/2026)
+- Nomes internos antigos "marcia" trocados por "mia": funções da conversa com a MIA (`useMiaFinanceChat`), notificações (`useMiaNotifications`), sincronização com Google Agenda (`syncMiaAppointmentToGoogle`), avisos internos entre telas (`mia:finance-updated`, `mia:notifications-changed`, `mia:request-install`), animações (`mia-float`, `mia-thinking` etc.) e imagem `mia-avatar-640.png`.
+- **Preservados de propósito** para não perder dados: nomes das tabelas do banco (`marcia_*`), chave salva no aparelho do aviso de instalação, sal de criptografia das chaves de integração, prefixos de instâncias WhatsApp/idempotência já criadas e a limpeza de caches antigos no service worker.
+- Removido o gerador de ícones antigo (`scripts/generate-pwa-icons.swift`), que referenciava arquivos inexistentes. Verificação de onboarding agora confere a página real `/app/mia`; `/app/marcia` segue apenas redirecionando.
+- Busca por arquivos e imagens sem uso não encontrou outros itens órfãos.
+- README reescrito para MIAnota (InfinitePay, Resend, estrutura de pastas); manual atualizado para MIA.
+- Resultado: 227 testes passaram em 39 arquivos (1 ignorado historicamente) e as sete verificações de segurança passaram. Nenhum comportamento, preço, plano ou dado alterado.
+- Não feito nesta etapa: divisão dos arquivos muito grandes (Notificações, Planos Master, comandos financeiros etc.), por risco de alterar comportamento sem testes de tela; fica registrada como próxima etapa.

@@ -13,7 +13,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { toast } from "sonner";
-import fallbackAvatarUrl from "@/assets/marcia-avatar-640.png";
+import fallbackAvatarUrl from "@/assets/mia-avatar-640.png";
 import { brandedRouteHead } from "@/config/brand";
 import { useMoneyField } from "@/components/money-input";
 import { useBrand } from "@/contexts/brand-context";
@@ -106,7 +106,7 @@ function FinanceOnboarding() {
             <img
               src={avatarUrl}
               alt={branding.assistantName}
-              className="marcia-float relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_30px_32px_rgba(0,0,0,.45)]"
+              className="mia-float relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_30px_32px_rgba(0,0,0,.45)]"
             />
           </div>
         </section>

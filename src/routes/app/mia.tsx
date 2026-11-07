@@ -14,7 +14,7 @@ import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
 import { MiaChat } from "@/components/finance/mia-chat";
 import { MiaChatShell } from "@/components/finance/mia-chat-shell";
-import { useMarciaFinanceChat } from "@/hooks/use-mia-finance-chat";
+import { useMiaFinanceChat } from "@/hooks/use-mia-finance-chat";
 import { useFinanceDashboard } from "@/hooks/use-finance-dashboard";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -39,7 +39,7 @@ function MiaChatPage() {
   const ctx = Route.useRouteContext();
   const { pergunta } = Route.useSearch();
   const companyId = ctx.company?.id;
-  const controller = useMarciaFinanceChat(companyId);
+  const controller = useMiaFinanceChat(companyId);
   const { data } = useFinanceDashboard(companyId);
   const [sheetOpen, setSheetOpen] = useState(false);
 

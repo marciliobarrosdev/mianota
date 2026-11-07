@@ -44,7 +44,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { brandedRouteHead } from "@/config/brand";
-import { useMarciaNotifications } from "@/hooks/use-mia-notifications";
+import { useMiaNotifications } from "@/hooks/use-mia-notifications";
 import { supabase } from "@/lib/auth/realm-supabase";
 import { sendTestPush } from "@/lib/finance/push.functions";
 import { downloadMonthlyReport, sendMonthlyReportWhatsapp } from "@/lib/finance/monthly-report.functions";
@@ -106,7 +106,7 @@ function NotificationsPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [devices, setDevices] = useState(0);
-  const push = useMarciaNotifications({ companyId, userId });
+  const push = useMiaNotifications({ companyId, userId });
   const testPush = useServerFn(sendTestPush);
   const today = todaySP();
 
@@ -623,7 +623,7 @@ function PushCard({
   onTest,
   onDeactivate,
 }: {
-  push: ReturnType<typeof useMarciaNotifications>;
+  push: ReturnType<typeof useMiaNotifications>;
   devices: number;
   onActivate: () => Promise<void>;
   onTest: () => Promise<void>;

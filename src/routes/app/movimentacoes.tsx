@@ -105,7 +105,7 @@ function TransactionsPage() {
 
   const notifyChanged = useCallback(async () => {
     await refresh();
-    window.dispatchEvent(new Event("marcia:notifications-changed"));
+    window.dispatchEvent(new Event("mia:notifications-changed"));
   }, [refresh]);
 
   const withUndo = useCallback(
@@ -183,8 +183,8 @@ function TransactionsPage() {
   useEffect(() => {
     void refresh();
     const onUpdate = () => void refresh();
-    window.addEventListener("marcia:finance-updated", onUpdate);
-    return () => window.removeEventListener("marcia:finance-updated", onUpdate);
+    window.addEventListener("mia:finance-updated", onUpdate);
+    return () => window.removeEventListener("mia:finance-updated", onUpdate);
   }, [refresh]);
 
   return (
@@ -311,7 +311,7 @@ function NewTransactionDialog({
       setAmountCents(null);
       setNote("");
       onCreated();
-      window.dispatchEvent(new CustomEvent("marcia:finance-updated"));
+      window.dispatchEvent(new CustomEvent("mia:finance-updated"));
     } catch (error: any) {
       toast.error(error?.message || "Não foi possível salvar.");
     } finally {

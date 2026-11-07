@@ -18,7 +18,7 @@ import {
   rescheduleAppointment,
   type MiaAppointment,
 } from "@/lib/ai/mia";
-import { syncMarciaAppointmentToGoogle } from "@/lib/common/google.functions";
+import { syncMiaAppointmentToGoogle } from "@/lib/common/google.functions";
 import { operationLocalInputToIso, isoToOperationLocalInput } from "@/lib/common/timezone";
 
 const control = "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100";
@@ -34,7 +34,7 @@ export function AppointmentActionsDialog({
   onChanged?: () => void;
   compact?: boolean;
 }) {
-  const syncGoogle = useServerFn(syncMarciaAppointmentToGoogle);
+  const syncGoogle = useServerFn(syncMiaAppointmentToGoogle);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<"reschedule" | "cancel" | null>(null);
   const [startsAt, setStartsAt] = useState(toLocalInput(appointment.starts_at));

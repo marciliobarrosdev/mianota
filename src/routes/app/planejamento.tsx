@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { FinanceError, FinanceLoading } from "@/components/finance/finance-states";
 import { PlannerView } from "@/components/finance/planner-view";
 import { MiaChat } from "@/components/finance/mia-chat";
-import { useMarciaFinanceChat } from "@/hooks/use-mia-finance-chat";
+import { useMiaFinanceChat } from "@/hooks/use-mia-finance-chat";
 import { getFinancePlanner, type FinancePlannerItem } from "@/lib/finance/finance-dashboard.functions";
 import { toIsoDate } from "@/lib/finance/finance-period";
 import {
@@ -92,7 +92,7 @@ function PlannerPage() {
   }, [companyId, loadExtras, monthKey]);
 
   const changed = useCallback(() => {
-    window.dispatchEvent(new Event("marcia:finance-updated"));
+    window.dispatchEvent(new Event("mia:finance-updated"));
   }, []);
 
   const actions: PlannerActions | undefined = companyId
@@ -125,8 +125,8 @@ function PlannerPage() {
   useEffect(() => {
     void refreshExtras();
     const on = () => void refreshExtras();
-    window.addEventListener("marcia:finance-updated", on);
-    return () => window.removeEventListener("marcia:finance-updated", on);
+    window.addEventListener("mia:finance-updated", on);
+    return () => window.removeEventListener("mia:finance-updated", on);
   }, [refreshExtras]);
 
   const downloadReport = async (p: { from: string; to: string; label: string }) => {
@@ -158,8 +158,8 @@ function PlannerPage() {
   useEffect(() => {
     void refresh();
     const onUpdate = () => void refresh();
-    window.addEventListener("marcia:finance-updated", onUpdate);
-    return () => window.removeEventListener("marcia:finance-updated", onUpdate);
+    window.addEventListener("mia:finance-updated", onUpdate);
+    return () => window.removeEventListener("mia:finance-updated", onUpdate);
   }, [refresh]);
 
   return (
@@ -261,7 +261,7 @@ function DayComposer({
   date: string;
   assistantName: string;
 }) {
-  const controller = useMarciaFinanceChat(companyId, { loadHistory: false });
+  const controller = useMiaFinanceChat(companyId, { loadHistory: false });
   const label = new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR");
   return (
     <MiaChat

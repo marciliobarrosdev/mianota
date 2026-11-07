@@ -29,7 +29,7 @@ function isTimeoutError(error: unknown) {
 }
 
 /** Chat real com a MIA: usa as mesmas funções de servidor do WhatsApp financeiro. */
-export function useMarciaFinanceChat(
+export function useMiaFinanceChat(
   companyId: string | null | undefined,
   options: { loadHistory?: boolean } = {},
 ): MiaChatController {
@@ -94,7 +94,7 @@ export function useMarciaFinanceChat(
       });
       commandIdRef.current = null;
       setPending(null);
-      window.dispatchEvent(new CustomEvent("marcia:finance-updated"));
+      window.dispatchEvent(new CustomEvent("mia:finance-updated"));
     } catch (error: any) {
       const text = error?.message || "Não consegui registrar agora.";
       append({ role: "assistant", text, kind: "error" });
@@ -205,7 +205,7 @@ export function useMarciaFinanceChat(
           current.map((m) => (m.id === messageId ? { ...m, undone: true } : m)),
         );
         append({ role: "assistant", text: "Desfeito. Removi esse lançamento.", kind: "answer" });
-        window.dispatchEvent(new CustomEvent("marcia:finance-updated"));
+        window.dispatchEvent(new CustomEvent("mia:finance-updated"));
       } catch (error: any) {
         toast.error(error?.message || "Não consegui desfazer.");
       }

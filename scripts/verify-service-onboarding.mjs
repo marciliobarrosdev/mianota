@@ -5,7 +5,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 const onboarding = read("src/routes/app/onboarding.tsx");
 const onboardingServer = read("src/lib/finance/finance-dashboard.functions.ts");
 const command = read("src/lib/finance/finance-command.functions.ts");
-const commandRoute = read("src/routes/app/marcia.tsx");
+const commandRoute = read("src/routes/app/mia.tsx");
 const chat = read("src/components/finance/mia-chat.tsx");
 const pageKit = read("src/components/mia/page-kit.tsx");
 const banner = read("src/components/trial-banner.tsx");

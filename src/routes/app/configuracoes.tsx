@@ -62,7 +62,7 @@ import {
   cancelAccountDeletion,
   exportTransactionsCsv,
 } from "@/lib/finance/settings.functions";
-import { useMarciaNotifications } from "@/hooks/use-mia-notifications";
+import { useMiaNotifications } from "@/hooks/use-mia-notifications";
 import { normalizeAssistantProfile, type AssistantProfile } from "@/lib/ai/assistant-profile-rules";
 import {
   auditGroup,
@@ -289,7 +289,7 @@ function ChannelsTab({ companyId, userId }: { companyId: string; userId: string 
   const fetchStatus = useServerFn(getChannelStatus);
   const report = useServerFn(downloadMonthlyReport);
   const testPush = useServerFn(sendTestPush);
-  const push = useMarciaNotifications({ companyId, userId });
+  const push = useMiaNotifications({ companyId, userId });
   const [st, setSt] = useState<Awaited<ReturnType<typeof getChannelStatus>> | null>(null);
   const [busy, setBusy] = useState("");
 
