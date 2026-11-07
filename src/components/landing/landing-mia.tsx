@@ -11,7 +11,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import miaFull from "@/assets/mia-full.png";
+import miaStage from "@/assets/mia-stage.png";
 
 const ITEMS: Array<{ icon: LucideIcon; title: string; text: string }> = [
   { icon: MessageCircle, title: "Texto", text: "Escreva do seu jeito, sem formulário." },
@@ -86,7 +86,7 @@ export function LandingMia({ assistantName }: { assistantName: string }) {
         <div className="absolute bottom-0 left-1/2 h-8 w-56 -translate-x-1/2 rounded-[50%] bg-ln-violet/40 blur-xl" />
         {/* MIA */}
         <motion.img
-          src={miaFull}
+          src={miaStage}
           alt={assistantName}
           style={{ y: imgY }}
           initial={{ opacity: 0 }}
