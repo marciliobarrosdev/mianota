@@ -116,5 +116,7 @@ export const createCheckoutCompany = createServerFn({ method: "POST" })
       });
     }
 
+    const { sendRegistrationWelcome } = await import("@/lib/email/welcome-email.server");
+    await sendRegistrationWelcome(String(companyId), context.userId);
     return { companyId };
   });

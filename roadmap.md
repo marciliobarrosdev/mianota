@@ -1,5 +1,11 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
+## Boas-vindas após novo cadastro
+- [x] Integrar Resend ao cadastro público e Master concluídos, com plano selecionado e link de acesso; planos pendentes informam liberação após pagamento.
+- [x] Impedir disparos para cadastros antigos e duplicação em novas tentativas; dois cadastros existentes continuam inelegíveis.
+- [x] Dezoito testes passaram, incluindo envio isolado com plano salvo e concorrência, e compilação sem erros; não criado cadastro novo nem enviado e-mail para clientes existentes nesta rodada.
+- [ ] Confirmar boas-vindas em novo cadastro real após publicar esta alteração; exige cadastro novo autorizado.
+
 ## Validação publicada do Resend (07/11/2026)
 - [x] Confirmada rota POST `/api/public/email/resend` na árvore gerada; 404 causado por versão publicada anterior, resolvido com publicação.
 - [x] Endpoint publicado rejeita assinatura inválida com HTTP 401; quatro testes de assinatura/mapeamento passaram.

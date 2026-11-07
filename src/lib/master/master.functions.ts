@@ -443,6 +443,10 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
     // desfaz nem mascara um tenant que já foi criado.
     const finalizeExistingOwnerCredential = async (confirmedCompanyId: string) => {
       await saveSubscriberIdentity(admin, confirmedCompanyId, data, ownerId);
+      if (ownerId) {
+        const { sendRegistrationWelcome } = await import("@/lib/email/welcome-email.server");
+        await sendRegistrationWelcome(confirmedCompanyId, ownerId);
+      }
 
       if (ownerResolution === "reconciled" && !data.password) {
         return {

@@ -1,7 +1,7 @@
 // Server-only: sends e-mail through the Resend connector gateway.
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
-export async function sendResendEmail(input: { from: string; to: string[]; subject: string; html: string; replyTo?: string | null }) {
+export async function sendResendEmail(input: { from: string; to: string[]; subject: string; html: string; replyTo?: string | null; idempotencyKey?: string }) {
   const lovableKey = process.env["LOVABLE_API_KEY"];
   const resendKey = process.env["RESEND_API_KEY"];
   if (!lovableKey) throw new Error("LOVABLE_API_KEY não configurada.");
@@ -12,7 +12,9 @@ export async function sendResendEmail(input: { from: string; to: string[]; subje
       "Content-Type": "application/json",
       Authorization: `Bearer ${lovableKey}`,
       "X-Connection-Api-Key": resendKey,
+      ...(input.idempotencyKey ? { "Idempotency-Key": input.idempotencyKey } : {}),
     },
+    signal: AbortSignal.timeout(15000),
     body: JSON.stringify({
       from: input.from,
       to: input.to,

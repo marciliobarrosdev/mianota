@@ -727,6 +727,9 @@ export type Database = {
           tipo_pessoa: string
           trial_ate: string
           updated_at: string
+          welcome_email_claimed_at: string | null
+          welcome_email_eligible: boolean
+          welcome_email_sent_at: string | null
         }
         Insert: {
           bairro?: string | null
@@ -766,6 +769,9 @@ export type Database = {
           tipo_pessoa?: string
           trial_ate?: string
           updated_at?: string
+          welcome_email_claimed_at?: string | null
+          welcome_email_eligible?: boolean
+          welcome_email_sent_at?: string | null
         }
         Update: {
           bairro?: string | null
@@ -805,6 +811,9 @@ export type Database = {
           tipo_pessoa?: string
           trial_ate?: string
           updated_at?: string
+          welcome_email_claimed_at?: string | null
+          welcome_email_eligible?: boolean
+          welcome_email_sent_at?: string | null
         }
         Relationships: []
       }

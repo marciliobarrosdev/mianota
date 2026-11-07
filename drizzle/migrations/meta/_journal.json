@@ -134,6 +134,13 @@
       "when": 1794016203819,
       "tag": "0018_resend_email_events",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794018375575,
+      "tag": "0019_new_signup_welcome_email_guard",
+      "breakpoints": true
     }
   ]
 }
