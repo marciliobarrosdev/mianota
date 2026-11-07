@@ -1,7 +1,7 @@
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
 import { ArrowRight, Bell, Check, TrendingUp, Zap } from "lucide-react";
-import miaFull from "@/assets/mia-full.png";
+import miaFull from "@/assets/mia-full.webp";
 import { LandingPhone } from "./landing-phone";
 
 export function LandingHero({
@@ -131,6 +131,7 @@ export function LandingHero({
           <motion.img
             style={reduced ? undefined : l2}
             src={miaFull}
+            width={367} height={1100} fetchPriority="high" decoding="async"
             alt={assistantName}
             className="pointer-events-none absolute bottom-10 left-0 z-20 w-[80px] object-contain drop-shadow-2xl min-[360px]:w-[104px] sm:left-4 sm:w-[155px] lg:-bottom-3 lg:left-0 lg:z-10 lg:w-[216px]"
           />

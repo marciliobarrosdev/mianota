@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -35,7 +35,7 @@ import {
 } from "@/config/brand";
 import type { PublicPlan } from "@/lib/billing/public-plan-rules";
 import { LandingHero } from "./landing-hero";
-import { LandingDashboard } from "./landing-dashboard";
+const LandingDashboard = lazy(() => import("./landing-dashboard").then((m) => ({ default: m.LandingDashboard })));
 import { LandingMia } from "./landing-mia";
 
 export type FinancePlan = PublicPlan;
@@ -317,7 +317,7 @@ export function FinanceLanding({
 
         {/* Painel */}
         <Section id="por-dentro" eyebrow="Por dentro do painel" title="A sua Visão do mês, pronta.">
-          <LandingDashboard />
+          <Suspense fallback={<div className="h-[420px] w-full animate-pulse rounded-3xl bg-ln-violet/10" />}><LandingDashboard /></Suspense>
         </Section>
 
         {/* Recursos */}
