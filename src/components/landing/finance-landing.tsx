@@ -370,7 +370,7 @@ export function FinanceLanding({
 
         {/* Chamada final */}
         <section aria-labelledby="final-cta-title" className="px-5 pb-16 pt-8 sm:pb-24">
-          <div className="relative mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-[1fr_0.42fr] md:gap-8">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-[1fr_0.32fr] md:gap-2">
             <div className="relative overflow-hidden rounded-[28px] border border-ln-ink/15 ln-gradient p-6 ln-glow sm:p-10 lg:p-12">
               <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-72 rotate-12 rounded-[48px] border border-ln-ink/15" />
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 size-72 rotate-12 rounded-[48px] border border-ln-ink/10" />
@@ -396,8 +396,8 @@ export function FinanceLanding({
               </Button>
               <p className="relative mt-3 text-xs text-ln-ink/80">{SLOGAN}</p>
             </div>
-            <div className="relative mx-auto flex w-full max-w-sm items-end justify-center gap-4 md:max-w-none md:self-stretch">
-              <img src={miaFinal.url} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="relative h-[340px] w-auto shrink-0 object-contain md:absolute md:bottom-12 md:h-[510px] lg:h-[550px]" />
+            <div className="relative mx-auto flex w-full max-w-sm items-end justify-center gap-4 md:max-w-none md:self-stretch md:justify-start">
+              <img src={miaFinal.url} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="relative h-[400px] w-auto max-w-none shrink-0 object-contain md:absolute md:left-0 md:top-0 md:h-[calc(100%+40px)]" />
             </div>
           </div>
         </section>
