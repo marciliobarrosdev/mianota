@@ -155,6 +155,13 @@
       "when": 1794019964123,
       "tag": "0021_plan_guard_ignore_existing_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794020431381,
+      "tag": "0022_free_plan_includes_finance_and_mia",
+      "breakpoints": true
     }
   ]
 }
