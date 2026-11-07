@@ -132,3 +132,10 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Conferência posterior: nenhuma referência à identificação deste teste nas tabelas públicas; conta de autenticação de teste ausente. Permanecem os mesmos dois cadastros, 38 lançamentos e quatro contas de autenticação anteriores à validação.
 - A comparação integral dos registros públicos fora do escopo de teste produziu o mesmo resumo criptográfico antes e depois (`cea5db3292d592eb4677f5419ff8c163`), confirmando que nenhum desses registros foi alterado ou removido.
 - Nenhuma cobrança, chamada de IA, alteração de plano, mudança de código funcional ou migração foi realizada. Mantidas as correções e os testes automatizados da validação anterior.
+
+## 17. Webhook Resend publicado e validado (07/11/2026)
+- A rota POST `https://mianota.lovable.app/api/public/email/resend` já estava corretamente incluída em `src/routeTree.gen.ts`; o 404 era da versão publicada anterior. Publicação solicitada e endpoint publicado confirmado com resposta HTTP 401 para assinatura inválida, em vez de 404.
+- Verificação básica de segurança sem problemas apontados; quatro testes de assinatura Svix e mapeamento passaram. Nenhuma alteração no código do webhook foi necessária.
+- Envio autorizado pela página Master, com remetente existente `mianota@zapyertech.com` e destinatário `admzapyer@gmail.com`, aceito pelo Resend. Eventos reais `email.sent` e `email.delivered` recebidos às 02:22 UTC e persistidos para a mensagem `01a1b3d0-4b53-76f8-8f1a-2ceaa00a4c3b`.
+- Recebimento real comprova que a assinatura fornecida pelo Resend foi aceita pela versão publicada; requisição de assinatura inválida foi rejeitada. Interface Master autenticada exibiu Enviado e Entregue após recarregar, com confirmação adicional por leitura do banco.
+- Nenhum cadastro, lançamento, preço, configuração de remetente ou registro preexistente foi editado ou excluído. Foram acrescentados somente a auditoria do envio autorizado e os eventos reais correspondentes. Nenhuma cobrança ou chamada de IA realizada.

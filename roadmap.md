@@ -1,5 +1,11 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
+## Validação publicada do Resend (07/11/2026)
+- [x] Confirmada rota POST `/api/public/email/resend` na árvore gerada; 404 causado por versão publicada anterior, resolvido com publicação.
+- [x] Endpoint publicado rejeita assinatura inválida com HTTP 401; quatro testes de assinatura/mapeamento passaram.
+- [x] E-mail autorizado enviado de mianota@zapyertech.com para admzapyer@gmail.com; eventos reais Enviado e Entregue do mesmo message_id persistidos e visíveis no Master após recarregar.
+- [x] Nenhum cadastro, lançamento, plano ou registro existente alterado; somente novos eventos do teste e auditoria de envio gerados.
+
 ## Salvamentos autorizados de teste
 - [x] Removidos exclusivamente o cadastro e registros da validação TESTE AUTORIZADO MIAnota 20261107 0114; ausência confirmada em todas as tabelas públicas e autenticação, dados restantes idênticos antes/depois.
 - [x] Cadastro TESTE AUTORIZADO criado pelo Master e persistência confirmada após recarregar; corrigido trigger que ignorava validade explícita de trial.
