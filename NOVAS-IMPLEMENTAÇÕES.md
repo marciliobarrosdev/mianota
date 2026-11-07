@@ -125,3 +125,10 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Persistência confirmada na interface após recarregar cada gravação, e leitura dos três registros confirmou valores em centavos, status, vencimento e forma de pagamento. Planejamento mostrou entrada R$ 1.000,00, saída R$ 234,00, a pagar R$ 345,00 e resultado previsto R$ 421,00.
 - Nenhum pagamento iniciado, nenhuma chamada de IA realizada; saldo de cinco créditos permaneceu íntegro. Os registros de teste ficam identificados e separados para inspeção; não foram apagados registros reais.
 - Escopo validado: criação pelo Master, onboarding e gravações manuais com impersonação autorizada. Signup público com confirmação de e-mail, compra e lançamento via MIA/WhatsApp não foram exercitados nesta rodada.
+
+## 16. Remoção autorizada dos registros de validação (07/11/2026)
+- Removidos somente o cadastro **TESTE AUTORIZADO MIAnota 20261107 0114** (`337501f9-36e1-4ba1-b594-09163a5f82dc`) e a conta de autenticação `teste-mianota-20261107-0114@example.com` (`93fe37d2-91d3-48de-89bb-1c544211c245`), com conferência prévia de nome, e-mail e vínculos exclusivos.
+- Removidos seus três lançamentos de teste (entrada R$ 1.000,00, saída R$ 234,00 e planejamento R$ 345,00), uma conta financeira, dez categorias, quatro etapas CRM, dois avisos, assinatura experimental, concessão de créditos, vínculo de proprietário, provisionamento e perfil exclusivos da validação.
+- Conferência posterior: nenhuma referência à identificação deste teste nas tabelas públicas; conta de autenticação de teste ausente. Permanecem os mesmos dois cadastros, 38 lançamentos e quatro contas de autenticação anteriores à validação.
+- A comparação integral dos registros públicos fora do escopo de teste produziu o mesmo resumo criptográfico antes e depois (`cea5db3292d592eb4677f5419ff8c163`), confirmando que nenhum desses registros foi alterado ou removido.
+- Nenhuma cobrança, chamada de IA, alteração de plano, mudança de código funcional ou migração foi realizada. Mantidas as correções e os testes automatizados da validação anterior.
