@@ -166,4 +166,12 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Busca por arquivos e imagens sem uso não encontrou outros itens órfãos.
 - README reescrito para MIAnota (InfinitePay, Resend, estrutura de pastas); manual atualizado para MIA.
 - Resultado: 227 testes passaram em 39 arquivos (1 ignorado historicamente) e as sete verificações de segurança passaram. Nenhum comportamento, preço, plano ou dado alterado.
-- Não feito nesta etapa: divisão dos arquivos muito grandes (Notificações, Planos Master, comandos financeiros etc.), por risco de alterar comportamento sem testes de tela; fica registrada como próxima etapa.
+- Divisão dos arquivos grandes concluída na seção 22.
+
+## 22. Divisão de Notificações, Planos e comandos da MIA (07/11/2026)
+- **Comandos financeiros da MIA** (969 linhas → 3 arquivos): `finance-command-rules.ts` (regras puras: limpar resposta da IA, juntar respostas, ligar categorias/contas, o que perguntar, prévia, histórico), `finance-command.server.ts` (acesso, contexto real, IA, resumo, gravação) e `finance-command.functions.ts` (só as entradas chamadas pelo app). Mesmo fluxo: nada é salvo sem confirmação; trava contra clique duplo e reaproveitamento por pedido mantidos.
+- **Notificações** (947 → 271 linhas na página): dados em `use-notification-inbox.ts`, regras em `notification-center-rules.ts` e peças em `src/components/notifications/` (aviso, cartão de push, preferências, relatório mensal).
+- **Master → Planos** (988 → 156 linhas na página): regras do formulário em `src/lib/billing/plan-form-rules.ts` e peças em `src/components/master/plans/` (cartão, editor, catálogo Stripe, campo). O catálogo Stripe agora carrega ao aparecer, em vez de em dois pontos separados.
+- Comentários adicionados nas regras não óbvias: preço único por plano (InfinitePay reconhece pelo valor), soma única por conta no resumo semanal, adiamento de conta atrasada, trava otimista de execução, idempotência por pedido, estorno de crédito de IA.
+- **Preservados:** tabelas `marcia_*`, preferências salvas, assinaturas de push, integrações Stripe/InfinitePay/WhatsApp e todas as mensagens exibidas.
+- **Novos testes (20):** `finance-command-rules`, `notification-center-rules` e `plan-form-rules` (inclui Plano 1 R$ 29,90 e Plano 2 R$ 49,90, preço duplicado, plano grátis). Total: 247 testes passaram em 42 arquivos; sete verificações de segurança ajustadas aos novos arquivos e aprovadas; compilação sem erros.

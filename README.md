@@ -40,10 +40,11 @@ src/
   components/
     landing/       página inicial
     finance/       telas financeiras do assinante
-    master/        telas do proprietário
+    master/        telas do proprietário (master/plans: cartão, editor e Stripe dos planos)
+    notifications/ peças da Central de Notificações
     mia/           peças visuais da MIA
     ui/            componentes base (shadcn)
-  hooks/           ganchos React (chat da MIA, notificações, app instalado)
+  hooks/           ganchos React (chat da MIA, caixa de avisos, push, app instalado)
   lib/
     ai/            chamadas de IA e regras da MIA
     auth/          sessões separadas de assinante e proprietário
@@ -57,6 +58,8 @@ supabase/          migrações do banco
 scripts/           verificações automáticas de segurança
 tests/             testes de regras de negócio
 ```
+
+Padrão adotado nas telas grandes: a página só compõe; regras puras ficam em `*-rules.ts` (com testes em `tests/`), acesso ao banco em hooks ou `*.server.ts`, e peças visuais em `src/components/<área>/`.
 
 Regras técnicas de arquitetura ficam em `AGENTS.md` (e em `AGENTS.md` de subpastas).
 

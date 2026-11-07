@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const server = read("../src/lib/master/stripe-admin.functions.ts");
-const screen = read("../src/routes/master/planos.tsx");
+// A tela de planos foi dividida: o catálogo Stripe vive em components/master/plans.
+const screen = ["../src/routes/master/planos.tsx", "../src/components/master/plans/plan-stripe-catalog.tsx", "../src/components/master/plans/plan-editor-dialog.tsx"].map(read).join("\n");
 
 assert.match(server, /is_super_admin/, "Stripe catalog must require the installation owner");
 assert.match(server, /resolveIntegration\("stripe"\)/, "Stripe key must stay in server-side vault");

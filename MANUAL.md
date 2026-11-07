@@ -69,16 +69,23 @@ Na tela da assistente, descreva o negócio em linguagem simples. O sistema usa L
 
 O aluno não informa chave OpenAI, Claude ou Gemini. A Lovable gerencia a inteligência padrão do projeto. A MIA nunca deve inventar preço, política ou horário ausente.
 
-## 6. Preparar cobrança automática (opcional)
+## 6. Planos e cobrança (InfinitePay)
 
-Esta etapa não é necessária para o proprietário ativar e usar o clone. Ela é necessária somente quando o clone venderá planos e deverá liberar clientes automaticamente.
+Em **Master → Planos**:
 
-1. Em **Mais → Cloud → Secrets**, cadastre o token do provedor escolhido: `KIWIFY_WEBHOOK_TOKEN`, `CAKTO_WEBHOOK_TOKEN` ou `PERFECTPAY_WEBHOOK_TOKEN`.
-2. Em **Master → Planos**, cadastre a `checkout_url` de cada plano vendido.
-3. Em **Master → Configurações**, copie a URL de webhook do provedor e siga o roteiro de eventos.
-4. Faça uma compra de teste e confirme o evento antes de anunciar liberação automática.
+1. Clique em **Adicionar Novo Plano** ou no lápis de um plano existente.
+2. Preencha nome, slug (letras minúsculas e hífens), preço, créditos de IA e recursos (um por linha).
+3. Em **Como o cliente paga este plano?**, escolha **Link externo** e cole o **Link de Checkout InfinitePay** criado com o mesmo valor do plano. Use **Testar link** para conferir.
+4. Para um plano sem pagamento, ligue **Plano Gratuito** e informe o **Limite de Dias** (1 a 365). Cada conta só pode usar o plano grátis uma vez.
+5. Salve. O cartão do plano mostra se o checkout está configurado.
 
-Não é preciso configurar os três tokens quando apenas um checkout será usado. Sem token ou sem `checkout_url`, a ativação do proprietário continua disponível, mas o fluxo comercial automático fica incompleto.
+Regras que o sistema garante ao salvar:
+
+- dois planos pagos ativos não podem ter o mesmo preço (a InfinitePay reconhece o plano pelo valor pago);
+- o slug não pode se repetir;
+- o cliente deve pagar com o mesmo e-mail da conta; o aviso de pagamento é reconfirmado antes de liberar o plano.
+
+Preços atuais: **Plano 1 R$ 29,90/mês** e **Plano 2 R$ 49,90/mês**.
 
 ## 7. Publicar a versão de teste
 
@@ -136,6 +143,15 @@ Com a versão de teste publicada:
 - [ ] permissões de dono, administrador e equipe testadas;
 - [ ] PWA instalado em aparelho real;
 - [ ] URL final publicada e conferida após os testes.
+
+## Central de Notificações (assinante)
+
+Em **/app/notificacoes** o assinante vê todos os avisos (contas a vencer, orçamento, agenda e sistema):
+
+- **Marcar como paga** ou **Adiar 1 dia** direto no aviso de conta; conta atrasada adiada passa a vencer amanhã;
+- **Cadastrar aparelho** ativa avisos no celular (no iPhone, instale o app na tela inicial antes);
+- **Preferências** escolhem o que chega no celular e no WhatsApp, horário de silêncio, antecedência dos lembretes, resumo diário e relatório mensal;
+- **Relatório mensal** baixa o PDF ou envia no WhatsApp vinculado.
 
 ## Orientação interna para a TurboSaaS
 
