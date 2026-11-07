@@ -63,7 +63,7 @@ export type OverviewActions = {
 const todayIso = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
-/** Visão do mês — compartilhada entre o painel real e a demonstração. */
+/** Visão do mês com os dados reais do assinante. */
 export function FinanceOverview({
   data,
   period,

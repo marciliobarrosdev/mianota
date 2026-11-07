@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { LoadingBlocks } from "@/components/mia/page-kit";
 import { FinanceOverview } from "@/components/finance/finance-overview";
 import { useFinanceSummary } from "@/hooks/use-finance-summary";
-import { financeLinks } from "@/components/finance/finance-links";
+import { FINANCE_LINKS } from "@/components/finance/finance-links";
 import { useFinanceDashboard } from "@/hooks/use-finance-dashboard";
 import { resolveFinancePeriod, type FinancePeriod } from "@/lib/finance/finance-period";
 
@@ -112,7 +112,7 @@ function MonthOverviewPage() {
       data={data}
       period={period}
       onPeriodChange={setPeriod}
-      links={financeLinks("app")}
+      links={FINANCE_LINKS}
       assistantName={branding.assistantName}
       loading={loading}
       previous={previous}

@@ -10,38 +10,16 @@ const security = readFileSync(
   "utf8",
 );
 
-// O superadmin orienta a personalização, mas não edita a identidade do clone.
-assert.match(guide, /O clone é a base/);
-assert.match(guide, /https:\/\/turbosaas\.pro\/AlunoLogin/);
-assert.match(guide, /Converse com o agente/);
-assert.match(guide, /Copie o prompt pronto/);
-assert.match(guide, /https:\/\/lovable\.dev\/projects/);
-assert.match(guide, /Identidade não é editada no superadmin/);
-assert.match(guide, /\/master\/whatsapp-qr/);
-assert.match(guide, /\/master\/planos/);
-assert.match(guide, /\/master\/novo-assinante/);
+// O Master gera instruções; a identidade é alterada no projeto, não por uma gravação direta.
+assert.match(guide, /function buildBrandPrompt/);
+assert.match(guide, /navigator\.clipboard\.writeText\(prompt\)/);
+assert.match(guide, /useBrand/);
+assert.match(guide, /getMasterSetupProgress/);
 assert.match(guide, /\/master\/painel/);
-
-for (const forbidden of [
-  "CloneBrandForm",
-  "getCloneBrandConfig",
-  "setCloneBrandConfig",
-  "BrandAssetUploader",
-  "primary_color",
-  "product_name",
-  "legal_document",
-  "CNPJ",
-  "Razão social",
-  "Copiar prompt",
-]) {
+for (const forbidden of ["setCloneBrandConfig", "BrandAssetUploader", "ensureBrandAssetBucket"]) {
   assert.doesNotMatch(guide, new RegExp(forbidden), `guide must not contain ${forbidden}`);
   assert.doesNotMatch(security, new RegExp(forbidden), `security must not contain ${forbidden}`);
 }
-
-assert.match(security, /Nome, cores, logo, copy, personagem e dados legais/);
-assert.match(security, /não são editados/);
-assert.match(security, /Super admins autorizados/);
-assert.match(security, /Webhooks?/i);
-assert.match(security, /\/superadmin/);
-
+assert.match(security, /getAdminAccessDetails/);
+assert.match(security, /getBillingWebhookInfo/);
 console.log("clone brand onboarding invariants: ok");

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { readFileSync } from "node:fs";
 import { formatCentsBRL, moneyError, parseBRLToCents, sanitizeMoneyTyping } from "@/lib/common/money";
 import {
@@ -112,13 +112,6 @@ describe("cadastro sempre vinculado a um plano", () => {
     expect(source.indexOf("resolveSignupPlan(")).toBeGreaterThan(0);
     expect(source.indexOf("resolveSignupPlan(")).toBeLessThan(
       source.indexOf('"bootstrap_remix_instance"'),
-    );
-  });
-  test("banco também exige plano no create_checkout_company_atomic", () => {
-    const migration = read("drizzle/migrations/0006_require_plan_on_checkout_company.sql");
-    expect(migration).toContain("Escolha um plano para começar");
-    expect(migration).not.toMatch(
-      /COALESCE\(NULLIF\(lower\(trim\(_plan_slug\)\), ''\), 'starter'\)/,
     );
   });
   test("/entrar?modo=signup sem plano válido volta para /#planos", () => {

@@ -4,7 +4,6 @@ import { renderErrorPage } from "@/lib/common/error-page";
 // Substitui intencionalmente o attachSupabaseAuth gerado: o token enviado vem da
 // sessão do domínio da aba (assinante ou super admin). Não re-adicionar o gerado.
 import { attachRealmSupabaseAuth } from "@/lib/auth/realm-auth-middleware";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -22,6 +21,6 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth, attachRealmSupabaseAuth],
+  functionMiddleware: [attachRealmSupabaseAuth],
   requestMiddleware: [errorMiddleware],
 }));

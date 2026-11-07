@@ -1,7 +1,7 @@
 # MIAnota — Registro de Novas Implementações
 
 > "Sua assistente financeira na palma da mão." · Assistente: **MIA**
-> Atualizado em 03/11/2026. Site: https://mianota.lovable.app
+> Atualizado em 07/11/2026. Site: https://mianota.lovable.app
 
 ---
 
@@ -10,7 +10,7 @@
 | Item | Situação |
 |---|---|
 | Compilação | Sem erros |
-| Testes automáticos | 62 (Vitest) + 70 (Bun) — passam, exceto 2 que procuram migrações do projeto original (não vieram no remix) |
+| Testes automáticos (07/11) | 206 passaram em 33 arquivos; uma verificação SQL histórica é ignorada explicitamente porque a migração original não foi copiada. Sete verificações de segurança passaram. |
 | Telas verificadas logado (03/11) | Início, Falar com MIA, Movimentações, Planejamento, Configurações, Comece aqui — sem erros |
 | Publicação | Necessária para levar as últimas mudanças ao site no ar |
 | Pendências conhecidas | Ver seção 12 |
@@ -87,8 +87,21 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Webhook InfinitePay: `https://mianota.lovable.app/api/public/billing/infinitepay`
 
 ## 12. Pendências e não verificado
-- Login assinante e dono são enviados juntos nas chamadas ao servidor (deveriam ser separados) — correção recomendada.
+- Corrigido em 07/11: chamadas ao servidor enviam somente a sessão do domínio da aba; removido o middleware gerado concorrente.
 - 3 telas ainda gravam direto no banco (Master/Planos, nome em Configurações, Conversas).
 - Não testados de ponta a ponta: pagamento real, mensagens/áudio/PDF reais no WhatsApp, envio agendado de relatório, telas do Master após a refatoração.
-- Guia: faltam banner na Visão do mês, ocultar guia, mensagem de boas-vindas e versão demo.
+- Guia: faltam banner na Visão do mês, ocultar guia e mensagem de boas-vindas; versão demo removida por decisão do proprietário.
 - Segredos de Cakto/Kiwify/PerfectPay/Evolution/Google não atualizados.
+
+## 13. Limpeza para uso real (07/11/2026)
+- Excluídas todas as rotas e pastas Demo, dados financeiros fictícios, chat roteirizado e prévias simuladas da página inicial.
+- Catálogo público carregado por função de leitura anônima de planos ativos e consulta compartilhada; sem planos, preços, benefícios ou limites fictícios de reserva. Cadastro também não presume planos em falhas de conexão.
+- Cinco páginas já redirecionadas foram reduzidas a redirecionamentos: Agenda, Financeiro, Operação, Ordens e detalhe de Ordem; URLs antigas preservadas, interfaces inacessíveis removidas.
+- Excluídos cinco arquivos órfãos: preparação de armazenamento de marca, configuração de servidor vazia, descrição IA de serviços, diálogo de conclusão de OS e respectiva função.
+- Organização de `src/lib` mantida por domínio; somente `utils.ts` permanece na raiz. Regras, acesso a dados e interface continuam separados.
+- Testes padronizados em Vitest, com comando `bun run test`; simulações isoladas nos testes preservadas para não cobrar IA, enviar WhatsApp ou modificar clientes durante regressões.
+- Metadados próprios das páginas não são mais sobrescritos pelo provedor visual de marca.
+- Verificação no navegador: catálogo real, formulário de cadastro Basic, telas desktop/celular sem excesso horizontal e `/demo/dashboard` retornando página não encontrada; nenhum erro JavaScript observado.
+- Os dados consultados nesta verificação apresentaram Basic R$ 49,00 e Pro R$ 69,00, sem plano gratuito ativo; foram preservados, não corrigidos nem substituídos por valores fictícios nesta limpeza.
+- Nenhum cadastro, lançamento, lead, segredo ou histórico real foi apagado; nenhuma migração foi removida ou aplicada.
+- Não validado nesta rodada: telas conectadas de assinantes/Master, compra e WhatsApp reais; sessão autorizada indisponível. Esta limpeza não equivale a uma reescrita integral ou atualização indiscriminada de todas as dependências.

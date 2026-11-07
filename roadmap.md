@@ -1,10 +1,10 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
 ## Limpeza e refatoração para uso real
-- [ ] Remover páginas, componentes, dados e arquivos exclusivos de demonstração.
-- [ ] Limpar referências e arquivos comprovadamente sem uso, preservando dados reais e migrações.
-- [ ] Consolidar organização por domínio e remover comportamentos fictícios das páginas reais.
-- [ ] Validar testes, navegação e resultado da limpeza; registrar limites da verificação.
+- [x] Remover páginas, componentes, dados e arquivos exclusivos de demonstração.
+- [x] Limpar referências e arquivos comprovadamente sem uso, preservando dados reais e migrações.
+- [x] Consolidar organização por domínio e remover comportamentos fictícios das páginas reais.
+- [x] Validar 206 testes, sete verificações de segurança, catálogo/cadastro públicos e ausência de Demo; páginas autenticadas não verificadas por falta de sessão autorizada.
 
 ## Correção do cadastro de assinantes
 - [x] Corrigir formato do tipo de pessoa na criação, edição, filtros e ficha.

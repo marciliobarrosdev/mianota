@@ -196,17 +196,20 @@ export function brandedRouteHead(
     const branding = normalizeCloneBrand(
       rootData && typeof rootData === "object" ? (rootData as Partial<CloneBrand>) : brand,
     );
+    const title = `${branding.name} — ${pageTitle}`;
+    const pageDescription = typeof description === "function"
+      ? description(branding)
+      : description || `${pageTitle} na ${branding.name}. ${branding.description}`;
     return {
       meta: [
-        { title: `${branding.name} — ${pageTitle}` },
-        ...(description
-          ? [
-              {
-                name: "description",
-                content: typeof description === "function" ? description(branding) : description,
-              },
-            ]
-          : []),
+        { title },
+        { name: "description", content: pageDescription },
+        { property: "og:title", content: title },
+        { property: "og:description", content: pageDescription },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: pageDescription },
       ],
     };
   };

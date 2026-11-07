@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, vi, test } from "vitest";
 import { createFakeDb } from "./helpers/fake-db";
 import {
   decideOnboarding,
@@ -21,27 +21,30 @@ import {
 import { normalize } from "../src/lib/billing/normalize";
 
 // ---------- Simulação de backend e provedores (nenhuma mensagem real) ----------
-let fake = createFakeDb();
-const sent: { provider: string; to: string; body: any }[] = [];
-let evolutionFails = false;
+const state = vi.hoisted(() => ({
+  fake: null as any,
+  sent: [] as { provider: string; to: string; body: any }[],
+  evolutionFails: false,
+}));
+state.fake = createFakeDb();
 
-mock.module("@/integrations/supabase/client.server", () => ({
+vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
-    from: (table: string) => fake.client.from(table),
-    rpc: (...args: any[]) => (fake.client.rpc as any)(...args),
+    from: (table: string) => state.fake.client.from(table),
+    rpc: (...args: any[]) => (state.fake.client.rpc as any)(...args),
   },
 }));
-mock.module("../src/lib/whatsapp/evolution.server", () => ({
+vi.mock("../src/lib/whatsapp/evolution.server", () => ({
   evoSendText: async (_instance: string, to: string, text: string) => {
-    if (evolutionFails) throw new Error("Evolution API indisponível token=abcdef123456");
-    sent.push({ provider: "evolution", to, body: text });
-    return { key: { id: `evo-${sent.length}` } };
+    if (state.evolutionFails) throw new Error("Evolution API indisponível token=abcdef123456");
+    state.sent.push({ provider: "evolution", to, body: text });
+    return { key: { id: `evo-${state.sent.length}` } };
   },
 }));
-mock.module("../src/lib/whatsapp/master-whatsapp.server", () => ({
+vi.mock("../src/lib/whatsapp/master-whatsapp.server", () => ({
   sendMetaPayload: async (payload: any) => {
-    sent.push({ provider: "meta", to: payload.to, body: payload });
-    return `wamid-${sent.length}`;
+    state.sent.push({ provider: "meta", to: payload.to, body: payload });
+    return `wamid-${state.sent.length}`;
   },
 }));
 
@@ -51,7 +54,7 @@ const OTHER = "22222222-2222-4222-8222-222222222222";
 const USER = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 function seed(channel: Record<string, unknown>, extra: Record<string, any[]> = {}) {
-  fake = createFakeDb({
+  state.fake = createFakeDb({
     platform_support_channel: [
       { id: true, status: "connected", instance_name: "inst", provider: channel.active_provider, ...channel },
     ],
@@ -63,8 +66,8 @@ function seed(channel: Record<string, unknown>, extra: Record<string, any[]> = {
 }
 
 beforeEach(() => {
-  sent.length = 0;
-  evolutionFails = false;
+  state.sent.length = 0;
+  state.evolutionFails = false;
   globalThis.fetch = (async () => {
     throw new Error("Rede bloqueada nos testes");
   }) as any;
@@ -258,13 +261,13 @@ describe("fluxo completo com backend simulado", () => {
     const second = await enqueuePurchaseOnboarding(input);
     expect(first.duplicate).toBe(false);
     expect(second.duplicate).toBe(true);
-    expect(fake.tables.purchase_onboarding.length).toBe(1);
-    expect(sent.length).toBe(1);
-    expect(sent[0].body).toMatch(/COMEÇAR [2-9A-HJ-NP-Z]{6}/);
-    expect(fake.tables.purchase_onboarding[0].status).toBe("sent");
+    expect(state.fake.tables.purchase_onboarding.length).toBe(1);
+    expect(state.sent.length).toBe(1);
+    expect(state.sent[0].body).toMatch(/COMEÇAR [2-9A-HJ-NP-Z]{6}/);
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("sent");
     // O código em texto puro nunca é salvo, só o hash.
-    expect(JSON.stringify(fake.tables.purchase_onboarding[0])).not.toContain(
-      sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1],
+    expect(JSON.stringify(state.fake.tables.purchase_onboarding[0])).not.toContain(
+      state.sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1],
     );
   });
 
@@ -282,7 +285,7 @@ describe("fluxo completo com backend simulado", () => {
       buyerName: "ana souza",
       buyerPhone: "11987654321",
     });
-    expect(sent[0].body).toMatch(
+    expect(state.sent[0].body).toMatch(
       /^Bem-vinda, Ana! MIAnota está pronta\. Confirme com COMEÇAR [2-9A-HJ-NP-Z]{6}\.$/,
     );
   });
@@ -291,9 +294,9 @@ describe("fluxo completo com backend simulado", () => {
     seed({ active_provider: "evolution" });
     const { enqueuePurchaseOnboarding } = await service();
     await enqueuePurchaseOnboarding({ source: "cakto", eventKey: "cakto:1", companyId: COMPANY });
-    expect(fake.tables.purchase_onboarding[0].status).toBe("awaiting_phone");
-    expect(sent.length).toBe(0);
-    expect(fake.tables.company[0]).toMatchObject({ creditos_saldo: 50, trial_ate: "2026-11-01" });
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("awaiting_phone");
+    expect(state.sent.length).toBe(0);
+    expect(state.fake.tables.company[0]).toMatchObject({ creditos_saldo: 50, trial_ate: "2026-11-01" });
   });
 
   test("Meta sem template não envia nada", async () => {
@@ -305,8 +308,8 @@ describe("fluxo completo com backend simulado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    expect(fake.tables.purchase_onboarding[0].status).toBe("awaiting_template");
-    expect(sent.length).toBe(0);
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("awaiting_template");
+    expect(state.sent.length).toBe(0);
   });
 
   test("Meta com template aprovado envia template", async () => {
@@ -324,14 +327,14 @@ describe("fluxo completo com backend simulado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    expect(sent[0].provider).toBe("meta");
-    expect(sent[0].body.type).toBe("template");
-    expect(fake.tables.purchase_onboarding[0].provider_message_id).toBe("wamid-1");
+    expect(state.sent[0].provider).toBe("meta");
+    expect(state.sent[0].body.type).toBe("template");
+    expect(state.fake.tables.purchase_onboarding[0].provider_message_id).toBe("wamid-1");
   });
 
   test("falha no WhatsApp vira 'failed' sem lançar erro e sem vazar segredo", async () => {
     seed({ active_provider: "evolution" });
-    evolutionFails = true;
+    state.evolutionFails = true;
     const { enqueuePurchaseOnboarding } = await service();
     const result = await enqueuePurchaseOnboarding({
       source: "kiwify",
@@ -340,7 +343,7 @@ describe("fluxo completo com backend simulado", () => {
       buyerPhone: "11987654321",
     });
     expect(result.id).toBeTruthy();
-    const row = fake.tables.purchase_onboarding[0];
+    const row = state.fake.tables.purchase_onboarding[0];
     expect(row.status).toBe("failed");
     expect(row.last_error).not.toContain("abcdef123456");
   });
@@ -349,12 +352,12 @@ describe("fluxo completo com backend simulado", () => {
     seed({ active_provider: "evolution" });
     const { enqueuePurchaseOnboarding, processPurchaseOnboarding } = await service();
     await enqueuePurchaseOnboarding({ source: "cakto", eventKey: "cakto:dry", companyId: COMPANY });
-    const id = fake.tables.purchase_onboarding[0].id;
-    fake.tables.purchase_onboarding[0].buyer_phone_e164 = "+5511987654321";
+    const id = state.fake.tables.purchase_onboarding[0].id;
+    state.fake.tables.purchase_onboarding[0].buyer_phone_e164 = "+5511987654321";
     const result: any = await processPurchaseOnboarding(id, { dryRun: true });
     expect(result.dryRun).toBe(true);
-    expect(sent.length).toBe(0);
-    expect(fake.tables.purchase_onboarding[0].status).toBe("awaiting_phone");
+    expect(state.sent.length).toBe(0);
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("awaiting_phone");
     expect(JSON.stringify(result.preview)).toContain("••••••");
   });
 
@@ -367,17 +370,17 @@ describe("fluxo completo com backend simulado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    const code = sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1];
+    const code = state.sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1];
     const wrong = await tryActivatePurchase({ phone: "5511987654321", message: "COMEÇAR ZZZZZZ" });
     expect(wrong).toMatchObject({ handled: true, ok: false });
     const ok: any = await tryActivatePurchase({ phone: "5511987654321", message: `começar ${code}` });
     expect(ok).toMatchObject({ handled: true, ok: true, companyId: COMPANY, userId: USER });
-    expect(fake.tables.fin_whatsapp_identity[0]).toMatchObject({
+    expect(state.fake.tables.fin_whatsapp_identity[0]).toMatchObject({
       company_id: COMPANY,
       phone_e164: "+5511987654321",
       active: true,
     });
-    expect(fake.tables.purchase_onboarding[0].status).toBe("paired");
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("paired");
     const again = await tryActivatePurchase({ phone: "5511987654321", message: `COMEÇAR ${code}` });
     expect(again).toMatchObject({ handled: true, ok: false });
   });
@@ -391,15 +394,15 @@ describe("fluxo completo com backend simulado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    const code = sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1];
+    const code = state.sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1];
     // O mesmo número passou a ficar ativo em outra assinatura depois do envio.
-    fake.tables.fin_whatsapp_identity = [
+    state.fake.tables.fin_whatsapp_identity = [
       { company_id: OTHER, user_id: "x", phone_e164: "+5511987654321", active: true },
     ];
     const result = await tryActivatePurchase({ phone: "5511987654321", message: `COMEÇAR ${code}` });
     expect(result).toMatchObject({ handled: true, ok: false });
-    expect(fake.tables.fin_whatsapp_identity.length).toBe(1);
-    expect(fake.tables.purchase_onboarding[0].status).toBe("conflict");
+    expect(state.fake.tables.fin_whatsapp_identity.length).toBe(1);
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("conflict");
   });
 
   test("código válido usado por outro telefone é recusado sem consumir nem alterar nada", async () => {
@@ -414,9 +417,9 @@ describe("fluxo completo com backend simulado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    const code = sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1];
-    const before = { ...fake.tables.purchase_onboarding[0] };
-    const identitiesBefore = JSON.stringify(fake.tables.fin_whatsapp_identity);
+    const code = state.sent[0].body.match(/COMEÇAR ([A-Z0-9]{6})/)[1];
+    const before = { ...state.fake.tables.purchase_onboarding[0] };
+    const identitiesBefore = JSON.stringify(state.fake.tables.fin_whatsapp_identity);
 
     for (const intruder of ["5511900000000", "5521988887777"]) {
       const result: any = await tryActivatePurchase({ phone: intruder, message: `COMEÇAR ${code}` });
@@ -426,14 +429,14 @@ describe("fluxo completo com backend simulado", () => {
       expect(result.reply).not.toMatch(/9876|4321|Ana|vinculado/);
       expect(result.companyId).toBeUndefined();
     }
-    const row = fake.tables.purchase_onboarding[0];
+    const row = state.fake.tables.purchase_onboarding[0];
     expect(row.status).toBe(before.status);
     expect(row.activation_used_at ?? null).toBeNull();
     expect(row.paired_phone_e164 ?? null).toBeNull();
     expect(row.paired_at ?? null).toBeNull();
-    expect(JSON.stringify(fake.tables.fin_whatsapp_identity)).toBe(identitiesBefore);
+    expect(JSON.stringify(state.fake.tables.fin_whatsapp_identity)).toBe(identitiesBefore);
     // Evento registrado é redigido: sem telefone e sem código.
-    const events = JSON.stringify(fake.tables.purchase_onboarding_event ?? []);
+    const events = JSON.stringify(state.fake.tables.purchase_onboarding_event ?? []);
     expect(events).not.toContain("5511900000000");
     expect(events).not.toContain("5521988887777");
     expect(events).not.toContain(code);
@@ -441,9 +444,9 @@ describe("fluxo completo com backend simulado", () => {
     // O telefone correto continua conseguindo usar o mesmo código.
     const ok: any = await tryActivatePurchase({ phone: "5511987654321", message: `COMEÇAR ${code}` });
     expect(ok).toMatchObject({ handled: true, ok: true, companyId: COMPANY, userId: USER });
-    expect(fake.tables.purchase_onboarding[0].status).toBe("paired");
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("paired");
     expect(
-      fake.tables.fin_whatsapp_identity.find((i: any) => i.company_id === COMPANY)?.phone_e164,
+      state.fake.tables.fin_whatsapp_identity.find((i: any) => i.company_id === COMPANY)?.phone_e164,
     ).toBe("+5511987654321");
   });
 
@@ -462,15 +465,15 @@ describe("fluxo completo com backend simulado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    const payload = sent[0].body.template.components[1].parameters[0].payload as string;
+    const payload = state.sent[0].body.template.components[1].parameters[0].payload as string;
     const intruder = await tryActivatePurchase({
       phone: "5521988887777",
       message: "Começar",
       buttonPayload: payload,
     });
     expect(intruder).toMatchObject({ handled: true, ok: false });
-    expect(fake.tables.purchase_onboarding[0].activation_used_at ?? null).toBeNull();
-    expect(fake.tables.fin_whatsapp_identity ?? []).toHaveLength(0);
+    expect(state.fake.tables.purchase_onboarding[0].activation_used_at ?? null).toBeNull();
+    expect(state.fake.tables.fin_whatsapp_identity ?? []).toHaveLength(0);
     const ok = await tryActivatePurchase({ phone: "5511987654321", message: "Começar", buttonPayload: payload });
     expect(ok).toMatchObject({ handled: true, ok: true, companyId: COMPANY });
   });
@@ -486,7 +489,7 @@ describe("fluxo completo com backend simulado", () => {
     });
     const result = await tryActivatePurchase({ phone: "5521988887777", message: "Começar" });
     expect(result).toMatchObject({ handled: true, ok: false });
-    expect(fake.tables.purchase_onboarding[0].activation_used_at ?? null).toBeNull();
+    expect(state.fake.tables.purchase_onboarding[0].activation_used_at ?? null).toBeNull();
     const ok = await tryActivatePurchase({ phone: "5511987654321", message: "Começar" });
     expect(ok).toMatchObject({ handled: true, ok: true });
   });
@@ -505,7 +508,7 @@ describe("fluxo completo com backend simulado", () => {
     const result: any = await tryActivatePurchase({ phone: "5511987654321", message: "Começar" });
     expect(result).toMatchObject({ handled: true, ok: false });
     expect(result.reply).toMatch(/código exato/);
-    expect(fake.tables.fin_whatsapp_identity ?? []).toHaveLength(0);
+    expect(state.fake.tables.fin_whatsapp_identity ?? []).toHaveLength(0);
   });
 
   test("renovação de número já vinculado não pede novo código", async () => {
@@ -521,22 +524,22 @@ describe("fluxo completo com backend simulado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    expect(sent[0].body).not.toMatch(/COMEÇAR/);
-    expect(fake.tables.purchase_onboarding[0].activation_code_hash ?? null).toBeNull();
+    expect(state.sent[0].body).not.toMatch(/COMEÇAR/);
+    expect(state.fake.tables.purchase_onboarding[0].activation_code_hash ?? null).toBeNull();
   });
 
   test("status que chega antes do envio é reconciliado depois", async () => {
     seed({ active_provider: "evolution" });
     const { applyDeliveryStatus, enqueuePurchaseOnboarding } = await service();
     await applyDeliveryStatus("evolution", "evo-1", "delivered", null, null);
-    expect(fake.tables.whatsapp_status_inbox.length).toBe(1);
+    expect(state.fake.tables.whatsapp_status_inbox.length).toBe(1);
     await enqueuePurchaseOnboarding({
       source: "kiwify",
       eventKey: "kiwify:race",
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    expect(fake.tables.purchase_onboarding[0].status).toBe("delivered");
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("delivered");
   });
 });
 
@@ -550,9 +553,9 @@ describe("provedor ativo diferente do registro configurado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    expect(sent.length).toBe(0);
-    expect(fake.tables.purchase_onboarding[0].status).toBe("awaiting_channel");
-    expect(fake.tables.purchase_onboarding[0].activation_code_hash ?? null).toBeNull();
+    expect(state.sent.length).toBe(0);
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("awaiting_channel");
+    expect(state.fake.tables.purchase_onboarding[0].activation_code_hash ?? null).toBeNull();
   });
 
   test("Meta ativa com registro sobrescrito pela Evolution: aguarda e não envia texto livre", async () => {
@@ -571,8 +574,8 @@ describe("provedor ativo diferente do registro configurado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    expect(sent.length).toBe(0);
-    expect(fake.tables.purchase_onboarding[0].status).toBe("awaiting_channel");
+    expect(state.sent.length).toBe(0);
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("awaiting_channel");
   });
 
   test("canal ativo correto mas desconectado também aguarda", async () => {
@@ -584,7 +587,7 @@ describe("provedor ativo diferente do registro configurado", () => {
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
-    expect(sent.length).toBe(0);
-    expect(fake.tables.purchase_onboarding[0].status).toBe("awaiting_channel");
+    expect(state.sent.length).toBe(0);
+    expect(state.fake.tables.purchase_onboarding[0].status).toBe("awaiting_channel");
   });
 });

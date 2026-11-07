@@ -81,7 +81,7 @@ export function monthGrid(month: Date) {
   });
 }
 
-/** Planejamento e calendário — compartilhado entre o painel real e a demonstração. */
+/** Planejamento e calendário do assinante. */
 export function PlannerView({
   items,
   month,

@@ -49,31 +49,16 @@ function setMeta(selector: string, attribute: "content" | "href", value: string)
   element?.setAttribute(attribute, value);
 }
 
-function applyBrandToDocument(value: CloneBrand, pathname: string) {
+function applyBrandToDocument(value: CloneBrand) {
   const root = document.documentElement;
   Object.entries(cloneBrandCssVariables(value)).forEach(([property, next]) =>
     root.style.setProperty(property, next),
   );
 
-  const title =
-    pathname === "/"
-      ? `${value.name} — ${value.tagline}`
-      : `${value.name} — ${
-          document.title.includes(" — ")
-            ? document.title.split(" — ").slice(1).join(" — ")
-            : document.title
-        }`;
-  if (title) document.title = title;
-
   setMeta('meta[name="theme-color"]', "content", value.primary);
   setMeta('meta[name="application-name"]', "content", value.shortName);
   setMeta('meta[name="apple-mobile-web-app-title"]', "content", value.shortName);
-  setMeta('meta[name="description"]', "content", value.description);
   setMeta('meta[name="author"]', "content", value.name);
-  setMeta('meta[property="og:title"]', "content", `${value.name} — ${value.tagline}`);
-  setMeta('meta[property="og:description"]', "content", value.description);
-  setMeta('meta[name="twitter:title"]', "content", `${value.name} — ${value.tagline}`);
-  setMeta('meta[name="twitter:description"]', "content", value.description);
 
   const icon = value.iconUrl || value.logoUrl || "/icons/marcia-app.svg";
   setMeta('link[rel="icon"]', "href", icon);
@@ -139,7 +124,7 @@ export function BrandProvider({
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => applyBrandToDocument(value, location.pathname), 0);
+    const timer = window.setTimeout(() => applyBrandToDocument(value), 0);
     return () => window.clearTimeout(timer);
   }, [location.pathname, value]);
 

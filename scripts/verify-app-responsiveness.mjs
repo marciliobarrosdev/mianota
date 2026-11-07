@@ -9,7 +9,7 @@ const masterRoute = read("src/routes/master.tsx");
 const appRoute = read("src/routes/app.tsx");
 const conversations = read("src/routes/app/conversas.tsx");
 const settings = read("src/routes/app/configuracoes.tsx");
-const operation = read("src/routes/app/operacao.tsx");
+
 
 assert.match(router, /defaultPreload: "intent"/, "menu routes must preload on intent");
 assert.match(router, /defaultPreloadStaleTime: 30_000/, "route preloads must remain reusable");
@@ -35,7 +35,6 @@ assert.doesNotMatch(
   "selecting a conversation must not reload the entire inbox",
 );
 assert.doesNotMatch(settings, /location\.reload/, "settings saves must not reload the whole app");
-assert.match(operation, /setServices\(\(current\)/, "service saves must update the screen locally");
-assert.match(operation, /Promise\.all\(\[\.\.\.updates/, "schedule rows must save in parallel");
+
 
 console.log("app responsiveness invariants: ok");

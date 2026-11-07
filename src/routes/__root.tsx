@@ -110,7 +110,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   staleTime: 60_000,
   head: ({ loaderData }) => {
     const cloneBrand = normalizeCloneBrand(loaderData || brand);
-    const ogImage = String(import.meta.env.VITE_OG_IMAGE_URL || "").trim();
     return {
       meta: [
         { charSet: "utf-8" },
@@ -131,12 +130,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "twitter:card", content: "summary" },
         { name: "twitter:title", content: `${cloneBrand.name} — ${cloneBrand.tagline}` },
         { name: "twitter:description", content: cloneBrand.description },
-        ...(ogImage
-          ? [
-              { property: "og:image", content: ogImage },
-              { name: "twitter:image", content: ogImage },
-            ]
-          : []),
       ],
       links: [
         { rel: "stylesheet", href: appCss },

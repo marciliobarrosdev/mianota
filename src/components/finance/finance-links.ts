@@ -8,6 +8,3 @@ export const FINANCE_LINKS = {
 } as const;
 
 export type FinanceLinks = typeof FINANCE_LINKS;
-export function financeLinks(_area: "app"): FinanceLinks {
-  return FINANCE_LINKS;
-}

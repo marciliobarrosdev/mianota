@@ -46,11 +46,11 @@ assert.match(
 // perde só a sessão do assinante e vê o login administrativo (nunca o Master direto).
 assert.doesNotMatch(app, /ensureRemixBootstrap/);
 const appSuper = indexOf(app, 'if (realm === "subscriber" && ctx.isSuperAdmin)');
-const appSuperBlock = app.slice(appSuper, indexOf(app, "trialExpired"));
+const appSuperBlock = app.slice(appSuper, indexOf(app, "const needsPayment"));
 assert.match(appSuperBlock, /signOutRealm\("subscriber"\)/);
 assert.match(appSuperBlock, /throw redirect\(\{ to: "\/superadmin" \}\)/);
 assert.doesNotMatch(appSuperBlock, /\/master/);
-assert.ok(appSuper < indexOf(app, "trialExpired"), "admin routing precedes billing gates");
+assert.ok(appSuper < indexOf(app, "const needsPayment"), "admin routing precedes billing gates");
 
 // Master só aceita instalação já assumida e sempre volta para /superadmin.
 assert.doesNotMatch(master, /ensureRemixBootstrap/);

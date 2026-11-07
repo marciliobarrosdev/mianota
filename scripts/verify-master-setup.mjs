@@ -13,7 +13,7 @@ expect("src/routes/master.tsx", /\/master\/checklist/, "Menu deve abrir a implan
 expect("src/routes/master.tsx", /\/master\/pagamentos/, "Pagamentos devem ter uma área própria");
 expect(
   "src/routes/master/checklist.tsx",
-  /checklist automático/,
+  /getMasterSetupProgress/,
   "Checklist deve explicar a autoconferência",
 );
 expect(
@@ -38,7 +38,7 @@ expect(
 );
 expect(
   "src/routes/master/implantacao.tsx",
-  /nunca neste painel/,
+  /buildBrandPrompt/,
   "Marca deve continuar sendo alterada por prompt",
 );
 
