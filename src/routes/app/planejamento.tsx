@@ -170,7 +170,7 @@ function PlannerPage() {
         description="Clique em um dia para ver o resumo, a linha do tempo e adicionar lembretes ou contas."
         action={
           <Button asChild size="sm" className="rounded-xl bg-[color:var(--brand)]">
-            <Link to="/app/marcia">
+            <Link to="/app/mia">
               <Mic /> Planejar com {branding.assistantName}
             </Link>
           </Button>
@@ -211,7 +211,7 @@ function PlannerPage() {
           renderAskMia={(label) => (
             <div className="grid gap-2 sm:grid-cols-2">
               <Button asChild variant="outline" size="sm" className="rounded-xl">
-                <Link to="/app/marcia" search={{ pergunta: `Como ficam minhas finanças no dia ${label}? O que vence e o que posso planejar?` }}>
+                <Link to="/app/mia" search={{ pergunta: `Como ficam minhas finanças no dia ${label}? O que vence e o que posso planejar?` }}>
                   <MessageCircle /> Perguntar à {branding.assistantName}
                 </Link>
               </Button>

@@ -578,7 +578,7 @@ function Row({
           )}
           {(isBill || n.type.startsWith("finance.") || n.type.startsWith("budget")) && (
             <Link
-              to="/app/marcia"
+              to="/app/mia"
               search={{ pergunta: `Sobre o aviso "${n.title}": o que devo fazer?` }}
               className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-extrabold text-primary hover:bg-primary/5"
             >

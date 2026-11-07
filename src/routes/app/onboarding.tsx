@@ -76,7 +76,7 @@ function FinanceOnboarding() {
           goal: goal as "control" | "save" | "clarity",
         },
       });
-      window.location.href = "/app/marcia";
+      window.location.href = "/app/mia";
     } catch (error: any) {
       toast.error(error?.message || "Não consegui concluir agora. Tente novamente.");
       setSaving(false);

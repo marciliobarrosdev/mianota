@@ -39,6 +39,7 @@ import { Route as AppHojeRouteImport } from './routes/app/hoje'
 import { Route as AppInicioRouteImport } from './routes/app/inicio'
 import { Route as AppIntegracoesRouteImport } from './routes/app/integracoes'
 import { Route as AppMarciaRouteImport } from './routes/app/marcia'
+import { Route as AppMiaRouteImport } from './routes/app/mia'
 import { Route as AppMovimentacoesRouteImport } from './routes/app/movimentacoes'
 import { Route as AppNotificacoesRouteImport } from './routes/app/notificacoes'
 import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
@@ -232,6 +233,11 @@ const AppIntegracoesRoute = AppIntegracoesRouteImport.update({
 const AppMarciaRoute = AppMarciaRouteImport.update({
   id: '/marcia',
   path: '/marcia',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMiaRoute = AppMiaRouteImport.update({
+  id: '/mia',
+  path: '/mia',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMovimentacoesRoute = AppMovimentacoesRouteImport.update({
@@ -483,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/app/inicio': typeof AppInicioRoute
   '/app/integracoes': typeof AppIntegracoesRoute
   '/app/marcia': typeof AppMarciaRoute
+  '/app/mia': typeof AppMiaRoute
   '/app/movimentacoes': typeof AppMovimentacoesRoute
   '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/onboarding': typeof AppOnboardingRoute
@@ -556,6 +563,7 @@ export interface FileRoutesByTo {
   '/app/inicio': typeof AppInicioRoute
   '/app/integracoes': typeof AppIntegracoesRoute
   '/app/marcia': typeof AppMarciaRoute
+  '/app/mia': typeof AppMiaRoute
   '/app/movimentacoes': typeof AppMovimentacoesRoute
   '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/onboarding': typeof AppOnboardingRoute
@@ -632,6 +640,7 @@ export interface FileRoutesById {
   '/app/inicio': typeof AppInicioRoute
   '/app/integracoes': typeof AppIntegracoesRoute
   '/app/marcia': typeof AppMarciaRoute
+  '/app/mia': typeof AppMiaRoute
   '/app/movimentacoes': typeof AppMovimentacoesRoute
   '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/onboarding': typeof AppOnboardingRoute
@@ -709,6 +718,7 @@ export interface FileRouteTypes {
     | '/app/inicio'
     | '/app/integracoes'
     | '/app/marcia'
+    | '/app/mia'
     | '/app/movimentacoes'
     | '/app/notificacoes'
     | '/app/onboarding'
@@ -782,6 +792,7 @@ export interface FileRouteTypes {
     | '/app/inicio'
     | '/app/integracoes'
     | '/app/marcia'
+    | '/app/mia'
     | '/app/movimentacoes'
     | '/app/notificacoes'
     | '/app/onboarding'
@@ -857,6 +868,7 @@ export interface FileRouteTypes {
     | '/app/inicio'
     | '/app/integracoes'
     | '/app/marcia'
+    | '/app/mia'
     | '/app/movimentacoes'
     | '/app/notificacoes'
     | '/app/onboarding'
@@ -1139,6 +1151,13 @@ declare module '@tanstack/react-router' {
       path: '/marcia'
       fullPath: '/app/marcia'
       preLoaderRoute: typeof AppMarciaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/mia': {
+      id: '/app/mia'
+      path: '/mia'
+      fullPath: '/app/mia'
+      preLoaderRoute: typeof AppMiaRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/movimentacoes': {
@@ -1475,6 +1494,7 @@ interface AppRouteChildren {
   AppInicioRoute: typeof AppInicioRoute
   AppIntegracoesRoute: typeof AppIntegracoesRoute
   AppMarciaRoute: typeof AppMarciaRoute
+  AppMiaRoute: typeof AppMiaRoute
   AppMovimentacoesRoute: typeof AppMovimentacoesRoute
   AppNotificacoesRoute: typeof AppNotificacoesRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
@@ -1506,6 +1526,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInicioRoute: AppInicioRoute,
   AppIntegracoesRoute: AppIntegracoesRoute,
   AppMarciaRoute: AppMarciaRoute,
+  AppMiaRoute: AppMiaRoute,
   AppMovimentacoesRoute: AppMovimentacoesRoute,
   AppNotificacoesRoute: AppNotificacoesRoute,
   AppOnboardingRoute: AppOnboardingRoute,

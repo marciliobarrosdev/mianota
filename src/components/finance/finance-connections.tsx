@@ -166,7 +166,7 @@ function FinanceConnectionsInner({
                 A central da {branding.assistantName} já aceita voz e texto no navegador.
               </p>
               <Button asChild variant="outline" size="sm" className="mt-4 rounded-xl">
-                <Link to="/app/marcia">
+                <Link to="/app/mia">
                   Conversar agora <ArrowRight />
                 </Link>
               </Button>

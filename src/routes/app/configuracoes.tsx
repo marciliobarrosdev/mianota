@@ -338,7 +338,7 @@ function ChannelsTab({ companyId, userId }: { companyId: string; userId: string 
       )}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Channel icon={Smartphone} title="Neste aplicativo" ok status="Pronto" text="Envie texto, áudio ou comprovante direto para a MIA.">
-          <Button asChild variant="outline" size="sm"><Link to="/app/marcia">Abrir conversa</Link></Button>
+          <Button asChild variant="outline" size="sm"><Link to="/app/mia">Abrir conversa</Link></Button>
         </Channel>
         <Channel icon={MessageCircle} title="WhatsApp" ok={Boolean(st?.whatsappPhone)} status={st ? (st.whatsappPhone ? `Vinculado ${maskPhone(st.whatsappPhone)}` : "Não vinculado") : "…"}
           text={st && !st.centralConnected ? "O canal do WhatsApp está temporariamente indisponível." : "Registre despesas e faça perguntas sem abrir o app."}>

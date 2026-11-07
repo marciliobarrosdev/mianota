@@ -196,7 +196,7 @@ function TransactionsPage() {
         action={
           <div className="flex gap-2">
             <Button asChild size="sm" variant="outline" className="rounded-xl">
-              <Link to="/app/marcia">
+              <Link to="/app/mia">
                 <Mic /> Registrar falando
               </Link>
             </Button>

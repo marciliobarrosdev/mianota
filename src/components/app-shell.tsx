@@ -70,7 +70,7 @@ const getMainItems = (assistantName: string): NavItem[] => [
     icon: CalendarDays,
     matches: ["/app/calendario", "/app/orcamentos", "/app/recorrencias"],
   },
-  { to: "/app/marcia", label: `Falar com ${assistantName}`, icon: Sparkles, featured: true },
+  { to: "/app/mia", label: `Falar com ${assistantName}`, icon: Sparkles, featured: true },
   {
     to: "/app/configuracoes",
     label: "Configurações",
@@ -144,7 +144,7 @@ export function AppShell({
   const mobileOrder = [
     "/app/inicio",
     "/app/movimentacoes",
-    "/app/marcia",
+    "/app/mia",
     "/app/planejamento",
     "/app/configuracoes",
   ];

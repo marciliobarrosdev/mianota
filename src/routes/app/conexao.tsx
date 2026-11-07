@@ -232,7 +232,7 @@ function ConexaoPage() {
                 usando voz, texto e foto dentro do aplicativo.
               </p>
               <Button asChild variant="outline" className="mt-4 rounded-xl border-amber-300">
-                <Link to="/app/marcia">Usar no aplicativo</Link>
+                <Link to="/app/mia">Usar no aplicativo</Link>
               </Button>
             </div>
           ) : identityPhone ? (

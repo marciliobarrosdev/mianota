@@ -47,7 +47,7 @@ function FinanceGuide() {
   const daysLeft = data?.periodEnd ? Math.max(0, Math.ceil((new Date(data.periodEnd).getTime() - Date.now()) / 86400000)) : null;
 
   const info: Record<OnboardingStepId, StepInfo> = {
-    first_entry: { title: `Registre seu primeiro gasto com a ${mia}`, text: "Fale ou escreva. Ela pergunta o que faltar e confirma antes de salvar.", action: "Falar com a MIA", to: "/app/marcia", search: { pergunta: "Gastei R$ 45 no mercado hoje" }, example: "“Gastei R$ 45 no mercado hoje”", icon: Mic },
+    first_entry: { title: `Registre seu primeiro gasto com a ${mia}`, text: "Fale ou escreva. Ela pergunta o que faltar e confirma antes de salvar.", action: "Falar com a MIA", to: "/app/mia", search: { pergunta: "Gastei R$ 45 no mercado hoje" }, example: "“Gastei R$ 45 no mercado hoje”", icon: Mic },
     schedule: { title: "Agende as próximas contas", text: "Cadastre o que vence e quando, inclusive contas que se repetem. Você recebe aviso antes do vencimento.", action: "Abrir planejamento", to: "/app/planejamento", icon: CalendarDays },
     plan: { title: "Ative seu plano", text: data?.paidPlan ? `Plano ${data.planName ?? ""} ativo.` : `Escolha Basic ou PRO para continuar usando sem limites${daysLeft !== null ? ` — restam ${daysLeft} dia(s) do período atual` : ""}.`, action: data?.paidPlan ? "Ver meu plano" : "Ativar plano", to: data?.paidPlan ? "/app/configuracoes" : "/app/checkout", search: data?.paidPlan ? { aba: "conta" } : undefined, icon: Crown },
     whatsapp: { title: "Use pelo WhatsApp", text: `Vincule seu celular e mande textos, áudios, fotos de recibos e PDFs para a ${mia}.`, action: "Ativar WhatsApp", to: "/app/conexao", icon: MessageCircle },
@@ -96,7 +96,7 @@ function FinanceGuide() {
           </div>
           <div className="flex gap-2">
             <Button asChild variant="outline"><Link to="/app/inicio">Visão do mês</Link></Button>
-            <Button asChild><Link to="/app/marcia">Falar com a {mia}</Link></Button>
+            <Button asChild><Link to="/app/mia">Falar com a {mia}</Link></Button>
           </div>
         </section>
       )}

@@ -160,7 +160,7 @@ export function FinanceAssistantSettings({ companyId }: { companyId?: string | n
         description="Escolha como ela fala, quando alerta e o que sempre precisa confirmar. Sem escrever prompt."
         action={
           <Button asChild variant="outline" className="rounded-xl">
-            <Link to="/app/marcia">
+            <Link to="/app/mia">
               <MessageCircle /> Testar a {branding.assistantName}
             </Link>
           </Button>

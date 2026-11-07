@@ -607,10 +607,10 @@ function Details({
         </Button>
         <>
             <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
-              <Link to="/app/marcia" search={{ pergunta: question }}><Sparkles /> Perguntar à MIA</Link>
+              <Link to="/app/mia" search={{ pergunta: question }}><Sparkles /> Perguntar à MIA</Link>
             </Button>
             <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
-              <Link to="/app/marcia" search={{ pergunta: fixCategory }}><Sparkles /> Corrigir categoria com a MIA</Link>
+              <Link to="/app/mia" search={{ pergunta: fixCategory }}><Sparkles /> Corrigir categoria com a MIA</Link>
             </Button>
         </>
       </div>
