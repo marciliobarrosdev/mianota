@@ -1,5 +1,10 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
+## Validação autenticada após refatoração
+- [ ] Obter sessão autorizada e conferir cadastro, lançamentos, planejamento e acesso Master sem apagar dados reais.
+- [ ] Verificar links para demos removidas e corrigir regressões encontradas.
+- [ ] Executar verificações relevantes e registrar resultados e limites.
+
 ## Limpeza e refatoração para uso real
 - [x] Remover páginas, componentes, dados e arquivos exclusivos de demonstração.
 - [x] Limpar referências e arquivos comprovadamente sem uso, preservando dados reais e migrações.
