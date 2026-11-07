@@ -96,7 +96,7 @@ export function LandingMia({ assistantName }: { assistantName: string }) {
           className="relative h-full w-auto object-contain drop-shadow-2xl"
         />
         {/* floating chips */}
-        <Chip className="left-0 top-14" delay={0.1}>
+        <Chip className="right-0 bottom-24 sm:bottom-28" delay={0.1}>
           <Zap className="size-4 text-ln-lime" /> Responde em segundos
         </Chip>
         <Chip className="right-0 top-32 sm:top-40" delay={0.25} float={10}>
