@@ -319,7 +319,7 @@ function EntrarPage() {
             </Link>
           </div>
 
-          <div className="relative z-10 grid items-end gap-6 xl:gap-10 grid-cols-[minmax(0,1fr)_auto]">
+          <div className="relative z-10 grid items-end gap-6 xl:gap-10 grid-cols-[minmax(0,1fr)_200px] xl:grid-cols-[minmax(0,1fr)_240px]">
           <div className="max-w-lg space-y-8">
             <div className="flex items-center gap-3">
               <BrandLogo />
@@ -374,7 +374,7 @@ function EntrarPage() {
               </span>
             </div>
           </div>
-          <img src={miaLateral.url} alt="MIA, sua assistente financeira" width={641} height={1920} decoding="async" fetchPriority="high" className="ln-breathe pointer-events-none h-[min(62vh,640px)] w-auto max-w-none object-contain drop-shadow-2xl" />
+          <img src={miaLateral.url} alt="MIA, sua assistente financeira" width={641} height={1920} decoding="async" fetchPriority="high" className="ln-breathe pointer-events-none absolute -bottom-2 right-0 h-[600px] xl:h-[720px] w-auto max-w-none object-contain drop-shadow-2xl" />
           </div>
           <div className="text-[12px] text-muted-foreground">
             © {new Date().getFullYear()} {branding.name}. Todos os direitos reservados.
