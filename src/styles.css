@@ -785,3 +785,30 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ln-marquee, .ln-blob, .ln-aura, .ln-floaty, .ln-wave > span { animation: none !important; }
 }
+:root {
+  --wa-bg: oklch(0.2 0.02 230);
+  --wa-head: oklch(0.26 0.02 230);
+  --wa-in: oklch(0.29 0.02 230);
+  --wa-out: oklch(0.42 0.08 170);
+  --wa-accent: oklch(0.72 0.17 155);
+}
+@theme inline {
+  --color-wa-bg: var(--wa-bg);
+  --color-wa-head: var(--wa-head);
+  --color-wa-in: var(--wa-in);
+  --color-wa-out: var(--wa-out);
+  --color-wa-accent: var(--wa-accent);
+}
+.wa-wallpaper {
+  background-color: var(--wa-bg);
+  background-image: radial-gradient(color-mix(in oklab, white 6%, transparent) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+.ln-aurora {
+  background:
+    radial-gradient(40% 50% at 20% 20%, color-mix(in oklab, var(--ln-violet) 55%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 85% 30%, color-mix(in oklab, var(--ln-magenta) 45%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 60% 90%, color-mix(in oklab, var(--ln-lime) 18%, transparent), transparent 70%);
+  filter: blur(40px);
+  animation: ln-blob 18s ease-in-out infinite;
+}

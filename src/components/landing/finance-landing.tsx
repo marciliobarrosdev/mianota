@@ -20,10 +20,9 @@ import {
   Target,
   WalletCards,
   X,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
-import fallbackAvatarUrl from "@/assets/marcia-avatar-640.png";
+import miaFace from "@/assets/mia-face.jpg";
 import {
   brand,
   legalProfile,
@@ -33,7 +32,9 @@ import {
   supportWhatsappUrl,
 } from "@/config/brand";
 import type { PublicPlan } from "@/lib/billing/public-plan-rules";
-import { LandingPhone } from "./landing-phone";
+import { LandingHero } from "./landing-hero";
+import { LandingDashboard } from "./landing-dashboard";
+import { LandingMia } from "./landing-mia";
 
 export type FinancePlan = PublicPlan;
 
@@ -79,13 +80,6 @@ const STEPS: Array<{ icon: LucideIcon; title: string; text: string; example: str
   { icon: Target, title: "Você decide", text: "Pergunte o que quiser e receba a resposta com base no seu mês.", example: "“Ainda posso gastar com lazer?”" },
 ];
 
-const UNDERSTANDS: Array<{ icon: LucideIcon; title: string; text: string }> = [
-  { icon: MessageCircle, title: "Texto", text: "Escreva do seu jeito, sem formulário." },
-  { icon: Mic, title: "Áudio", text: "Fale e a MIA transcreve e registra." },
-  { icon: Camera, title: "Foto de nota", text: "Envie o comprovante e ela lê os dados." },
-  { icon: FileText, title: "PDF", text: "Boletos e extratos viram lançamentos." },
-];
-
 const FEATURES: Array<{ icon: LucideIcon; title: string; text: string; wide?: boolean }> = [
   { icon: BarChart3, title: "Visão do mês", text: "Saldo, entradas, saídas e sobra prevista num só olhar, com comparação ao mês anterior.", wide: true },
   { icon: CalendarDays, title: "Planejamento", text: "Contas a pagar e a receber em ordem." },
@@ -120,8 +114,8 @@ export function FinanceLanding({
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLElement>(null);
-  const avatar = avatarUrl || fallbackAvatarUrl;
+    void avatarUrl;
+  const avatar = miaFace;
   const p = (v: string) => personalizeAssistantText(v, assistantName);
 
   const orderedPlans = useMemo(
@@ -167,14 +161,6 @@ export function FinanceLanding({
     targets.forEach((t) => obs.observe(t));
     return () => obs.disconnect();
   }, []);
-
-  const onHeroMove = (e: React.PointerEvent<HTMLElement>) => {
-    const el = heroRef.current;
-    if (!el || e.pointerType !== "mouse") return;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    el.style.setProperty("--my", `${e.clientY - r.top}px`);
-  };
 
   const navLinks = [
     ["#como-funciona", "Como funciona"],
@@ -234,40 +220,7 @@ export function FinanceLanding({
       )}
 
       <main>
-        {/* Abertura */}
-        <section id="inicio" ref={heroRef} onPointerMove={onHeroMove} className="relative overflow-hidden px-5 pb-16 pt-28 sm:pt-32 lg:pb-24">
-          <div className="ln-grid-bg pointer-events-none absolute inset-0" />
-          <div className="ln-spotlight pointer-events-none absolute inset-0" />
-          <div className="ln-blob pointer-events-none absolute -right-32 top-10 size-96 rounded-full bg-ln-magenta/30 blur-3xl" />
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_.9fr]">
-            <div className="cl-hero-copy text-center lg:text-left">
-              <div className="ln-glass mx-auto inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold lg:mx-0">
-                <img src={avatar} alt="" className="size-5 rounded-full object-cover" />
-                Conheça a {assistantName}, sua assistente com IA
-              </div>
-              <h1 className="mt-6 font-sora text-[clamp(2.6rem,9vw,5rem)] font-extrabold leading-[0.98] tracking-[-0.045em]">
-                Fale. <span className="ln-gradient-text">A {assistantName} anota.</span>
-                <span className="block text-ln-muted">Seu dinheiro faz sentido.</span>
-              </h1>
-              <p className="mx-auto mt-6 max-w-lg text-base leading-7 text-ln-muted sm:text-lg lg:mx-0">
-                {SLOGAN} Mande um áudio, uma foto ou uma mensagem — o {brandName} organiza gastos, contas e metas para você.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-                <a href={trialHref} className="group inline-flex h-14 items-center justify-center gap-2 rounded-2xl ln-gradient px-7 text-base font-bold ln-glow transition hover:-translate-y-0.5">
-                  Começar grátis <ArrowRight className="size-4 transition group-hover:translate-x-1" />
-                </a>
-                <a href="#como-funciona" className="inline-flex h-14 items-center justify-center rounded-2xl ln-glass px-7 text-base font-semibold transition hover:bg-ln-surface">
-                  Ver como funciona
-                </a>
-              </div>
-              <div className="mt-7 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-ln-muted lg:justify-start">
-                <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> Sem cartão no plano grátis</span>
-                <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> Funciona no WhatsApp</span>
-              </div>
-            </div>
-            <LandingPhone assistantName={assistantName} avatar={avatar} />
-          </div>
-        </section>
+        <LandingHero assistantName={assistantName} brandName={brandName} slogan={SLOGAN} face={avatar} trialHref={trialHref} />
 
         {/* Faixa */}
         <div className="overflow-hidden border-y border-ln-line py-4">
@@ -297,49 +250,12 @@ export function FinanceLanding({
 
         {/* Conheça a MIA */}
         <Section id="mia" eyebrow={`Conheça a ${assistantName}`} title="Ela entende do seu jeito.">
-          <div className="mt-10 grid items-center gap-10 lg:grid-cols-[.8fr_1.2fr]">
-            <div data-reveal className="relative mx-auto">
-              <span className="ln-aura absolute -inset-6 rounded-full ln-gradient opacity-50 blur-2xl" />
-              <img src={avatar} alt={assistantName} className="relative size-56 rounded-full border-4 border-ln-line object-cover sm:size-72" />
-              <div className="ln-floaty ln-glass absolute -bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-semibold">
-                <Zap className="size-4 text-ln-lime" /> Responde em segundos
-              </div>
-            </div>
-            <div data-stagger className="grid grid-cols-2 gap-3 sm:gap-4">
-              {UNDERSTANDS.map(({ icon: Icon, title, text }) => (
-                <article key={title} className="rounded-3xl ln-glass p-5 transition hover:border-ln-magenta/50">
-                  <Icon className="ln-floaty size-7 text-ln-magenta" />
-                  <h3 className="mt-4 font-sora text-base font-bold">{title}</h3>
-                  <p className="mt-1 text-[13px] leading-5 text-ln-muted">{text}</p>
-                </article>
-              ))}
-            </div>
-          </div>
+          <LandingMia assistantName={assistantName} />
         </Section>
 
         {/* Painel */}
-        <Section id="por-dentro" eyebrow="Por dentro do painel" title="O mês inteiro, num só olhar.">
-          <div data-reveal className="mt-10 rounded-[32px] ln-glass p-4 sm:p-7 ln-glow">
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {[
-                ["Saldo do período", "R$ 2.418,60", "text-ln-ink"],
-                ["Entrou", "R$ 5.200,00", "text-ln-lime"],
-                ["Saiu", "R$ 2.781,40", "text-ln-magenta"],
-                ["Sobra prevista", "R$ 1.136,20", "text-ln-ink"],
-              ].map(([label, value, color]) => (
-                <div key={label} className="rounded-2xl border border-ln-line bg-ln-bg/60 p-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-ln-muted">{label}</div>
-                  <div className={`mt-2 font-sora text-lg font-bold sm:text-2xl ${color}`}>{value}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 flex h-40 items-end gap-2 rounded-2xl border border-ln-line bg-ln-bg/60 p-4 sm:h-52">
-              {[40, 62, 48, 75, 55, 88, 66, 92, 58, 80, 70, 96].map((h, i) => (
-                <div key={i} className="ln-bar flex-1 rounded-t-lg ln-gradient" style={{ height: `${h}%`, transitionDelay: `${i * 60}ms` }} />
-              ))}
-            </div>
-            <p className="mt-3 text-center text-[11px] text-ln-muted">Ilustração com valores de exemplo.</p>
-          </div>
+        <Section id="por-dentro" eyebrow="Por dentro do painel" title="A sua Visão do mês, pronta.">
+          <LandingDashboard />
         </Section>
 
         {/* Recursos */}
