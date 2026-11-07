@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as DemoRouteImport } from './routes/demo'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as MasterRouteImport } from './routes/master'
@@ -51,30 +50,6 @@ import { Route as AppRecorrenciasRouteImport } from './routes/app/recorrencias'
 import { Route as AppRelatoriosRouteImport } from './routes/app/relatorios'
 import { Route as AppSucessoRouteImport } from './routes/app/sucesso'
 import { Route as CsatTokenRouteImport } from './routes/csat.$token'
-import { Route as DemoIndexRouteImport } from './routes/demo/index'
-import { Route as DemoAgendaRouteImport } from './routes/demo/agenda'
-import { Route as DemoCalendarioRouteImport } from './routes/demo/calendario'
-import { Route as DemoCartoesRouteImport } from './routes/demo/cartoes'
-import { Route as DemoClientesRouteImport } from './routes/demo/clientes'
-import { Route as DemoConexoesRouteImport } from './routes/demo/conexoes'
-import { Route as DemoConfiguracoesRouteImport } from './routes/demo/configuracoes'
-import { Route as DemoContasRouteImport } from './routes/demo/contas'
-import { Route as DemoConversasRouteImport } from './routes/demo/conversas'
-import { Route as DemoDashboardRouteImport } from './routes/demo/dashboard'
-import { Route as DemoEquipeRouteImport } from './routes/demo/equipe'
-import { Route as DemoIaRouteImport } from './routes/demo/ia'
-import { Route as DemoIntegracoesRouteImport } from './routes/demo/integracoes'
-import { Route as DemoMarciaRouteImport } from './routes/demo/marcia'
-import { Route as DemoMetasRouteImport } from './routes/demo/metas'
-import { Route as DemoMovimentacoesRouteImport } from './routes/demo/movimentacoes'
-import { Route as DemoNotificacoesRouteImport } from './routes/demo/notificacoes'
-import { Route as DemoOrcamentosRouteImport } from './routes/demo/orcamentos'
-import { Route as DemoOrdensRouteImport } from './routes/demo/ordens'
-import { Route as DemoPlanejamentoRouteImport } from './routes/demo/planejamento'
-import { Route as DemoRecorrenciasRouteImport } from './routes/demo/recorrencias'
-import { Route as DemoRelatoriosRouteImport } from './routes/demo/relatorios'
-import { Route as DemoServicosRouteImport } from './routes/demo/servicos'
-import { Route as DemoWhatsappRouteImport } from './routes/demo/whatsapp'
 import { Route as MasterIndexRouteImport } from './routes/master/index'
 import { Route as MasterAssinantesRouteImport } from './routes/master/assinantes'
 import { Route as MasterAssinaturasRouteImport } from './routes/master/assinaturas'
@@ -114,11 +89,6 @@ const IndexRoute = IndexRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -317,126 +287,6 @@ const CsatTokenRoute = CsatTokenRouteImport.update({
   path: '/csat/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoIndexRoute = DemoIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoAgendaRoute = DemoAgendaRouteImport.update({
-  id: '/agenda',
-  path: '/agenda',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoCalendarioRoute = DemoCalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoCartoesRoute = DemoCartoesRouteImport.update({
-  id: '/cartoes',
-  path: '/cartoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoClientesRoute = DemoClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoConexoesRoute = DemoConexoesRouteImport.update({
-  id: '/conexoes',
-  path: '/conexoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoConfiguracoesRoute = DemoConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoContasRoute = DemoContasRouteImport.update({
-  id: '/contas',
-  path: '/contas',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoConversasRoute = DemoConversasRouteImport.update({
-  id: '/conversas',
-  path: '/conversas',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoDashboardRoute = DemoDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoEquipeRoute = DemoEquipeRouteImport.update({
-  id: '/equipe',
-  path: '/equipe',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoIaRoute = DemoIaRouteImport.update({
-  id: '/ia',
-  path: '/ia',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoIntegracoesRoute = DemoIntegracoesRouteImport.update({
-  id: '/integracoes',
-  path: '/integracoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMarciaRoute = DemoMarciaRouteImport.update({
-  id: '/marcia',
-  path: '/marcia',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMetasRoute = DemoMetasRouteImport.update({
-  id: '/metas',
-  path: '/metas',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMovimentacoesRoute = DemoMovimentacoesRouteImport.update({
-  id: '/movimentacoes',
-  path: '/movimentacoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoNotificacoesRoute = DemoNotificacoesRouteImport.update({
-  id: '/notificacoes',
-  path: '/notificacoes',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoOrcamentosRoute = DemoOrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoOrdensRoute = DemoOrdensRouteImport.update({
-  id: '/ordens',
-  path: '/ordens',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoPlanejamentoRoute = DemoPlanejamentoRouteImport.update({
-  id: '/planejamento',
-  path: '/planejamento',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoRecorrenciasRoute = DemoRecorrenciasRouteImport.update({
-  id: '/recorrencias',
-  path: '/recorrencias',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoRelatoriosRoute = DemoRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoServicosRoute = DemoServicosRouteImport.update({
-  id: '/servicos',
-  path: '/servicos',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoWhatsappRoute = DemoWhatsappRouteImport.update({
-  id: '/whatsapp',
-  path: '/whatsapp',
-  getParentRoute: () => DemoRoute,
-} as any)
 const MasterIndexRoute = MasterIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -594,7 +444,6 @@ const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/demo': typeof DemoRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/master': typeof MasterRouteWithChildren
@@ -633,29 +482,6 @@ export interface FileRoutesByFullPath {
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/sucesso': typeof AppSucessoRoute
   '/csat/$token': typeof CsatTokenRoute
-  '/demo/agenda': typeof DemoAgendaRoute
-  '/demo/calendario': typeof DemoCalendarioRoute
-  '/demo/cartoes': typeof DemoCartoesRoute
-  '/demo/clientes': typeof DemoClientesRoute
-  '/demo/conexoes': typeof DemoConexoesRoute
-  '/demo/configuracoes': typeof DemoConfiguracoesRoute
-  '/demo/contas': typeof DemoContasRoute
-  '/demo/conversas': typeof DemoConversasRoute
-  '/demo/dashboard': typeof DemoDashboardRoute
-  '/demo/equipe': typeof DemoEquipeRoute
-  '/demo/ia': typeof DemoIaRoute
-  '/demo/integracoes': typeof DemoIntegracoesRoute
-  '/demo/marcia': typeof DemoMarciaRoute
-  '/demo/metas': typeof DemoMetasRoute
-  '/demo/movimentacoes': typeof DemoMovimentacoesRoute
-  '/demo/notificacoes': typeof DemoNotificacoesRoute
-  '/demo/orcamentos': typeof DemoOrcamentosRoute
-  '/demo/ordens': typeof DemoOrdensRoute
-  '/demo/planejamento': typeof DemoPlanejamentoRoute
-  '/demo/recorrencias': typeof DemoRecorrenciasRoute
-  '/demo/relatorios': typeof DemoRelatoriosRoute
-  '/demo/servicos': typeof DemoServicosRoute
-  '/demo/whatsapp': typeof DemoWhatsappRoute
   '/master/assinantes': typeof MasterAssinantesRoute
   '/master/assinaturas': typeof MasterAssinaturasRoute
   '/master/checklist': typeof MasterChecklistRoute
@@ -676,7 +502,6 @@ export interface FileRoutesByFullPath {
   '/master/whatsapp-meta': typeof MasterWhatsappMetaRoute
   '/master/whatsapp-qr': typeof MasterWhatsappQrRoute
   '/app/': typeof AppIndexRoute
-  '/demo/': typeof DemoIndexRoute
   '/master/': typeof MasterIndexRoute
   '/api/public/brand-asset': typeof ApiPublicBrandAssetRoute
   '/api/public/google-callback': typeof ApiPublicGoogleCallbackRoute
@@ -728,29 +553,6 @@ export interface FileRoutesByTo {
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/sucesso': typeof AppSucessoRoute
   '/csat/$token': typeof CsatTokenRoute
-  '/demo/agenda': typeof DemoAgendaRoute
-  '/demo/calendario': typeof DemoCalendarioRoute
-  '/demo/cartoes': typeof DemoCartoesRoute
-  '/demo/clientes': typeof DemoClientesRoute
-  '/demo/conexoes': typeof DemoConexoesRoute
-  '/demo/configuracoes': typeof DemoConfiguracoesRoute
-  '/demo/contas': typeof DemoContasRoute
-  '/demo/conversas': typeof DemoConversasRoute
-  '/demo/dashboard': typeof DemoDashboardRoute
-  '/demo/equipe': typeof DemoEquipeRoute
-  '/demo/ia': typeof DemoIaRoute
-  '/demo/integracoes': typeof DemoIntegracoesRoute
-  '/demo/marcia': typeof DemoMarciaRoute
-  '/demo/metas': typeof DemoMetasRoute
-  '/demo/movimentacoes': typeof DemoMovimentacoesRoute
-  '/demo/notificacoes': typeof DemoNotificacoesRoute
-  '/demo/orcamentos': typeof DemoOrcamentosRoute
-  '/demo/ordens': typeof DemoOrdensRoute
-  '/demo/planejamento': typeof DemoPlanejamentoRoute
-  '/demo/recorrencias': typeof DemoRecorrenciasRoute
-  '/demo/relatorios': typeof DemoRelatoriosRoute
-  '/demo/servicos': typeof DemoServicosRoute
-  '/demo/whatsapp': typeof DemoWhatsappRoute
   '/master/assinantes': typeof MasterAssinantesRoute
   '/master/assinaturas': typeof MasterAssinaturasRoute
   '/master/checklist': typeof MasterChecklistRoute
@@ -771,7 +573,6 @@ export interface FileRoutesByTo {
   '/master/whatsapp-meta': typeof MasterWhatsappMetaRoute
   '/master/whatsapp-qr': typeof MasterWhatsappQrRoute
   '/app': typeof AppIndexRoute
-  '/demo': typeof DemoIndexRoute
   '/master': typeof MasterIndexRoute
   '/api/public/brand-asset': typeof ApiPublicBrandAssetRoute
   '/api/public/google-callback': typeof ApiPublicGoogleCallbackRoute
@@ -788,7 +589,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/demo': typeof DemoRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/master': typeof MasterRouteWithChildren
@@ -827,29 +627,6 @@ export interface FileRoutesById {
   '/app/relatorios': typeof AppRelatoriosRoute
   '/app/sucesso': typeof AppSucessoRoute
   '/csat/$token': typeof CsatTokenRoute
-  '/demo/agenda': typeof DemoAgendaRoute
-  '/demo/calendario': typeof DemoCalendarioRoute
-  '/demo/cartoes': typeof DemoCartoesRoute
-  '/demo/clientes': typeof DemoClientesRoute
-  '/demo/conexoes': typeof DemoConexoesRoute
-  '/demo/configuracoes': typeof DemoConfiguracoesRoute
-  '/demo/contas': typeof DemoContasRoute
-  '/demo/conversas': typeof DemoConversasRoute
-  '/demo/dashboard': typeof DemoDashboardRoute
-  '/demo/equipe': typeof DemoEquipeRoute
-  '/demo/ia': typeof DemoIaRoute
-  '/demo/integracoes': typeof DemoIntegracoesRoute
-  '/demo/marcia': typeof DemoMarciaRoute
-  '/demo/metas': typeof DemoMetasRoute
-  '/demo/movimentacoes': typeof DemoMovimentacoesRoute
-  '/demo/notificacoes': typeof DemoNotificacoesRoute
-  '/demo/orcamentos': typeof DemoOrcamentosRoute
-  '/demo/ordens': typeof DemoOrdensRoute
-  '/demo/planejamento': typeof DemoPlanejamentoRoute
-  '/demo/recorrencias': typeof DemoRecorrenciasRoute
-  '/demo/relatorios': typeof DemoRelatoriosRoute
-  '/demo/servicos': typeof DemoServicosRoute
-  '/demo/whatsapp': typeof DemoWhatsappRoute
   '/master/assinantes': typeof MasterAssinantesRoute
   '/master/assinaturas': typeof MasterAssinaturasRoute
   '/master/checklist': typeof MasterChecklistRoute
@@ -870,7 +647,6 @@ export interface FileRoutesById {
   '/master/whatsapp-meta': typeof MasterWhatsappMetaRoute
   '/master/whatsapp-qr': typeof MasterWhatsappQrRoute
   '/app/': typeof AppIndexRoute
-  '/demo/': typeof DemoIndexRoute
   '/master/': typeof MasterIndexRoute
   '/api/public/brand-asset': typeof ApiPublicBrandAssetRoute
   '/api/public/google-callback': typeof ApiPublicGoogleCallbackRoute
@@ -888,7 +664,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
-    | '/demo'
     | '/entrar'
     | '/esqueci-senha'
     | '/master'
@@ -927,29 +702,6 @@ export interface FileRouteTypes {
     | '/app/relatorios'
     | '/app/sucesso'
     | '/csat/$token'
-    | '/demo/agenda'
-    | '/demo/calendario'
-    | '/demo/cartoes'
-    | '/demo/clientes'
-    | '/demo/conexoes'
-    | '/demo/configuracoes'
-    | '/demo/contas'
-    | '/demo/conversas'
-    | '/demo/dashboard'
-    | '/demo/equipe'
-    | '/demo/ia'
-    | '/demo/integracoes'
-    | '/demo/marcia'
-    | '/demo/metas'
-    | '/demo/movimentacoes'
-    | '/demo/notificacoes'
-    | '/demo/orcamentos'
-    | '/demo/ordens'
-    | '/demo/planejamento'
-    | '/demo/recorrencias'
-    | '/demo/relatorios'
-    | '/demo/servicos'
-    | '/demo/whatsapp'
     | '/master/assinantes'
     | '/master/assinaturas'
     | '/master/checklist'
@@ -970,7 +722,6 @@ export interface FileRouteTypes {
     | '/master/whatsapp-meta'
     | '/master/whatsapp-qr'
     | '/app/'
-    | '/demo/'
     | '/master/'
     | '/api/public/brand-asset'
     | '/api/public/google-callback'
@@ -1022,29 +773,6 @@ export interface FileRouteTypes {
     | '/app/relatorios'
     | '/app/sucesso'
     | '/csat/$token'
-    | '/demo/agenda'
-    | '/demo/calendario'
-    | '/demo/cartoes'
-    | '/demo/clientes'
-    | '/demo/conexoes'
-    | '/demo/configuracoes'
-    | '/demo/contas'
-    | '/demo/conversas'
-    | '/demo/dashboard'
-    | '/demo/equipe'
-    | '/demo/ia'
-    | '/demo/integracoes'
-    | '/demo/marcia'
-    | '/demo/metas'
-    | '/demo/movimentacoes'
-    | '/demo/notificacoes'
-    | '/demo/orcamentos'
-    | '/demo/ordens'
-    | '/demo/planejamento'
-    | '/demo/recorrencias'
-    | '/demo/relatorios'
-    | '/demo/servicos'
-    | '/demo/whatsapp'
     | '/master/assinantes'
     | '/master/assinaturas'
     | '/master/checklist'
@@ -1065,7 +793,6 @@ export interface FileRouteTypes {
     | '/master/whatsapp-meta'
     | '/master/whatsapp-qr'
     | '/app'
-    | '/demo'
     | '/master'
     | '/api/public/brand-asset'
     | '/api/public/google-callback'
@@ -1081,7 +808,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
-    | '/demo'
     | '/entrar'
     | '/esqueci-senha'
     | '/master'
@@ -1120,29 +846,6 @@ export interface FileRouteTypes {
     | '/app/relatorios'
     | '/app/sucesso'
     | '/csat/$token'
-    | '/demo/agenda'
-    | '/demo/calendario'
-    | '/demo/cartoes'
-    | '/demo/clientes'
-    | '/demo/conexoes'
-    | '/demo/configuracoes'
-    | '/demo/contas'
-    | '/demo/conversas'
-    | '/demo/dashboard'
-    | '/demo/equipe'
-    | '/demo/ia'
-    | '/demo/integracoes'
-    | '/demo/marcia'
-    | '/demo/metas'
-    | '/demo/movimentacoes'
-    | '/demo/notificacoes'
-    | '/demo/orcamentos'
-    | '/demo/ordens'
-    | '/demo/planejamento'
-    | '/demo/recorrencias'
-    | '/demo/relatorios'
-    | '/demo/servicos'
-    | '/demo/whatsapp'
     | '/master/assinantes'
     | '/master/assinaturas'
     | '/master/checklist'
@@ -1163,7 +866,6 @@ export interface FileRouteTypes {
     | '/master/whatsapp-meta'
     | '/master/whatsapp-qr'
     | '/app/'
-    | '/demo/'
     | '/master/'
     | '/api/public/brand-asset'
     | '/api/public/google-callback'
@@ -1180,7 +882,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  DemoRoute: typeof DemoRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   EsqueciSenhaRoute: typeof EsqueciSenhaRoute
   MasterRoute: typeof MasterRouteWithChildren
@@ -1217,13 +918,6 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -1498,174 +1192,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/csat/$token'
       preLoaderRoute: typeof CsatTokenRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/demo/': {
-      id: '/demo/'
-      path: '/'
-      fullPath: '/demo/'
-      preLoaderRoute: typeof DemoIndexRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/agenda': {
-      id: '/demo/agenda'
-      path: '/agenda'
-      fullPath: '/demo/agenda'
-      preLoaderRoute: typeof DemoAgendaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/calendario': {
-      id: '/demo/calendario'
-      path: '/calendario'
-      fullPath: '/demo/calendario'
-      preLoaderRoute: typeof DemoCalendarioRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/cartoes': {
-      id: '/demo/cartoes'
-      path: '/cartoes'
-      fullPath: '/demo/cartoes'
-      preLoaderRoute: typeof DemoCartoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/clientes': {
-      id: '/demo/clientes'
-      path: '/clientes'
-      fullPath: '/demo/clientes'
-      preLoaderRoute: typeof DemoClientesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/conexoes': {
-      id: '/demo/conexoes'
-      path: '/conexoes'
-      fullPath: '/demo/conexoes'
-      preLoaderRoute: typeof DemoConexoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/configuracoes': {
-      id: '/demo/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/demo/configuracoes'
-      preLoaderRoute: typeof DemoConfiguracoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/contas': {
-      id: '/demo/contas'
-      path: '/contas'
-      fullPath: '/demo/contas'
-      preLoaderRoute: typeof DemoContasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/conversas': {
-      id: '/demo/conversas'
-      path: '/conversas'
-      fullPath: '/demo/conversas'
-      preLoaderRoute: typeof DemoConversasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/dashboard': {
-      id: '/demo/dashboard'
-      path: '/dashboard'
-      fullPath: '/demo/dashboard'
-      preLoaderRoute: typeof DemoDashboardRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/equipe': {
-      id: '/demo/equipe'
-      path: '/equipe'
-      fullPath: '/demo/equipe'
-      preLoaderRoute: typeof DemoEquipeRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/ia': {
-      id: '/demo/ia'
-      path: '/ia'
-      fullPath: '/demo/ia'
-      preLoaderRoute: typeof DemoIaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/integracoes': {
-      id: '/demo/integracoes'
-      path: '/integracoes'
-      fullPath: '/demo/integracoes'
-      preLoaderRoute: typeof DemoIntegracoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/marcia': {
-      id: '/demo/marcia'
-      path: '/marcia'
-      fullPath: '/demo/marcia'
-      preLoaderRoute: typeof DemoMarciaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/metas': {
-      id: '/demo/metas'
-      path: '/metas'
-      fullPath: '/demo/metas'
-      preLoaderRoute: typeof DemoMetasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/movimentacoes': {
-      id: '/demo/movimentacoes'
-      path: '/movimentacoes'
-      fullPath: '/demo/movimentacoes'
-      preLoaderRoute: typeof DemoMovimentacoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/notificacoes': {
-      id: '/demo/notificacoes'
-      path: '/notificacoes'
-      fullPath: '/demo/notificacoes'
-      preLoaderRoute: typeof DemoNotificacoesRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/orcamentos': {
-      id: '/demo/orcamentos'
-      path: '/orcamentos'
-      fullPath: '/demo/orcamentos'
-      preLoaderRoute: typeof DemoOrcamentosRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/ordens': {
-      id: '/demo/ordens'
-      path: '/ordens'
-      fullPath: '/demo/ordens'
-      preLoaderRoute: typeof DemoOrdensRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/planejamento': {
-      id: '/demo/planejamento'
-      path: '/planejamento'
-      fullPath: '/demo/planejamento'
-      preLoaderRoute: typeof DemoPlanejamentoRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/recorrencias': {
-      id: '/demo/recorrencias'
-      path: '/recorrencias'
-      fullPath: '/demo/recorrencias'
-      preLoaderRoute: typeof DemoRecorrenciasRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/relatorios': {
-      id: '/demo/relatorios'
-      path: '/relatorios'
-      fullPath: '/demo/relatorios'
-      preLoaderRoute: typeof DemoRelatoriosRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/servicos': {
-      id: '/demo/servicos'
-      path: '/servicos'
-      fullPath: '/demo/servicos'
-      preLoaderRoute: typeof DemoServicosRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/whatsapp': {
-      id: '/demo/whatsapp'
-      path: '/whatsapp'
-      fullPath: '/demo/whatsapp'
-      preLoaderRoute: typeof DemoWhatsappRouteImport
-      parentRoute: typeof DemoRoute
     }
     '/master/': {
       id: '/master/'
@@ -1956,62 +1482,6 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
-interface DemoRouteChildren {
-  DemoAgendaRoute: typeof DemoAgendaRoute
-  DemoCalendarioRoute: typeof DemoCalendarioRoute
-  DemoCartoesRoute: typeof DemoCartoesRoute
-  DemoClientesRoute: typeof DemoClientesRoute
-  DemoConexoesRoute: typeof DemoConexoesRoute
-  DemoConfiguracoesRoute: typeof DemoConfiguracoesRoute
-  DemoContasRoute: typeof DemoContasRoute
-  DemoConversasRoute: typeof DemoConversasRoute
-  DemoDashboardRoute: typeof DemoDashboardRoute
-  DemoEquipeRoute: typeof DemoEquipeRoute
-  DemoIaRoute: typeof DemoIaRoute
-  DemoIntegracoesRoute: typeof DemoIntegracoesRoute
-  DemoMarciaRoute: typeof DemoMarciaRoute
-  DemoMetasRoute: typeof DemoMetasRoute
-  DemoMovimentacoesRoute: typeof DemoMovimentacoesRoute
-  DemoNotificacoesRoute: typeof DemoNotificacoesRoute
-  DemoOrcamentosRoute: typeof DemoOrcamentosRoute
-  DemoOrdensRoute: typeof DemoOrdensRoute
-  DemoPlanejamentoRoute: typeof DemoPlanejamentoRoute
-  DemoRecorrenciasRoute: typeof DemoRecorrenciasRoute
-  DemoRelatoriosRoute: typeof DemoRelatoriosRoute
-  DemoServicosRoute: typeof DemoServicosRoute
-  DemoWhatsappRoute: typeof DemoWhatsappRoute
-  DemoIndexRoute: typeof DemoIndexRoute
-}
-
-const DemoRouteChildren: DemoRouteChildren = {
-  DemoAgendaRoute: DemoAgendaRoute,
-  DemoCalendarioRoute: DemoCalendarioRoute,
-  DemoCartoesRoute: DemoCartoesRoute,
-  DemoClientesRoute: DemoClientesRoute,
-  DemoConexoesRoute: DemoConexoesRoute,
-  DemoConfiguracoesRoute: DemoConfiguracoesRoute,
-  DemoContasRoute: DemoContasRoute,
-  DemoConversasRoute: DemoConversasRoute,
-  DemoDashboardRoute: DemoDashboardRoute,
-  DemoEquipeRoute: DemoEquipeRoute,
-  DemoIaRoute: DemoIaRoute,
-  DemoIntegracoesRoute: DemoIntegracoesRoute,
-  DemoMarciaRoute: DemoMarciaRoute,
-  DemoMetasRoute: DemoMetasRoute,
-  DemoMovimentacoesRoute: DemoMovimentacoesRoute,
-  DemoNotificacoesRoute: DemoNotificacoesRoute,
-  DemoOrcamentosRoute: DemoOrcamentosRoute,
-  DemoOrdensRoute: DemoOrdensRoute,
-  DemoPlanejamentoRoute: DemoPlanejamentoRoute,
-  DemoRecorrenciasRoute: DemoRecorrenciasRoute,
-  DemoRelatoriosRoute: DemoRelatoriosRoute,
-  DemoServicosRoute: DemoServicosRoute,
-  DemoWhatsappRoute: DemoWhatsappRoute,
-  DemoIndexRoute: DemoIndexRoute,
-}
-
-const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
-
 interface MasterRouteChildren {
   MasterAssinantesRoute: typeof MasterAssinantesRoute
   MasterAssinaturasRoute: typeof MasterAssinaturasRoute
@@ -2064,7 +1534,6 @@ const MasterRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  DemoRoute: DemoRouteWithChildren,
   EntrarRoute: EntrarRoute,
   EsqueciSenhaRoute: EsqueciSenhaRoute,
   MasterRoute: MasterRouteWithChildren,

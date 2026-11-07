@@ -1,62 +1,25 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { useEffect, useMemo, useState } from "react";
-import { FinanceLanding, type FinancePlan } from "@/components/landing/finance-landing";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { FinanceLanding } from "@/components/landing/finance-landing";
 import { useBrand } from "@/contexts/brand-context";
-import { personalizeAssistantText } from "@/config/brand";
+import { brandedRouteHead } from "@/config/brand";
+import { publicPlansQuery } from "@/lib/billing/public-plans-query";
 import { CHOOSE_PLAN_MESSAGE } from "@/lib/billing/plan-selection";
 
 export const Route = createFileRoute("/")({
   // ?escolher=plano chega quando alguém tenta se cadastrar sem um plano válido.
   validateSearch: (s: Record<string, unknown>): { escolher?: string } =>
     typeof s.escolher === "string" ? { escolher: s.escolher } : {},
-  head: () => ({
-    meta: [
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: brandedRouteHead("Sua assistente financeira", "Conheça a MIAnota e escolha um plano para organizar suas finanças com a MIA."),
+  loader: ({ context }) => context.queryClient.ensureQueryData(publicPlansQuery()),
   component: LandingRoute,
 });
 
-const FALLBACK_PLANS: FinancePlan[] = [
-  {
-    slug: "starter",
-    name: "Basic",
-    price: "29,90",
-    description: "O essencial para cuidar do dinheiro sem planilha.",
-    features: [
-      "Dashboard financeiro",
-      "Lançamentos por texto e voz",
-      "Contas e cartões",
-      "Calendário e lembretes",
-      "Aplicativo instalável",
-      "Orçamentos básicos",
-    ],
-    trialDays: 3,
-  },
-  {
-    slug: "pro",
-    name: "Pro",
-    price: "49,90",
-    description: "Para automatizar a rotina e conversar com seu financeiro.",
-    features: [
-      "Tudo do Basic",
-      "WhatsApp financeiro",
-      "Metas e recorrências",
-      "Mais comandos com IA",
-      "Relatórios inteligentes",
-      "Lembretes avançados",
-    ],
-    trialDays: 3,
-    featured: true,
-  },
-];
-
 function LandingRoute() {
   const branding = useBrand();
-  const [plans, setPlans] = useState<FinancePlan[]>(FALLBACK_PLANS);
+  const { data: catalog } = useSuspenseQuery(publicPlansQuery());
   const { escolher } = Route.useSearch();
   const navigate = useNavigate();
 
@@ -65,77 +28,10 @@ function LandingRoute() {
     toast.message(CHOOSE_PLAN_MESSAGE, { id: "choose-plan" });
     void navigate({ to: "/", hash: "planos", search: {}, replace: true });
   }, [escolher, navigate]);
-  const brandedPlans = useMemo(
-    () =>
-      plans.map((plan) => ({
-        ...plan,
-        features: plan.features.map((feature) =>
-          personalizeAssistantText(feature, branding.assistantName),
-        ),
-      })),
-    [branding.assistantName, plans],
-  );
-
-  useEffect(() => {
-    let active = true;
-    const canReadCloud = Boolean(
-      import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-    );
-    if (!canReadCloud)
-      return () => {
-        active = false;
-      };
-
-    void (async () => {
-      try {
-        const { data } = await supabase
-          .from("plan")
-          .select("slug,nome,preco_cents,descricao,features,destaque,trial_days,is_free")
-          .eq("ativo", true)
-          .order("ordem");
-        if (!active || !data?.length) return;
-
-        setPlans(
-          data.map((row) => {
-            const fallback = FALLBACK_PLANS.find((plan) => plan.slug === row.slug);
-            const features = Array.isArray(row.features)
-              ? row.features.filter(
-                  (feature): feature is string =>
-                    typeof feature === "string" && feature.trim().length > 0,
-                )
-              : [];
-
-            return {
-              slug: row.slug,
-              name: row.nome,
-              price: (row.preco_cents / 100).toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }),
-              description:
-                row.descricao?.trim() ||
-                fallback?.description ||
-                "Para entender e organizar sua vida financeira em um só lugar.",
-              features: features.length ? features : fallback?.features || [],
-              trialDays: row.trial_days,
-              featured: row.destaque,
-              free: !!row.is_free,
-            } satisfies FinancePlan;
-          }),
-        );
-      } catch {
-        // A LP continua navegável com os planos padrão enquanto o clone conecta o banco.
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
   return (
     <FinanceLanding
-      plans={brandedPlans}
+      plans={catalog.plans}
+      plansUnavailable={catalog.unavailable}
       brandName={branding.name}
       assistantName={branding.assistantName}
       tagline={branding.tagline}

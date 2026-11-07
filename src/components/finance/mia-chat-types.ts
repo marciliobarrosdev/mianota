@@ -1,6 +1,5 @@
 // Contrato entre a tela de chat da MIA e quem executa os pedidos.
-// O painel usa o fluxo real (interpretar → perguntar → confirmar → registrar);
-// a demonstração usa um roteiro local com o mesmo contrato.
+// O painel usa o fluxo real (interpretar → perguntar → confirmar → registrar).
 
 export type ChatAttachment = {
   name: string;
@@ -48,8 +47,6 @@ export type MiaChatController = {
   transcribe?: (audioDataUrl: string) => Promise<string>;
   /** Limpa a conversa da tela (não apaga registros). */
   clear?: () => void;
-  /** Texto usado quando o navegador não oferece ditado (demonstração). */
-  voiceFallback?: string;
 };
 
 export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;

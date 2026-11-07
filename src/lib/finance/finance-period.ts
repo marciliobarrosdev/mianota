@@ -1,5 +1,4 @@
-// Regras de período compartilhadas entre o painel do assinante, a demonstração
-// e as funções de servidor. Datas sempre em YYYY-MM-DD (dia civil, sem fuso).
+// Regras de período compartilhadas entre o painel do assinante e as funções de servidor. Datas sempre em YYYY-MM-DD (dia civil, sem fuso).
 
 export type FinancePeriodPreset = "this_month" | "last_month" | "last_30" | "custom";
 

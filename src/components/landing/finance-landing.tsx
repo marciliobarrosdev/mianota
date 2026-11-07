@@ -13,13 +13,11 @@ import {
   Clock,
   CreditCard,
   FileText,
-  Home,
   ListChecks,
   Lock,
   MessageCircle,
   Mic,
   PieChart,
-  Play,
   ReceiptText,
   ShieldCheck,
   Smartphone,
@@ -39,26 +37,18 @@ import {
   supportWhatsappDisplay,
   supportWhatsappUrl,
 } from "@/config/brand";
+import { Button } from "@/components/ui/button";
+import type { PublicPlan } from "@/lib/billing/public-plan-rules";
 
-export type FinancePlan = {
-  slug: string;
-  name: string;
-  price: string;
-  description: string;
-  features: string[];
-  trialDays?: number;
-  featured?: boolean;
-  free?: boolean;
-  badge?: string;
-};
+export type FinancePlan = PublicPlan;
 
 type Props = {
-  plans?: FinancePlan[];
+  plans: FinancePlan[];
+  plansUnavailable?: boolean;
   /** Usado somente nos cards de plano (acrescenta ?plano=slug). */
   signupHref?: string;
   /** CTAs genéricos de teste/cadastro: sem plano escolhido, levam aos planos. */
   plansHref?: string;
-  demoHref?: string;
   loginHref?: string;
   brandName?: string;
   assistantName?: string;
@@ -70,40 +60,6 @@ type Props = {
   contactEmail?: string;
   contactAddress?: string;
 };
-
-const FALLBACK_PLANS: FinancePlan[] = [
-  {
-    slug: "starter",
-    name: "Basic",
-    price: "29,90",
-    description: "O essencial para organizar o mês sem planilha.",
-    features: [
-      "Dashboard financeiro",
-      "Comandos por voz e texto",
-      "Contas e cartões",
-      "Calendário e lembretes",
-      "Orçamentos básicos",
-      "Aplicativo instalável",
-    ],
-    trialDays: 3,
-  },
-  {
-    slug: "pro",
-    name: "Pro",
-    price: "49,90",
-    description: "Para conversar com seu financeiro e automatizar a rotina.",
-    features: [
-      "Tudo do Basic",
-      "WhatsApp financeiro",
-      "Metas e recorrências",
-      "Relatórios inteligentes",
-      "Mais comandos com IA",
-      "Lembretes avançados",
-    ],
-    trialDays: 3,
-    featured: true,
-  },
-];
 
 const FAQS = [
   [
@@ -143,13 +99,6 @@ const FAQS = [
     "Sim. Envie uma imagem legível pelo aplicativo. A MIA identifica os dados disponíveis e pergunta o que faltar antes de registrar.",
   ],
 ];
-
-const WORKFLOW_STEPS = [
-  "Ouvindo sua mensagem",
-  "Entendendo valor e categoria",
-  "Completando o que faltou",
-  "Atualizando seu painel",
-] as const;
 
 const PAIN_POINTS: Array<{ icon: LucideIcon; title: string; text: string }> = [
   {
@@ -290,10 +239,10 @@ const START_STEPS: Array<{ icon: LucideIcon; number: string; title: string; text
 ];
 
 export function FinanceLanding({
-  plans = FALLBACK_PLANS,
+  plans,
+  plansUnavailable = false,
   signupHref = "/entrar?modo=signup",
   plansHref = "#planos",
-  demoHref = "/demo",
   loginHref = "/entrar?modo=login",
   brandName = brand.name,
   assistantName = brand.assistantName,
@@ -449,14 +398,14 @@ export function FinanceLanding({
               <Float
                 className="left-0 top-[18%] sm:-left-[3%]"
                 icon={<Mic className="size-4 text-fuchsia-300" />}
-                title="Áudio entendido"
-                text="Mercado · R$ 84,90"
+                title="Registro por áudio"
+                text="Grave sua mensagem"
               />
               <Float
                 className="right-0 top-[48%] sm:-right-[5%]"
                 icon={<PieChart className="size-4 text-emerald-300" />}
-                title="Painel atualizado"
-                text="Tudo organizado"
+                title="Visão do mês"
+                text="Suas movimentações"
                 delay="1.2s"
               />
             </div>
@@ -513,13 +462,16 @@ export function FinanceLanding({
               centered
               eyebrow="02 · Veja acontecer"
               title="Você fala. Ela organiza. O painel muda."
-              description="Uma única demonstração mostra o caminho completo, sem cliques e sem formulários."
+              description="Converse com a MIA na sua conta para organizar suas movimentações."
             />
-            <WorkflowDemo
-              assistantName={assistantName}
-              avatarUrl={avatarUrl || fallbackAvatarUrl}
-            />
-            <div className="mt-5 text-center">
+            <div className="mt-7 grid gap-6 md:grid-cols-3">
+              {START_STEPS.map(({ icon: Icon, number, title, text }) => (
+                <article key={number} className="border-t border-border pt-4">
+                  <Icon className="size-6 text-primary" />
+                  <h3 className="mt-3 text-base font-bold">{title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{personalize(text)}</p>
+                </article>
+              ))}
             </div>
           </div>
         </section>
@@ -609,7 +561,9 @@ export function FinanceLanding({
                 />
               </div>
             </div>
-            <DashboardPreview assistantName={assistantName} />
+            <div className="flex justify-center">
+              <Button asChild size="lg"><a href={loginHref}>Acessar meu painel <ArrowRight /></a></Button>
+            </div>
           </div>
 
           <div className="mx-auto mt-8 flex max-w-[1120px] flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-violet-100 pt-6 text-xs font-black text-[#6b5b75]">
@@ -763,6 +717,11 @@ export function FinanceLanding({
               description="Comece com o essencial ou leve a MIA também para o WhatsApp."
             />
             <div data-stagger className="mx-auto mt-8 grid max-w-md grid-cols-1 gap-5 lg:max-w-6xl lg:grid-cols-3">
+              {orderedPlans.length === 0 && (
+                <p role="status" className="col-span-full py-8 text-center text-muted-foreground">
+                  {plansUnavailable ? "Não foi possível carregar os planos. Tente novamente em instantes." : "Nenhum plano disponível no momento."}
+                </p>
+              )}
               {orderedPlans.map((plan) => (
                 <article
                   key={plan.slug}
@@ -1015,356 +974,9 @@ export function FinanceLanding({
             <div>
               © {new Date().getFullYear()} {legalName || brandName}. Todos os direitos reservados.
             </div>
-            <div>Dados e valores das demonstrações são ilustrativos.</div>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function WorkflowDemo({ assistantName, avatarUrl }: { assistantName: string; avatarUrl: string }) {
-  const [step, setStep] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
-  const demoRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const demo = demoRef.current;
-    if (!demo) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-        if (entry.isIntersecting) setStep(0);
-      },
-      { threshold: 0.12 },
-    );
-    observer.observe(demo);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!isVisible || typeof window === "undefined") return;
-    const timer = window.setInterval(
-      () => setStep((current) => (current + 1) % WORKFLOW_STEPS.length),
-      2600,
-    );
-    return () => window.clearInterval(timer);
-  }, [isVisible]);
-
-  return (
-    <div
-      ref={demoRef}
-      data-reveal
-      className="mt-7 overflow-hidden rounded-[28px] border border-violet-200 bg-[#110919] text-white shadow-[0_38px_90px_-48px_rgba(91,33,182,.7)]"
-    >
-      <div className="flex flex-col gap-3 border-b border-white/8 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div className="flex items-center gap-3">
-          <span className="relative flex size-2.5">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-            <span className="relative inline-flex size-2.5 rounded-full bg-emerald-400" />
-          </span>
-          <div>
-            <div className="text-sm font-black">Demonstração automática</div>
-            <div className="text-[11px] font-medium text-white/42">
-              uma despesa indo da conversa para o painel
-            </div>
-          </div>
-        </div>
-        <div
-          className="flex items-center gap-2"
-          aria-label={`Etapa ${step + 1} de ${WORKFLOW_STEPS.length}`}
-        >
-          {WORKFLOW_STEPS.map((_, index) => (
-            <span
-              key={index}
-              className={`h-1.5 rounded-full transition-all duration-500 ${index === step ? "w-7 bg-fuchsia-300" : index < step ? "w-3 bg-violet-400" : "w-3 bg-white/15"}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="relative grid items-center gap-5 overflow-hidden p-5 lg:grid-cols-[270px_145px_minmax(0,1fr)] lg:gap-4 lg:p-6">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_45%,rgba(16,185,129,.12),transparent_24%),radial-gradient(circle_at_73%_35%,rgba(124,58,237,.24),transparent_38%)]" />
-
-        <article className="relative">
-          <div className="mb-3 flex items-center justify-between px-2 text-[9px] font-black uppercase tracking-[.14em] text-emerald-300">
-            <span>Você envia</span>
-            <span className="text-white/35">celular</span>
-          </div>
-          <div className="mx-auto w-full max-w-[255px] rounded-[40px] border-[7px] border-[#302a36] bg-[#17131c] p-[5px] shadow-[0_35px_80px_-28px_rgba(0,0,0,.9)]">
-            <div className="relative min-h-[430px] overflow-hidden rounded-[29px] bg-[#eeeaf1] text-[#24182d]">
-              <div className="absolute left-1/2 top-2 z-20 h-6 w-[78px] -translate-x-1/2 rounded-full bg-black" />
-              <div className="flex h-11 items-center justify-between px-5 pt-2 text-[8px] font-black">
-                <span>9:41</span>
-                <span>5G ▰</span>
-              </div>
-              <div className="flex h-14 items-center gap-2.5 bg-white/85 px-4 shadow-sm">
-                <div className="relative size-9 overflow-hidden rounded-full bg-violet-100">
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    className="absolute top-1 h-[52px] w-full object-cover object-top"
-                  />
-                </div>
-                <div>
-                  <div className="text-xs font-black">{assistantName}</div>
-                  <div className="text-[8px] font-bold text-emerald-600">● online agora</div>
-                </div>
-              </div>
-              <div className="flex min-h-[270px] flex-col px-3 py-4">
-                <div className="ml-auto w-[92%] rounded-[17px] rounded-br-[5px] bg-[#d6f8e7] p-3 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="grid size-7 place-items-center rounded-full bg-emerald-600 text-white">
-                      <Play className="size-3 fill-current" />
-                    </span>
-                    <AudioWave />
-                    <span className="text-[8px] font-bold text-emerald-900/55">0:06</span>
-                  </div>
-                  <p className="mt-2 text-[10px] font-bold leading-4">
-                    Paguei R$ 189 no mercado hoje, no cartão.
-                  </p>
-                </div>
-                <div
-                  className={`mt-3 max-w-[94%] rounded-[17px] rounded-tl-[5px] bg-white p-3 text-[10px] font-bold leading-4 shadow-sm transition-all duration-500 ${step >= 1 ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"}`}
-                >
-                  <span className="block text-[8px] font-black uppercase text-violet-600">
-                    {assistantName}
-                  </span>
-                  Entendi. Qual cartão você usou?
-                </div>
-                <div
-                  className={`ml-auto mt-3 rounded-[14px] rounded-br-[5px] bg-[#d6f8e7] px-4 py-2 text-[10px] font-black shadow-sm transition-all duration-500 ${step >= 2 ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"}`}
-                >
-                  Nubank
-                </div>
-                <div
-                  className={`mt-3 max-w-[94%] rounded-[17px] rounded-tl-[5px] border border-emerald-100 bg-white p-3 shadow-sm transition-all duration-500 ${step >= 3 ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"}`}
-                >
-                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-700">
-                    <BadgeCheck className="size-4" /> Registrado e organizado
-                  </div>
-                  <p className="mt-1 text-[9px] font-bold text-[#62536a]">
-                    Painel e orçamento atualizados.
-                  </p>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 flex h-14 items-center gap-2 border-t border-black/5 bg-white/85 px-3">
-                <div className="grid size-8 place-items-center rounded-full bg-violet-100 text-violet-700">
-                  <Mic className="size-3.5" />
-                </div>
-                <div className="flex h-9 flex-1 items-center rounded-full bg-white px-3 text-[8px] font-bold text-[#9b8ea3] shadow-sm">
-                  Mensagem para {assistantName}...
-                </div>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <article
-          data-workflow-core
-          className="relative flex min-h-[285px] items-center justify-center lg:min-h-[460px]"
-        >
-          <div className="absolute left-1/2 top-1/2 hidden h-px w-[145%] -translate-x-1/2 bg-gradient-to-r from-emerald-400/10 via-violet-400/65 to-violet-400/10 lg:block" />
-          <div className="relative z-10 w-full max-w-[220px] text-center">
-            <div className="relative mx-auto h-[230px] w-[210px] lg:h-[285px] lg:w-[235px]">
-              <div className="absolute left-1/2 top-[52%] size-[178px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/15 blur-2xl lg:size-[205px]" />
-              <div className="marcia-core-orbit absolute left-1/2 top-[52%] size-[172px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-300/25 bg-[radial-gradient(circle_at_50%_44%,rgba(168,85,247,.24),rgba(31,15,47,.2)_62%,transparent_63%)] lg:size-[200px]">
-                <span className="absolute left-1/2 top-[-5px] size-2 -translate-x-1/2 rounded-full bg-fuchsia-300 shadow-[0_0_16px_rgba(240,171,252,.95)]" />
-              </div>
-              <div className="marcia-thinking absolute inset-x-0 bottom-0 z-10 flex justify-center">
-                <img
-                  src={avatarUrl}
-                  alt={`${assistantName} organizando a despesa`}
-                  className="h-[225px] max-w-none object-contain object-bottom drop-shadow-[0_24px_32px_rgba(9,4,18,.5)] lg:h-[275px]"
-                />
-              </div>
-            </div>
-            <div
-              key={step}
-              className="marcia-rise relative z-20 mx-auto -mt-6 w-[190px] rounded-[20px] border border-white/12 bg-[#20122e]/90 px-3.5 py-2.5 shadow-[0_18px_45px_-22px_rgba(217,70,239,.9)] backdrop-blur-xl"
-              aria-live="polite"
-            >
-              <div className="flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-[.12em] text-fuchsia-300">
-                <Sparkles className="size-3" /> {assistantName} organizando
-              </div>
-              <div className="mt-1.5 flex items-center justify-center gap-2">
-                <span className="text-[10px] font-black">{WORKFLOW_STEPS[step]}</span>
-                <span className="flex shrink-0 gap-1" aria-hidden="true">
-                  {[0, 1, 2].map((dot) => (
-                    <i
-                      key={dot}
-                      className="marcia-thinking-dot size-1 rounded-full bg-fuchsia-300"
-                      style={{ animationDelay: `${dot * 150}ms` }}
-                    />
-                  ))}
-                </span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <article className="relative">
-          <div className="mb-3 flex items-center justify-between px-2 text-[9px] font-black uppercase tracking-[.14em] text-violet-300">
-            <span>O painel mostra</span>
-            <span className={step === 3 ? "text-emerald-300" : "text-white/35"}>
-              {step === 3 ? "atualizado agora" : "seu mês"}
-            </span>
-          </div>
-          <DashboardPreview assistantName={assistantName} compact updated={step === 3} />
-        </article>
-      </div>
-    </div>
-  );
-}
-
-function DashboardPreview({
-  assistantName,
-  compact = false,
-  updated = true,
-}: {
-  assistantName: string;
-  compact?: boolean;
-  updated?: boolean;
-}) {
-  return (
-    <div
-      className={`overflow-hidden border border-violet-100 bg-[#f8f6fa] text-[#25172e] shadow-[0_30px_70px_-35px_rgba(65,31,89,.55)] ${compact ? "rounded-[24px]" : "cl-dashboard-float rounded-[28px]"}`}
-    >
-      <div className="flex h-10 items-center gap-2 border-b border-violet-100 bg-white px-4">
-        <div className="flex gap-1.5">
-          <i className="size-2 rounded-full bg-rose-400" />
-          <i className="size-2 rounded-full bg-amber-400" />
-          <i className="size-2 rounded-full bg-emerald-400" />
-        </div>
-        <div className="mx-auto rounded-full bg-[#f3eff6] px-7 py-1 text-[7px] font-black text-[#8d7e96]">
-          SEU PAINEL FINANCEIRO
-        </div>
-      </div>
-      <div
-        className={`grid ${compact ? "min-h-[405px] grid-cols-[48px_minmax(0,1fr)] sm:grid-cols-[86px_minmax(0,1fr)]" : "min-h-[470px] grid-cols-[56px_minmax(0,1fr)] sm:grid-cols-[108px_minmax(0,1fr)]"}`}
-      >
-        <aside className="border-r border-violet-100 bg-white p-2.5 sm:p-3.5">
-          <div className="grid size-8 place-items-center rounded-xl bg-violet-600 text-sm font-black text-white">
-            {assistantName.charAt(0).toUpperCase()}
-          </div>
-          <div className="mt-6 space-y-2">
-            {[
-              [Home, "Início"],
-              [ReceiptText, "Movimentos"],
-              [CalendarDays, "Calendário"],
-              [PieChart, "Categorias"],
-            ].map(([Icon, label], index) => {
-              const C = Icon as LucideIcon;
-              return (
-                <div
-                  key={String(label)}
-                  className={`flex items-center gap-2 rounded-xl p-2 ${index === 0 ? "bg-violet-100 text-violet-700" : "text-[#9a8da2]"}`}
-                >
-                  <C className="size-3.5 shrink-0" />
-                  <span className="hidden text-[7px] font-black sm:block">{String(label)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-
-        <div className={`min-w-0 ${compact ? "p-3 sm:p-4" : "p-4 sm:p-5"}`}>
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="text-[8px] font-black uppercase tracking-[.12em] text-violet-600">
-                Visão do mês
-              </div>
-              <h3 className="mt-1 text-lg font-black tracking-[-.04em] sm:text-2xl">
-                Outubro sob controle.
-              </h3>
-            </div>
-            <div className="hidden rounded-xl bg-violet-100 px-3 py-2 text-[8px] font-black text-violet-700 sm:block">
-              <Sparkles className="mr-1 inline size-3" /> Resumo da {assistantName}
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {[
-              ["Saldo", "R$ 4.821", "text-violet-700"],
-              ["Entrou", "R$ 6.200", "text-emerald-700"],
-              ["Saiu", updated ? "R$ 2.369" : "R$ 2.180", "text-rose-600"],
-            ].map(([label, value, color], index) => (
-              <div
-                key={label}
-                className={`rounded-2xl border border-violet-100 bg-white p-3 ${index === 2 ? "col-span-2 sm:col-span-1" : ""} ${updated && index === 2 ? "ring-2 ring-emerald-200" : ""}`}
-              >
-                <div className="text-[7px] font-black uppercase tracking-[.08em] text-[#9b8fa2]">
-                  {label}
-                </div>
-                <div className={`mt-1 text-sm font-black sm:text-lg ${color}`}>{value}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-3 grid gap-3 sm:grid-cols-[1.12fr_.88fr]">
-            <div className="rounded-2xl border border-violet-100 bg-white p-3.5">
-              <div className="flex items-center justify-between">
-                <div className="text-[9px] font-black">Entradas e saídas</div>
-                <TrendingUp className="size-3.5 text-emerald-600" />
-              </div>
-              <div className={`${compact ? "h-24" : "h-32"} mt-4 flex items-end gap-2`}>
-                {[46, 68, 42, updated ? 88 : 62, 51, 36].map((height, index) => (
-                  <div
-                    key={`${height}-${index}`}
-                    className="flex flex-1 flex-col items-center gap-1.5"
-                  >
-                    <i
-                      className={`w-full rounded-t-md transition-all duration-700 ${index === 3 ? "bg-violet-600" : "bg-violet-200"}`}
-                      style={{ height: `${height}%` }}
-                    />
-                    <span className="text-[6px] font-bold text-[#a597ac]">{index + 1}ª</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-2xl bg-[#251331] p-3.5 text-white">
-              <div className="flex items-center justify-between">
-                <div className="text-[9px] font-black">Onde mais gastou</div>
-                <PieChart className="size-3.5 text-violet-300" />
-              </div>
-              <div className="mx-auto mt-4 grid size-20 place-items-center rounded-full bg-[conic-gradient(#8b5cf6_0_38%,#d8b4fe_38%_64%,rgba(255,255,255,.12)_64%_100%)] p-2">
-                <div className="grid size-full place-items-center rounded-full bg-[#251331] text-center">
-                  <div>
-                    <div className="text-base font-black">38%</div>
-                    <div className="text-[6px] font-bold text-white/40">alimentação</div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-1 text-center text-[6px] font-bold text-white/45">
-                <span>Casa 26%</span>
-                <span>Transp. 18%</span>
-                <span>Outros 18%</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={`mt-3 flex items-center gap-2.5 rounded-2xl border p-3 transition-all ${updated ? "border-emerald-300 bg-emerald-50" : "border-violet-100 bg-white opacity-55"}`}
-          >
-            <div
-              className={`grid size-8 shrink-0 place-items-center rounded-xl ${updated ? "bg-emerald-500 text-white" : "bg-violet-100 text-violet-500"}`}
-            >
-              {updated ? <Check className="size-4" /> : <ReceiptText className="size-4" />}
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-[9px] font-black">
-                {updated ? "Mercado registrado agora" : "Aguardando confirmação"}
-              </div>
-              <div className="mt-0.5 truncate text-[7px] font-bold text-[#8f8297]">
-                Alimentação · Cartão Nubank · Hoje
-              </div>
-            </div>
-            <div className="ml-auto text-xs font-black text-rose-600">- R$ 189</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1400,20 +1012,6 @@ function Channel({ icon: Icon, children }: { icon: LucideIcon; children: ReactNo
     <span className="inline-flex items-center gap-2">
       <Icon className="size-4 text-violet-600" /> {children}
     </span>
-  );
-}
-
-function AudioWave() {
-  return (
-    <div className="flex h-7 flex-1 items-center gap-[3px]">
-      {[9, 15, 22, 11, 27, 18, 8, 24, 13, 20, 10].map((height, index) => (
-        <i
-          key={`${height}-${index}`}
-          className="w-[3px] flex-1 rounded-full bg-emerald-700/55"
-          style={{ height }}
-        />
-      ))}
-    </div>
   );
 }
 

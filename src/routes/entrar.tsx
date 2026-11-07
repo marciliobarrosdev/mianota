@@ -33,11 +33,6 @@ type Search = { modo?: "login" | "signup"; plano?: string };
 
 type PlanInfo = { slug: string; nome: string; preco: string; trialDays: number };
 
-const PLAN_FALLBACK: Record<string, Omit<PlanInfo, "slug">> = {
-  starter: { nome: "Basic", preco: "R$ 29,90/mês", trialDays: 0 },
-  pro: { nome: "Pro", preco: "R$ 49,90/mês", trialDays: 0 },
-};
-
 /**
  * Confirma no banco que o plano pedido existe e está ativo. Plano ausente,
  * inválido ou inativo devolve null — e o cadastro não é exibido.
@@ -51,11 +46,7 @@ async function loadSelectedPlan(requested: string | undefined): Promise<PlanInfo
     .eq("slug", slug)
     .eq("ativo", true)
     .limit(1);
-  if (error) {
-    // Sem conexão: só os slugs conhecidos seguem; o servidor confirma depois.
-    const fallback = PLAN_FALLBACK[slug];
-    return fallback ? { slug, ...fallback } : null;
-  }
+  if (error) throw new Error("Não foi possível consultar o plano. Tente novamente em instantes.");
   const resolved = resolveSignupPlan(slug, data ?? []);
   const row = data?.[0];
   if (!resolved.ok || !row) return null;

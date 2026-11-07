@@ -126,7 +126,8 @@ export function MiaChat({
   const [seconds, setSeconds] = useState(0);
 
   async function startRecording() {
-    if (busy || transcribing) return;
+    const transcribe = controller.transcribe;
+    if (busy || transcribing || !transcribe) return;
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       toast.error("Seu navegador não permite gravar áudio aqui.");
       return;
@@ -170,7 +171,7 @@ export function MiaChat({
           reader.onerror = () => reject(new Error("Não consegui ler o áudio."));
           reader.readAsDataURL(blob);
         });
-        const text = (await controller.transcribe!(dataUrl)).trim();
+        const text = (await transcribe(dataUrl)).trim();
         if (!text) {
           toast.error("Não ouvi nada no áudio. Tente de novo.");
           return;
@@ -212,10 +213,6 @@ export function MiaChat({
         ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
         : null;
     if (!Recognition) {
-      if (controller.voiceFallback) {
-        setInput(controller.voiceFallback);
-        return;
-      }
       toast.error("O ditado por voz não está disponível neste navegador. Use Chrome ou Edge.");
       return;
     }

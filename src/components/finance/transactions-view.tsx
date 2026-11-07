@@ -105,7 +105,7 @@ const SOURCE_CHIPS: { key: TxFilters["source"]; label: string }[] = [
   { key: "foto", label: "Foto/PDF" },
 ];
 
-/** Extrato detalhado — compartilhado entre o painel real e a demonstração. */
+/** Extrato detalhado do assinante. */
 export function TransactionsView({
   items,
   period,
@@ -113,7 +113,6 @@ export function TransactionsView({
   loading,
   emptyState,
   actions,
-  basePath = "/app",
   summary,
 }: {
   items: FinanceTransactionDetail[];
@@ -122,7 +121,6 @@ export function TransactionsView({
   loading?: boolean;
   emptyState?: ReactNode;
   actions?: TransactionsActions;
-  basePath?: "/app" | "/demo";
   summary?: import("@/lib/finance/summary-cards-rules").FinanceSummaryCards | null;
 }) {
   const [filters, setFilters] = useState<TxFilters>(EMPTY_TX_FILTERS);
@@ -382,7 +380,6 @@ export function TransactionsView({
                           <Details
                             item={item}
                             today={today}
-                            basePath={basePath}
                             budget={actions?.budgets?.find((b) => b.categoryId === item.categoryId)}
                             busy={busy}
                             actions={actions ? {
@@ -507,14 +504,12 @@ function StatusPill({ label }: { label: string }) {
 function Details({
   item,
   today,
-  basePath,
   budget,
   actions,
   busy,
 }: {
   item: FinanceTransactionDetail;
   today: string;
-  basePath: "/app" | "/demo";
   budget?: { limitCents: number; spentCents: number; percentage: number };
   actions?: { act: (a: TxSingleAction) => void; edit: () => void; split?: () => void };
   busy: boolean;
@@ -608,18 +603,16 @@ function Details({
       </dl>
       <div className="flex flex-wrap gap-1.5">
         <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
-          <Link to={basePath === "/app" ? "/app/planejamento" : "/demo/planejamento"}><CalendarDays /> Ver no calendário</Link>
+          <Link to="/app/planejamento"><CalendarDays /> Ver no calendário</Link>
         </Button>
-        {basePath === "/app" && (
-          <>
+        <>
             <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
               <Link to="/app/marcia" search={{ pergunta: question }}><Sparkles /> Perguntar à MIA</Link>
             </Button>
             <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
               <Link to="/app/marcia" search={{ pergunta: fixCategory }}><Sparkles /> Corrigir categoria com a MIA</Link>
             </Button>
-          </>
-        )}
+        </>
       </div>
     </div>
   );
