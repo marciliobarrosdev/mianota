@@ -397,10 +397,6 @@ export function FinanceLanding({
               <p className="relative mt-3 text-xs text-ln-ink/80">{SLOGAN}</p>
             </div>
             <div className="relative mx-auto flex w-full max-w-sm items-end justify-center gap-4 md:max-w-none md:self-stretch">
-              <div className="mb-10 max-w-32 md:absolute md:-right-2 md:bottom-3 md:mb-0 md:max-w-none md:text-right">
-                <span className="block font-sora text-2xl font-extrabold text-ln-ink">{assistantName}</span>
-                <span className="mt-1 block text-xs leading-5 text-ln-muted">Sua parceira em cada novo começo.</span>
-              </div>
               <img src={miaFull} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="relative h-[340px] w-auto shrink-0 object-contain md:absolute md:bottom-12 md:h-[510px] lg:h-[550px]" />
             </div>
           </div>
