@@ -136,7 +136,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "manifest", href: "/api/manifest.webmanifest" },
         {
           rel: "icon",
-          href: cloneBrand.iconUrl || cloneBrand.logoUrl || "/icons/marcia-app.svg",
+          href: cloneBrand.iconUrl || cloneBrand.logoUrl || "/icons/mia-app.svg",
           type: cloneBrand.iconUrl || cloneBrand.logoUrl ? undefined : "image/svg+xml",
         },
         {

@@ -50,19 +50,19 @@ export const Route = createFileRoute("/api/manifest.webmanifest")({
               ]
             : [
                 {
-                  src: "/icons/marcia-192.png",
+                  src: "/icons/mia-192.png",
                   sizes: "192x192",
                   type: "image/png",
                   purpose: "any",
                 },
                 {
-                  src: "/icons/marcia-512.png",
+                  src: "/icons/mia-512.png",
                   sizes: "512x512",
                   type: "image/png",
                   purpose: "any",
                 },
                 {
-                  src: "/icons/marcia-maskable.svg",
+                  src: "/icons/mia-maskable.svg",
                   sizes: "any",
                   type: "image/svg+xml",
                   purpose: "maskable",

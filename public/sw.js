@@ -2,7 +2,7 @@
  * Only public shell files and immutable build assets are cached. Authenticated
  * pages, API responses and third-party requests always stay on the network.
  */
-const CACHE_PREFIX = "marcia-pwa";
+const CACHE_PREFIX = "mia-pwa";
 const CACHE_VERSION = "v1";
 const SHELL_CACHE = `${CACHE_PREFIX}-shell-${CACHE_VERSION}`;
 const ASSET_CACHE = `${CACHE_PREFIX}-assets-${CACHE_VERSION}`;
@@ -12,10 +12,10 @@ const BRAND_CACHE_URL = "/__clone-brand-runtime.json";
 const SHELL_FILES = [
   OFFLINE_URL,
   "/icons/apple-touch-icon.png",
-  "/icons/marcia-192.png",
-  "/icons/marcia-512.png",
-  "/icons/marcia-app.svg",
-  "/icons/marcia-maskable.svg",
+  "/icons/mia-192.png",
+  "/icons/mia-512.png",
+  "/icons/mia-app.svg",
+  "/icons/mia-maskable.svg",
 ];
 
 self.addEventListener("install", (event) => {
@@ -100,7 +100,7 @@ function normalizeNotificationBrand(value) {
       : "Assistente";
   return {
     shortName,
-    iconUrl: safeBrandAsset(source.iconUrl || source.logoUrl) || "/icons/marcia-192.png",
+    iconUrl: safeBrandAsset(source.iconUrl || source.logoUrl) || "/icons/mia-192.png",
   };
 }
 
