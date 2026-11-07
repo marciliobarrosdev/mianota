@@ -544,6 +544,11 @@ export const createCompanyWithOwner = createServerFn({ method: "POST" })
       });
       // Corrida: outra criação marcou o mesmo e-mail primeiro.
       if (markError && markError.code !== "23505") throw new Error(markError.message);
+      const { createLeadFromFreeSignup } = await import("@/lib/master/lead-sync.server");
+      await createLeadFromFreeSignup({
+        companyId: String(companyId), userId: ownerId, email: data.ownerEmail,
+        nome: data.nome, telefone: data.telefone ?? null,
+      });
     }
     return finalizeExistingOwnerCredential(String(companyId));
   });
@@ -951,6 +956,10 @@ export const releaseCompanyPlan = createServerFn({ method: "POST" })
         email, user_id: owner.user_id, company_id: data.companyId, plan_id: plan.id, source: "master",
       });
       if (markError && markError.code !== "23505") throw new Error(markError.message);
+      const { createLeadFromFreeSignup } = await import("@/lib/master/lead-sync.server");
+      await createLeadFromFreeSignup({
+        companyId: data.companyId, userId: owner.user_id, email, nome: company.nome ?? email, telefone: null,
+      });
       const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
       await writeMasterAudit({ actorId: context.userId, action: "company.release_plan", target: data.companyId,
         details: { plan: plan.slug, days, until, note: data.note || null, super_admin_release: true } });
