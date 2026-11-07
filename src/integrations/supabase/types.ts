@@ -1188,6 +1188,69 @@ export type Database = {
           },
         ]
       }
+      email_event: {
+        Row: {
+          event_type: string
+          id: string
+          message_id: string | null
+          occurred_at: string | null
+          payload: Json
+          received_at: string
+          recipient: string | null
+          subject: string | null
+          svix_id: string
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          message_id?: string | null
+          occurred_at?: string | null
+          payload?: Json
+          received_at?: string
+          recipient?: string | null
+          subject?: string | null
+          svix_id: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          message_id?: string | null
+          occurred_at?: string | null
+          payload?: Json
+          received_at?: string
+          recipient?: string | null
+          subject?: string | null
+          svix_id?: string
+        }
+        Relationships: []
+      }
+      email_settings: {
+        Row: {
+          from_email: string | null
+          from_name: string
+          id: boolean
+          reply_to: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          from_email?: string | null
+          from_name?: string
+          id?: boolean
+          reply_to?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          from_email?: string | null
+          from_name?: string
+          id?: boolean
+          reply_to?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       fin_bank_connection: {
         Row: {
           company_id: string

@@ -19,6 +19,7 @@ import {
   Sparkles,
   Inbox,
   KanbanSquare,
+  Mail,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileBottomNav, type MobileNavItem } from "@/components/mobile-bottom-nav";
@@ -94,6 +95,7 @@ const sections = [
       { to: "/master/planos", label: "Planos", icon: Package },
       { to: "/master/pagamentos", label: "Pagamentos", icon: WalletCards },
       { to: "/master/ia-creditos", label: "IA e créditos", icon: Sparkles },
+      { to: "/master/emails", label: "E-mails", icon: Mail },
     ],
   },
   {

@@ -56,6 +56,7 @@ import { Route as MasterAssinaturasRouteImport } from './routes/master/assinatur
 import { Route as MasterChecklistRouteImport } from './routes/master/checklist'
 import { Route as MasterConfiguracoesRouteImport } from './routes/master/configuracoes'
 import { Route as MasterConversasRouteImport } from './routes/master/conversas'
+import { Route as MasterEmailsRouteImport } from './routes/master/emails'
 import { Route as MasterEmpresasRouteImport } from './routes/master/empresas'
 import { Route as MasterIaCreditosRouteImport } from './routes/master/ia-creditos'
 import { Route as MasterImplantacaoRouteImport } from './routes/master/implantacao'
@@ -79,6 +80,7 @@ import { Route as AppOrdensOrderIdRouteImport } from './routes/app/ordens.$order
 import { Route as ApiPublicBillingInfinitepayRouteImport } from './routes/api/public/billing/infinitepay'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron/reminders'
+import { Route as ApiPublicEmailResendRouteImport } from './routes/api/public/email/resend'
 import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push/dispatch'
 
 const IndexRoute = IndexRouteImport.update({
@@ -317,6 +319,11 @@ const MasterConversasRoute = MasterConversasRouteImport.update({
   path: '/conversas',
   getParentRoute: () => MasterRoute,
 } as any)
+const MasterEmailsRoute = MasterEmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => MasterRoute,
+} as any)
 const MasterEmpresasRoute = MasterEmpresasRouteImport.update({
   id: '/empresas',
   path: '/empresas',
@@ -435,6 +442,11 @@ const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
   path: '/api/public/cron/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEmailResendRoute = ApiPublicEmailResendRouteImport.update({
+  id: '/api/public/email/resend',
+  path: '/api/public/email/resend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
   id: '/api/public/push/dispatch',
   path: '/api/public/push/dispatch',
@@ -487,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/master/checklist': typeof MasterChecklistRoute
   '/master/configuracoes': typeof MasterConfiguracoesRoute
   '/master/conversas': typeof MasterConversasRoute
+  '/master/emails': typeof MasterEmailsRoute
   '/master/empresas': typeof MasterEmpresasRoute
   '/master/ia-creditos': typeof MasterIaCreditosRoute
   '/master/implantacao': typeof MasterImplantacaoRoute
@@ -512,6 +525,7 @@ export interface FileRoutesByFullPath {
   '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/email/resend': typeof ApiPublicEmailResendRoute
   '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesByTo {
@@ -558,6 +572,7 @@ export interface FileRoutesByTo {
   '/master/checklist': typeof MasterChecklistRoute
   '/master/configuracoes': typeof MasterConfiguracoesRoute
   '/master/conversas': typeof MasterConversasRoute
+  '/master/emails': typeof MasterEmailsRoute
   '/master/empresas': typeof MasterEmpresasRoute
   '/master/ia-creditos': typeof MasterIaCreditosRoute
   '/master/implantacao': typeof MasterImplantacaoRoute
@@ -583,6 +598,7 @@ export interface FileRoutesByTo {
   '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/email/resend': typeof ApiPublicEmailResendRoute
   '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRoutesById {
@@ -632,6 +648,7 @@ export interface FileRoutesById {
   '/master/checklist': typeof MasterChecklistRoute
   '/master/configuracoes': typeof MasterConfiguracoesRoute
   '/master/conversas': typeof MasterConversasRoute
+  '/master/emails': typeof MasterEmailsRoute
   '/master/empresas': typeof MasterEmpresasRoute
   '/master/ia-creditos': typeof MasterIaCreditosRoute
   '/master/implantacao': typeof MasterImplantacaoRoute
@@ -657,6 +674,7 @@ export interface FileRoutesById {
   '/api/public/billing/infinitepay': typeof ApiPublicBillingInfinitepayRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
+  '/api/public/email/resend': typeof ApiPublicEmailResendRoute
   '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
 }
 export interface FileRouteTypes {
@@ -707,6 +725,7 @@ export interface FileRouteTypes {
     | '/master/checklist'
     | '/master/configuracoes'
     | '/master/conversas'
+    | '/master/emails'
     | '/master/empresas'
     | '/master/ia-creditos'
     | '/master/implantacao'
@@ -732,6 +751,7 @@ export interface FileRouteTypes {
     | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
     | '/api/public/cron/reminders'
+    | '/api/public/email/resend'
     | '/api/public/push/dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -778,6 +798,7 @@ export interface FileRouteTypes {
     | '/master/checklist'
     | '/master/configuracoes'
     | '/master/conversas'
+    | '/master/emails'
     | '/master/empresas'
     | '/master/ia-creditos'
     | '/master/implantacao'
@@ -803,6 +824,7 @@ export interface FileRouteTypes {
     | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
     | '/api/public/cron/reminders'
+    | '/api/public/email/resend'
     | '/api/public/push/dispatch'
   id:
     | '__root__'
@@ -851,6 +873,7 @@ export interface FileRouteTypes {
     | '/master/checklist'
     | '/master/configuracoes'
     | '/master/conversas'
+    | '/master/emails'
     | '/master/empresas'
     | '/master/ia-creditos'
     | '/master/implantacao'
@@ -876,6 +899,7 @@ export interface FileRouteTypes {
     | '/api/public/billing/infinitepay'
     | '/api/public/billing/webhook'
     | '/api/public/cron/reminders'
+    | '/api/public/email/resend'
     | '/api/public/push/dispatch'
   fileRoutesById: FileRoutesById
 }
@@ -901,6 +925,7 @@ export interface RootRouteChildren {
   ApiPublicBillingInfinitepayRoute: typeof ApiPublicBillingInfinitepayRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
   ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
+  ApiPublicEmailResendRoute: typeof ApiPublicEmailResendRoute
   ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
 }
 
@@ -1235,6 +1260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MasterConversasRouteImport
       parentRoute: typeof MasterRoute
     }
+    '/master/emails': {
+      id: '/master/emails'
+      path: '/emails'
+      fullPath: '/master/emails'
+      preLoaderRoute: typeof MasterEmailsRouteImport
+      parentRoute: typeof MasterRoute
+    }
     '/master/empresas': {
       id: '/master/empresas'
       path: '/empresas'
@@ -1396,6 +1428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/email/resend': {
+      id: '/api/public/email/resend'
+      path: '/api/public/email/resend'
+      fullPath: '/api/public/email/resend'
+      preLoaderRoute: typeof ApiPublicEmailResendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push/dispatch': {
       id: '/api/public/push/dispatch'
       path: '/api/public/push/dispatch'
@@ -1488,6 +1527,7 @@ interface MasterRouteChildren {
   MasterChecklistRoute: typeof MasterChecklistRoute
   MasterConfiguracoesRoute: typeof MasterConfiguracoesRoute
   MasterConversasRoute: typeof MasterConversasRoute
+  MasterEmailsRoute: typeof MasterEmailsRoute
   MasterEmpresasRoute: typeof MasterEmpresasRoute
   MasterIaCreditosRoute: typeof MasterIaCreditosRoute
   MasterImplantacaoRoute: typeof MasterImplantacaoRoute
@@ -1511,6 +1551,7 @@ const MasterRouteChildren: MasterRouteChildren = {
   MasterChecklistRoute: MasterChecklistRoute,
   MasterConfiguracoesRoute: MasterConfiguracoesRoute,
   MasterConversasRoute: MasterConversasRoute,
+  MasterEmailsRoute: MasterEmailsRoute,
   MasterEmpresasRoute: MasterEmpresasRoute,
   MasterIaCreditosRoute: MasterIaCreditosRoute,
   MasterImplantacaoRoute: MasterImplantacaoRoute,
@@ -1553,6 +1594,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBillingInfinitepayRoute: ApiPublicBillingInfinitepayRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
   ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
+  ApiPublicEmailResendRoute: ApiPublicEmailResendRoute,
   ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
 }
 export const routeTree = rootRouteImport

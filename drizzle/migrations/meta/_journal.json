@@ -127,6 +127,13 @@
       "when": 1794014959587,
       "tag": "0017_plan_writes_master_only",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794016203819,
+      "tag": "0018_resend_email_events",
+      "breakpoints": true
     }
   ]
 }
