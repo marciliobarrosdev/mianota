@@ -144,35 +144,38 @@ function SuperAdminAccessPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#100817] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(124,58,237,.34),transparent_34%),radial-gradient(circle_at_85%_75%,rgba(217,70,239,.22),transparent_36%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[.045] [background-image:linear-gradient(rgba(255,255,255,.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.7)_1px,transparent_1px)] [background-size:44px_44px]" />
+    <div className="ln-theme relative min-h-screen overflow-hidden bg-ln-bg font-sans text-ln-ink">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden"><div className="ln-blob absolute -left-40 -top-40 size-[560px] rounded-full bg-ln-violet/30 blur-3xl" /><div className="ln-blob absolute -right-40 top-[40%] size-[620px] rounded-full bg-ln-magenta/20 blur-3xl" /><div className="absolute bottom-[-220px] left-1/3 size-[480px] rounded-full bg-ln-lime/10 blur-3xl" /></div>
+      <div aria-hidden className="ln-grid-bg pointer-events-none absolute inset-0" />
 
       <main className="relative mx-auto grid min-h-screen w-full max-w-6xl items-center gap-12 px-5 py-12 lg:grid-cols-[1.05fr_.75fr] lg:px-10">
         <section className="hidden lg:block">
           <a
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-white/55 transition hover:text-white"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-ln-muted transition hover:text-ln-ink"
           >
             <ArrowLeft className="size-4" /> voltar ao site
           </a>
-          <div className="mt-16 inline-flex items-center gap-2 rounded-full border border-fuchsia-300/20 bg-white/6 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] text-fuchsia-200">
+          <div className="mt-16 flex w-fit items-center gap-2 rounded-full border ln-glass px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] text-ln-lime">
             <ShieldCheck className="size-3.5" /> acesso exclusivo do proprietário
           </div>
-          <h1 className="mt-6 max-w-2xl font-display text-5xl font-black leading-[.98] tracking-[-.055em] xl:text-6xl">
-            Seu SaaS por inteiro, <span className="text-violet-400">em uma central.</span>
+          <h1 className="mt-6 max-w-2xl font-sora text-5xl font-extrabold leading-[1.02] tracking-tight xl:text-6xl">
+            Seu SaaS por inteiro, <span className="ln-gradient-text">em uma central.</span>
           </h1>
-          <p className="mt-6 max-w-xl text-base leading-7 text-white/58">
+          <p className="mt-6 max-w-xl text-base leading-7 text-ln-muted">
             Assinantes, assinaturas, trials, créditos, planos e integrações globais ficam aqui. O
             painel dos assinantes continua totalmente separado.
           </p>
           <div className="mt-9 grid max-w-xl grid-cols-3 gap-3">
-            {["Gestão do SaaS", "Dados protegidos", "Acesso separado"].map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs font-bold text-white/72"
-              >
-                <Sparkles className="mb-3 size-4 text-violet-400" /> {item}
+            {[
+              { t: "Gestão do SaaS", d: "Planos, assinantes e cobranças", I: Sparkles },
+              { t: "Dados protegidos", d: "Acesso criptografado e auditado", I: ShieldCheck },
+              { t: "Acesso separado", d: "Painel do cliente intocado", I: KeyRound },
+            ].map(({ t, d, I }) => (
+              <div key={t} className="ln-glass group rounded-2xl p-4 transition duration-300 hover:-translate-y-1 hover:border-ln-violet/50">
+                <div className="mb-3 grid size-9 place-items-center rounded-xl ln-gradient transition group-hover:scale-110"><I className="size-4" /></div>
+                <div className="text-sm font-bold">{t}</div>
+                <div className="mt-1 text-[11px] leading-4 text-ln-muted">{d}</div>
               </div>
             ))}
           </div>
@@ -181,25 +184,25 @@ function SuperAdminAccessPage() {
         <section className="mx-auto w-full max-w-md">
           <a
             href="/"
-            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-white/55 lg:hidden"
+            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-ln-muted lg:hidden"
           >
             <ArrowLeft className="size-4" /> voltar ao site
           </a>
-          <div className="rounded-[28px] border border-white/12 bg-white/[.075] p-6 shadow-[0_35px_90px_-38px_rgba(168,85,247,.8)] backdrop-blur-2xl sm:p-8">
-            <div className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-lg shadow-violet-950/40">
+          <div className="ln-glass ln-glow relative overflow-hidden rounded-[28px] p-6 sm:p-8">
+            <div className="grid size-12 place-items-center rounded-2xl ln-gradient ln-glow">
               <ShieldCheck className="size-6" />
             </div>
-            <div className="mt-6 text-[10px] font-black uppercase tracking-[.16em] text-violet-300">
+            <div className="mt-6 text-[10px] font-black uppercase tracking-[.16em] text-ln-lime">
               {setupMode === null
                 ? "Validando instalação"
                 : setupMode
                   ? "Primeiro acesso do clone"
                   : "Super admin"}
             </div>
-            <h2 className="mt-2 font-display text-3xl font-black tracking-[-.04em]">
+            <h2 className="mt-2 font-sora text-3xl font-extrabold tracking-tight">
               {setupMode ? "Assuma o seu sistema" : "Entre na central"}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-white/52">
+            <p className="mt-2 text-sm leading-6 text-ln-muted">
               {setupMode
                 ? "Esta conta será a única proprietária inicial do clone."
                 : `Use o acesso administrativo de ${branding.name}.`}
@@ -207,7 +210,7 @@ function SuperAdminAccessPage() {
 
             <form onSubmit={submit} className="mt-7 space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="superadmin-email" className="text-white/78">
+                <Label htmlFor="superadmin-email" className="text-ln-ink/80">
                   E-mail do proprietário
                 </Label>
                 <Input
@@ -219,12 +222,12 @@ function SuperAdminAccessPage() {
                   autoComplete="username"
                   required
                   disabled={setupMode === null || loading}
-                  className="h-12 border-white/12 bg-black/20 text-white placeholder:text-white/25"
+                  className="h-12 border-ln-line bg-ln-glass text-ln-ink placeholder:text-ln-muted/50"
                   placeholder="voce@empresa.com"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="superadmin-password" className="text-white/78">
+                <Label htmlFor="superadmin-password" className="text-ln-ink/80">
                   {setupMode ? "Crie sua senha" : "Senha"}
                 </Label>
                 <div className="relative">
@@ -236,13 +239,13 @@ function SuperAdminAccessPage() {
                     autoComplete={setupMode ? "new-password" : "current-password"}
                     required
                     disabled={setupMode === null || loading}
-                    className="h-12 border-white/12 bg-black/20 pr-11 text-white placeholder:text-white/25"
+                    className="h-12 border-ln-line bg-ln-glass pr-11 text-ln-ink placeholder:text-ln-muted/50"
                     placeholder={setupMode ? "10+ caracteres" : "Sua senha"}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((current) => !current)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/42 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ln-muted hover:text-ln-ink"
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -252,7 +255,7 @@ function SuperAdminAccessPage() {
               <Button
                 type="submit"
                 disabled={setupMode === null || loading}
-                className="h-12 w-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white hover:opacity-95"
+                className="h-12 w-full rounded-full bg-ln-lime font-bold text-ln-bg hover:bg-ln-lime/90"
               >
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -263,7 +266,7 @@ function SuperAdminAccessPage() {
               </Button>
             </form>
 
-            <div className="mt-6 rounded-2xl border border-white/8 bg-black/16 px-4 py-3 text-[11px] leading-5 text-white/42">
+            <div className="mt-6 rounded-2xl border border-ln-line bg-ln-glass px-4 py-3 text-[11px] leading-5 text-ln-muted">
               Esta entrada não cria conta de assinante e não abre o painel financeiro do cliente.
             </div>
           </div>
