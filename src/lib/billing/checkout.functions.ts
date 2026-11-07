@@ -60,6 +60,10 @@ export const createCheckoutCompany = createServerFn({ method: "POST" })
       }
     }
 
+    const { data: priorLinks } = await admin
+      .from("company_user").select("company_id").eq("user_id", context.userId).eq("ativo", true).limit(1);
+    const hadCompany = Boolean(priorLinks?.length);
+
     const { data: companyId, error: createError } = await supabaseAdmin.rpc(
       "create_checkout_company_atomic",
       {
@@ -82,13 +86,15 @@ export const createCheckoutCompany = createServerFn({ method: "POST" })
 
     // Dados do formulário de cadastro (guardados na conta) completam a ficha do assinante.
     const raw = (authUser?.user?.user_metadata as any)?.signup_profile;
-    if (raw && typeof raw === "object") {
-      const { sanitizeSignupProfile, signupProfileError } = await import("@/lib/billing/signup-profile-rules");
+    // Só completa fichas recém-criadas e apenas campos vazios: nunca sobrescreve dados salvos.
+    if (!hadCompany && raw && typeof raw === "object") {
+      const { sanitizeSignupProfile, signupProfileError, fillOnlyEmpty } = await import("@/lib/billing/signup-profile-rules");
       const { personTypeForStorage } = await import("@/lib/master/subscriber-identity-rules");
       const { normalizeValidBrazilianPhone } = await import("@/lib/common/phone");
       const p = sanitizeSignupProfile(raw);
       if (!signupProfileError(p)) {
-        const { error: profileError } = await admin.from("company").update({
+        const { data: currentCo } = await admin.from("company").select("*").eq("id", String(companyId)).maybeSingle();
+        const companyPatch = fillOnlyEmpty(currentCo, {
           nome: p.nome,
           tipo_pessoa: personTypeForStorage(p.tipoPessoa),
           cnpj_cpf: p.cnpjCpf,
@@ -99,11 +105,17 @@ export const createCheckoutCompany = createServerFn({ method: "POST" })
           cep: p.cep || null, rua: p.rua || null, numero: p.numero || null,
           complemento: p.complemento || null, bairro: p.bairro || null,
           cidade: p.cidade || null, estado: p.estado || null, segmento: p.segmento || null,
-          ...(p.logoUrl ? { logo_url: p.logoUrl } : {}),
-        }).eq("id", String(companyId));
-        if (profileError) console.error("[signup_profile.company]", profileError.message);
-        await admin.from("profiles").update({ nome: p.responsavelNome, nome_completo: p.responsavelNome, cpf: p.tipoPessoa === "pf" ? p.cnpjCpf : null, telefone: normalizeValidBrazilianPhone(p.telefone) })
-          .eq("user_id", context.userId);
+          logo_url: p.logoUrl || null,
+        } as Record<string, unknown>);
+        // O nome digitado no cadastro substitui apenas o nome provisório da criação.
+        if (currentCo?.nome === data.nome && p.nome) companyPatch.nome = p.nome;
+        if (Object.keys(companyPatch).length) {
+          const { error: profileError } = await admin.from("company").update(companyPatch).eq("id", String(companyId));
+          if (profileError) console.error("[signup_profile.company]", profileError.message);
+        }
+        const { data: currentProfile } = await admin.from("profiles").select("nome, nome_completo, cpf, telefone").eq("user_id", context.userId).maybeSingle();
+        const profilePatch = fillOnlyEmpty(currentProfile, { nome: p.responsavelNome, nome_completo: p.responsavelNome, cpf: p.tipoPessoa === "pf" ? p.cnpjCpf : null, telefone: normalizeValidBrazilianPhone(p.telefone) } as Record<string, unknown>);
+        if (Object.keys(profilePatch).length) await admin.from("profiles").update(profilePatch).eq("user_id", context.userId);
       }
     }
 

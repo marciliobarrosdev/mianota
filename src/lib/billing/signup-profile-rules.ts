@@ -59,3 +59,18 @@ export function sanitizeSignupProfile(p: Partial<SignupProfile>): SignupProfile 
     logoUrl: p.logoUrl || null,
   };
 }
+
+/** Mantém valores já salvos: só devolve campos cujo valor atual está vazio. */
+export function fillOnlyEmpty<T extends Record<string, unknown>>(
+  existing: Partial<Record<keyof T, unknown>> | null | undefined,
+  incoming: T,
+): Partial<T> {
+  const out: Partial<T> = {};
+  for (const key of Object.keys(incoming) as (keyof T)[]) {
+    const next = incoming[key];
+    if (next === null || next === undefined || next === "") continue;
+    const cur = existing?.[key];
+    if (cur === null || cur === undefined || (typeof cur === "string" && cur.trim() === "")) out[key] = next;
+  }
+  return out;
+}
