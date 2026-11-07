@@ -1,4 +1,5 @@
 import { createFileRoute, redirect, useNavigate, Link, useSearch } from "@tanstack/react-router";
+import miaLateral from "@/assets/mia-entrar-lateral.png.asset.json";
 import { useEffect, useState } from "react";
 // /entrar usa SOMENTE a sessão do assinante (cliente padrão). A sessão do
 // proprietário vive em outro cliente/armazenamento e é ignorada aqui.
@@ -308,12 +309,6 @@ function EntrarPage() {
       <div className="relative z-10 min-h-screen grid lg:grid-cols-[1.05fr_1fr]">
         {/* LEFT — brand pane (hidden on mobile) */}
         <aside className="relative hidden overflow-hidden border-r border-[color:var(--hairline)] bg-ln-glass backdrop-blur-sm p-10 lg:flex lg:flex-col lg:justify-between xl:p-14">
-          <img
-            src={branding.avatarUrl || fallbackAvatarUrl}
-            alt=""
-            aria-hidden
-            className="pointer-events-none absolute -bottom-16 -right-20 h-[70vh] max-h-[760px] opacity-[.35]"
-          />
           <div className="flex items-center gap-3">
             <Link
               to="/"
@@ -324,7 +319,8 @@ function EntrarPage() {
             </Link>
           </div>
 
-          <div className="relative z-10 max-w-lg space-y-8">
+          <div className="relative z-10 grid items-end gap-6 xl:gap-10 grid-cols-[minmax(0,1fr)_auto]">
+          <div className="max-w-lg space-y-8">
             <div className="flex items-center gap-3">
               <BrandLogo />
               <div>
@@ -335,7 +331,7 @@ function EntrarPage() {
               </div>
             </div>
 
-            <h1 className="font-display text-4xl xl:text-5xl font-extrabold leading-[1.05] tracking-tight">
+            <h1 className="font-display text-4xl xl:text-[44px] font-extrabold leading-[1.05] tracking-tight">
               Sua assessora com IA
               <br />
               <span className="text-gradient-brand">ouve, entende</span> e<br />
@@ -378,7 +374,8 @@ function EntrarPage() {
               </span>
             </div>
           </div>
-
+          <img src={miaLateral.url} alt="MIA, sua assistente financeira" width={641} height={1920} decoding="async" fetchPriority="high" className="ln-breathe pointer-events-none h-[min(62vh,640px)] w-auto max-w-none object-contain drop-shadow-2xl" />
+          </div>
           <div className="text-[12px] text-muted-foreground">
             © {new Date().getFullYear()} {branding.name}. Todos os direitos reservados.
           </div>
