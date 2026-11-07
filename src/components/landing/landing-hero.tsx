@@ -1,4 +1,5 @@
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Bell, Check, TrendingUp, Zap } from "lucide-react";
 import miaFull from "@/assets/mia-full.png";
 import { LandingPhone } from "./landing-phone";
@@ -17,6 +18,10 @@ export function LandingHero({
   trialHref: string;
 }) {
   const mx = useMotionValue(0);
+  const prefersReduced = useReducedMotion();
+  const [hydrated, setHydrated] = useState(false);
+  const reduced = hydrated && prefersReduced;
+  useEffect(() => { setHydrated(true); }, []);
   const my = useMotionValue(0);
   const sx = useSpring(mx, { stiffness: 80, damping: 20 });
   const sy = useSpring(my, { stiffness: 80, damping: 20 });
@@ -31,11 +36,12 @@ export function LandingHero({
     <section
       id="inicio"
       onPointerMove={(e) => {
-        if (e.pointerType !== "mouse") return;
+        if (e.pointerType !== "mouse" || reduced) return;
         const r = e.currentTarget.getBoundingClientRect();
         mx.set((e.clientX - r.left) / r.width - 0.5);
         my.set((e.clientY - r.top) / r.height - 0.5);
       }}
+      onPointerLeave={() => { mx.set(0); my.set(0); }}
       className="relative overflow-hidden px-5 pb-16 pt-28 sm:pt-32 lg:min-h-[100svh] lg:pb-20"
     >
       <div className="ln-aurora pointer-events-none absolute -inset-20" />
@@ -121,24 +127,24 @@ export function LandingHero({
           className="relative mx-auto flex w-full max-w-[560px] items-end justify-center"
         >
           <motion.img
-            style={l2}
+            style={reduced ? undefined : l2}
             src={miaFull}
             alt={assistantName}
-            className="pointer-events-none absolute -left-4 bottom-0 z-0 hidden h-[560px] w-auto drop-shadow-2xl lg:block"
+            className="pointer-events-none absolute bottom-10 left-0 z-20 w-[80px] object-contain drop-shadow-2xl min-[360px]:w-[104px] sm:left-4 sm:w-[155px] lg:-bottom-3 lg:left-0 lg:z-10 lg:w-[216px]"
           />
-          <motion.div style={l1} className="relative z-10 lg:ml-40">
+          <motion.div style={reduced ? undefined : l1} className="relative z-10 ml-14 sm:ml-32 lg:ml-60">
             <LandingPhone assistantName={assistantName} face={face} />
           </motion.div>
 
-          <motion.div style={l3} className="ln-glass absolute -right-2 top-16 z-20 hidden items-center gap-2.5 rounded-2xl bg-ln-surface/70 px-3.5 py-2.5 sm:flex">
+          <motion.div style={reduced ? undefined : l3} className="ln-glass absolute -top-14 right-0 z-20 hidden items-center gap-2.5 rounded-2xl bg-ln-surface/70 px-3.5 py-2.5 sm:flex">
             <span className="grid size-8 place-items-center rounded-xl bg-wa-accent/20 text-wa-accent"><TrendingUp className="size-4" /></span>
             <span className="text-[12px] leading-tight"><b className="block text-ln-ink">+ R$ 5.200,00</b><span className="text-ln-muted">Salário recebido</span></span>
           </motion.div>
-          <motion.div style={l1} className="ln-glass absolute bottom-24 right-0 z-20 hidden items-center gap-2.5 rounded-2xl bg-ln-surface/70 px-3.5 py-2.5 sm:flex lg:-right-8">
+          <motion.div style={reduced ? undefined : l1} className="ln-glass absolute -bottom-16 right-0 z-20 hidden items-center gap-2.5 rounded-2xl bg-ln-surface/70 px-3.5 py-2.5 sm:flex">
             <span className="grid size-8 place-items-center rounded-xl bg-ln-magenta/20 text-ln-magenta"><Bell className="size-4" /></span>
             <span className="text-[12px] leading-tight"><b className="block text-ln-ink">Conta de luz</b><span className="text-ln-muted">vence amanhã · R$ 182,37</span></span>
           </motion.div>
-          <motion.div style={l3} className="ln-glass absolute bottom-6 left-0 z-20 hidden items-center gap-2 rounded-2xl bg-ln-surface/70 px-3 py-2 sm:flex lg:left-28">
+          <motion.div style={reduced ? undefined : l3} className="ln-glass absolute -bottom-7 left-0 z-20 hidden items-center gap-2 rounded-2xl bg-ln-surface/70 px-3 py-2 sm:flex lg:left-0">
             <Zap className="size-4 text-ln-lime" /><span className="text-[12px] font-semibold">Registrado em 3s</span>
           </motion.div>
         </motion.div>

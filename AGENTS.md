@@ -22,3 +22,4 @@
 - Plan rows change only through `master_save_plan`/`master_delete_plan` RPCs (super-admin check + audit) called by `/master/planos` server functions; a trigger blocks any other write — why: prices/status can never be altered by other code paths.
 - Registration welcome emails use `sendRegistrationWelcome` only after public/Master provisioning, with insert-only eligibility and an atomic company claim plus Resend idempotency — why: old accounts and repeated completion calls must never trigger duplicate welcomes; delivery failures do not break signup.
 - Signup `signup_profile` data only fills newly created companies/profiles and only empty fields (`fillOnlyEmpty`) — why: saved subscriber records are never overwritten automatically.
+- Landing WhatsApp animation is local presentation only, with one cancellable timer, viewport pausing and a static reduced-motion view — why: realistic pacing must never send messages, write records or run in the background.

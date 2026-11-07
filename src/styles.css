@@ -762,6 +762,7 @@ body {
   background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 20%), color-mix(in oklab, var(--ln-violet) 30%, transparent), transparent 60%);
 }
 .ln-grid-bg {
+  opacity: 0.7;
   background-image: linear-gradient(var(--ln-line) 1px, transparent 1px), linear-gradient(90deg, var(--ln-line) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%);
@@ -791,6 +792,7 @@ body {
   --wa-in: oklch(0.29 0.02 230);
   --wa-out: oklch(0.42 0.08 170);
   --wa-accent: oklch(0.72 0.17 155);
+  --wa-read: oklch(0.78 0.12 230);
 }
 @theme inline {
   --color-wa-bg: var(--wa-bg);
@@ -798,7 +800,10 @@ body {
   --color-wa-in: var(--wa-in);
   --color-wa-out: var(--wa-out);
   --color-wa-accent: var(--wa-accent);
+  --color-wa-read: var(--wa-read);
 }
+.wa-conversation { scrollbar-width: none; overflow-anchor: none; }
+.wa-conversation::-webkit-scrollbar { display: none; }
 .wa-wallpaper {
   background-color: var(--wa-bg);
   background-image: radial-gradient(color-mix(in oklab, white 6%, transparent) 1px, transparent 1px);

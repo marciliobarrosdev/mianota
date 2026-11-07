@@ -1,5 +1,8 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
+## Animação da apresentação inicial
+- [x] Conversa WhatsApp com gravação, digitação, confirmações e rolagem; MIA destacada e grade com opacidade 0,7. Conferido em 1838px, 390px, 320px e movimento reduzido, sem erros nem rolagem lateral; nenhum dado ou envio real alterado.
+
 ## Boas-vindas após novo cadastro
 - [x] Removido somente TESTE AUTORIZADO BOAS-VINDAS 20261107 0229 e seus vínculos; eventos de entrega e cadastros reais preservados, com resumos criptográficos idênticos e conferência no Master.
 - [x] Integrar Resend ao cadastro público e Master concluídos, com plano selecionado e link de acesso; planos pendentes informam liberação após pagamento.
