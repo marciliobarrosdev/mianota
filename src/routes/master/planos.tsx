@@ -28,6 +28,7 @@ import {
   CreditCard,
   Sparkles,
   Plus,
+  Trash2,
   Gift,
 } from "lucide-react";
 import {
@@ -35,7 +36,7 @@ import {
   listStripeRecurringPrices,
   type StripeCatalogPrice,
 } from "@/lib/master/stripe-admin.functions";
-import { listPlansBasic } from "@/lib/master/master.functions";
+import { listPlansBasic, saveMasterPlan, deleteMasterPlan } from "@/lib/master/master.functions";
 import { MoneyInput } from "@/components/money-input";
 import { DEFAULT_MAX_CENTS } from "@/lib/common/money";
 import { isValidHttpUrl } from "@/lib/common/masks";
@@ -93,6 +94,8 @@ function PlanosPage() {
   const fetchStripePrices = useServerFn(listStripeRecurringPrices);
   const createStripePrice = useServerFn(createStripePlanPrice);
   const ensureCanonicalPlans = useServerFn(listPlansBasic);
+  const savePlanFn = useServerFn(saveMasterPlan);
+  const deletePlanFn = useServerFn(deleteMasterPlan);
   const [stripePrices, setStripePrices] = useState<StripeCatalogPrice[]>([]);
   const [stripeBusy, setStripeBusy] = useState<null | "list" | "create">(null);
   const [stripeError, setStripeError] = useState<string | null>(null);
@@ -289,23 +292,36 @@ function PlanosPage() {
       setSaving(false);
       return toast.error("Informe o Stripe Price ID (começa com price_) ou escolha link externo.");
     }
-    const op = (editing as any).id
-      ? supabase
-          .from("plan")
-          .update(payload)
-          .eq("id", (editing as any).id)
-      : supabase.from("plan").insert(payload);
-    const { error } = await op;
+    try {
+      await savePlanFn({ data: { id: (editing as any).id ?? null, payload } });
+    } catch (e) {
+      setSaving(false);
+      return toast.error(e instanceof Error ? e.message : "Não foi possível salvar o plano.");
+    }
     setSaving(false);
-    if (error) return toast.error(error.message);
     toast.success("Plano salvo");
     setEditing(null);
     load();
   }
 
   async function toggleAtivo(p: Plan) {
-    const { error } = await supabase.from("plan").update({ ativo: !p.ativo }).eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (p.ativo && (p as any).is_free && !confirm("Desativar o plano grátis bloqueia novos cadastros grátis. Continuar?")) return;
+    try {
+      await savePlanFn({ data: { id: p.id, payload: { ativo: !p.ativo } } });
+    } catch (e) {
+      return toast.error(e instanceof Error ? e.message : "Não foi possível alterar o plano.");
+    }
+    load();
+  }
+
+  async function removePlan(p: Plan) {
+    if (!confirm(`Excluir o plano "${p.nome}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+      await deletePlanFn({ data: { id: p.id } });
+      toast.success("Plano excluído");
+    } catch (e) {
+      return toast.error(e instanceof Error ? e.message : "Não foi possível excluir o plano.");
+    }
     load();
   }
 
@@ -401,6 +417,14 @@ function PlanosPage() {
                     onClick={() => openEdit(p)}
                   >
                     <Edit3 className="size-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Excluir plano ${p.nome}`}
+                    onClick={() => removePlan(p)}
+                  >
+                    <Trash2 className="size-3.5 text-destructive" />
                   </Button>
                 </div>
               </div>

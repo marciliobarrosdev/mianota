@@ -4981,6 +4981,11 @@ export type Database = {
         Args: { _attempted_count: number; _company_id: string; _ref: string }
         Returns: boolean
       }
+      master_delete_plan: { Args: { _id: string }; Returns: undefined }
+      master_save_plan: {
+        Args: { _id: string; _payload: Json }
+        Returns: string
+      }
       migrate_generated_assistant_presentation: {
         Args: {
           _next_name: string

@@ -19,3 +19,4 @@
 - Master CRM leads (`master_lead*`, super-admin RLS) are fed by `src/lib/master/lead-sync.server.ts` from free signup (`createCheckoutCompany`) and payment `applyEvent`; hooks never throw — why: CRM must not break signup or payments.
 
 - Public plan catalog uses `src/lib/billing/public-plans.functions.ts` through a query-backed route loader, with anonymous active-plan reads and explicit unavailable/empty states — why: saved prices and quotas never fall back to invented catalog entries.
+- Plan rows change only through `master_save_plan`/`master_delete_plan` RPCs (super-admin check + audit) called by `/master/planos` server functions; a trigger blocks any other write — why: prices/status can never be altered by other code paths.

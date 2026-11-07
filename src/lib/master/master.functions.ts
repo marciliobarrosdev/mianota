@@ -609,27 +609,7 @@ export const listPlansBasic = createServerFn({ method: "POST" })
       },
     ];
 
-    // Só cria o plano canônico se ele não existir: nunca sobrescreve preço,
-    // nome ou link editados pelo dono em /master/planos.
-    const { data: existing, error: existingError } = await supabaseAdmin
-      .from("plan")
-      .select("slug")
-      .in("slug", canonicalPlans.map((p) => p.slug));
-    if (existingError) throw existingError;
-    const have = new Set((existing ?? []).map((r: { slug: string }) => r.slug));
-    for (const plan of canonicalPlans) {
-      if (have.has(plan.slug)) continue;
-      const { error } = await supabaseAdmin.from("plan").insert(plan as any);
-      if (error) throw error;
-    }
-    // Catálogo histórico reinserido por bootstraps antigos fica inativo.
-    const { error: retireError } = await supabaseAdmin
-      .from("plan")
-      .update({ ativo: false, destaque: false, ordem: 99 })
-      .eq("slug", "business")
-      .eq("ativo", true);
-    if (retireError) throw retireError;
-
+    void canonicalPlans; // referência histórica; planos só mudam por /master/planos.
     const { data, error } = await supabaseAdmin
       .from("plan")
       .select("id, slug, nome, preco_cents, moeda, intervalo, trial_days, ordem, is_free, free_days, limite_mensagens, limite_usuarios, creditos_mensais, creditos_trial")
@@ -992,4 +972,33 @@ export const releaseCompanyPlan = createServerFn({ method: "POST" })
     await writeMasterAudit({ actorId: context.userId, action: "company.release_plan", target: data.companyId,
       details: { plan: plan.slug, days, until, note: data.note || null, super_admin_release: true, event_key: key } });
     return { ok: true, plan: plan.nome as string, until };
+  });
+
+export const saveMasterPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id?: string | null; payload: Record<string, unknown> }) => {
+    if (!d || typeof d.payload !== "object" || !d.payload) throw new Error("Dados do plano inválidos.");
+    return { id: typeof d.id === "string" && d.id ? d.id : null, payload: d.payload };
+  })
+  .handler(async ({ data, context }) => {
+    await assertSuper(context.supabase, context.userId);
+    const { data: id, error } = await (context.supabase as any).rpc("master_save_plan", {
+      _id: data.id,
+      _payload: data.payload,
+    });
+    if (error) throw new Error(error.message);
+    return { id: String(id) };
+  });
+
+export const deleteMasterPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => {
+    if (!d?.id) throw new Error("Plano inválido.");
+    return { id: String(d.id) };
+  })
+  .handler(async ({ data, context }) => {
+    await assertSuper(context.supabase, context.userId);
+    const { error } = await (context.supabase as any).rpc("master_delete_plan", { _id: data.id });
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });

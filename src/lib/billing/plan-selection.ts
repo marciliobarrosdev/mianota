@@ -6,7 +6,7 @@
 
 export const PLAN_SLUGS = { basic: "starter", pro: "pro" } as const;
 
-export const CHOOSE_PLAN_MESSAGE = "Escolha o plano Basic ou Pro para criar sua conta.";
+export const CHOOSE_PLAN_MESSAGE = "Este plano não está disponível no momento. Escolha um dos planos ativos.";
 
 /** Slug limpo ("  PRO " → "pro") ou null quando vazio/formato inválido. */
 export function normalizePlanSlug(value: unknown): string | null {

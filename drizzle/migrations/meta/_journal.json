@@ -120,6 +120,13 @@
       "when": 1794014218728,
       "tag": "0016_respect_explicit_master_trial_expiry",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794014959587,
+      "tag": "0017_plan_writes_master_only",
+      "breakpoints": true
     }
   ]
 }
