@@ -375,7 +375,7 @@ function OverviewPage() {
           icon={<CreditCard className="size-4" />}
           label="Assinaturas em trial"
           value={stats.assinaturasTrial}
-          helper="checkout e Stripe"
+          helper="checkout InfinityPay"
         />
         <MetricCard
           compact
