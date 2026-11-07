@@ -23,6 +23,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import miaFace from "@/assets/mia-face.jpg";
+import miaFull from "@/assets/mia-stage.png";
+import { Button } from "@/components/ui/button";
 import {
   brand,
   legalProfile,
@@ -367,17 +369,40 @@ export function FinanceLanding({
         </Section>
 
         {/* Chamada final */}
-        <section className="px-5 py-16">
-          <div data-reveal className="relative mx-auto max-w-5xl overflow-hidden rounded-[36px] ln-gradient p-8 text-center ln-glow sm:p-14">
-            <div className="ln-blob absolute -left-20 -top-20 size-72 rounded-full bg-ln-lime/25 blur-3xl" />
-            <img src={avatar} alt="" className="relative mx-auto size-16 rounded-full border-2 border-ln-ink/40 object-cover" />
-            <h2 className="relative mx-auto mt-5 max-w-2xl font-sora text-[clamp(2rem,6vw,3.5rem)] font-extrabold leading-tight tracking-tight">
-              Organize o mês começando por uma frase.
-            </h2>
-            <p className="relative mx-auto mt-4 max-w-lg text-ln-ink/80">{SLOGAN}</p>
-            <a href={trialHref} className="relative mt-8 inline-flex h-14 items-center gap-2 rounded-2xl bg-ln-ink px-8 font-bold text-ln-bg transition hover:-translate-y-0.5">
-              Começar grátis agora <ArrowRight className="size-4" />
-            </a>
+        <section aria-labelledby="final-cta-title" className="px-5 pb-16 pt-8 sm:pb-24">
+          <div data-reveal className="relative mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-[1fr_0.42fr] md:gap-8">
+            <div className="relative overflow-hidden rounded-[28px] border border-ln-ink/15 ln-gradient p-6 ln-glow sm:p-10 lg:p-12">
+              <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-72 rotate-12 rounded-[48px] border border-ln-ink/15" />
+              <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 size-72 rotate-12 rounded-[48px] border border-ln-ink/10" />
+              <div className="relative flex items-center gap-2 text-xs font-bold text-ln-ink/90">
+                <Sparkles className="size-4 text-ln-lime" /> Seu próximo mês pode ser diferente
+              </div>
+              <h2 id="final-cta-title" className="relative mt-6 max-w-xl font-sora text-3xl font-extrabold leading-[1.12] tracking-normal sm:text-4xl lg:text-5xl">
+                Menos preocupação.<br />
+                <span className="text-ln-lime">Mais vida acontecendo.</span>
+              </h2>
+              <p className="relative mt-5 max-w-lg text-base leading-7 text-ln-ink/90">
+                Deixe as contas em ordem com a {assistantName}. Uma conversa para entender seu dinheiro — e mais tranquilidade para cuidar do que importa.
+              </p>
+              <div className="relative mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-ln-ink/20 pt-5 text-sm font-semibold">
+                <span className="inline-flex items-center gap-2"><MessageCircle className="size-4 text-ln-lime" /> No WhatsApp</span>
+                <span className="inline-flex items-center gap-2"><Mic className="size-4 text-ln-lime" /> Do seu jeito</span>
+                <span className="inline-flex items-center gap-2"><ShieldCheck className="size-4 text-ln-lime" /> Você no controle</span>
+              </div>
+              <Button asChild size="lg" className="group relative mt-8 h-14 w-full gap-3 rounded-xl bg-ln-lime px-5 text-base font-extrabold text-ln-bg shadow-none transition duration-200 hover:-translate-y-1 hover:bg-ln-lime/90 sm:w-auto sm:px-7">
+                <a href={trialHref}>
+                  Quero começar com a {assistantName} <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                </a>
+              </Button>
+              <p className="relative mt-3 text-xs text-ln-ink/80">{SLOGAN}</p>
+            </div>
+            <div className="relative mx-auto flex w-full max-w-sm items-end justify-center gap-4 md:max-w-none md:self-stretch">
+              <div className="mb-10 max-w-32 md:absolute md:-right-2 md:bottom-3 md:mb-0 md:max-w-none md:text-right">
+                <span className="block font-sora text-2xl font-extrabold text-ln-ink">{assistantName}</span>
+                <span className="mt-1 block text-xs leading-5 text-ln-muted">Sua parceira em cada novo começo.</span>
+              </div>
+              <img src={miaFull} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="relative h-[340px] w-auto shrink-0 object-contain md:absolute md:bottom-12 md:h-[510px] lg:h-[550px]" />
+            </div>
           </div>
         </section>
       </main>
