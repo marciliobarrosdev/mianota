@@ -49,6 +49,9 @@ describe("companyNeedsPayment", () => {
   it("Grátis válido com créditos libera uso", () => {
     expect(companyNeedsPayment({ status_cobranca: "trial", trial_ate: "2026-11-10T12:00:00Z", creditos_saldo: 5 }, now)).toBe(false);
   });
+  it("teste administrativo de sete dias mantém acesso após recarregar com cinco créditos", () => {
+    expect(companyNeedsPayment({ status_cobranca: "trial", trial_ate: "2026-11-14T12:00:00Z", creditos_saldo: 5 }, Date.parse("2026-11-07T12:00:00Z"))).toBe(false);
+  });
   it("plano pago confirmado libera uso", () => {
     expect(companyNeedsPayment({ status_cobranca: "ativo", trial_ate: null, creditos_saldo: 0 }, now)).toBe(false);
   });

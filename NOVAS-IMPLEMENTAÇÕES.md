@@ -116,3 +116,12 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Nenhum erro JavaScript observado; 206 testes passaram, um histórico foi ignorado, sete verificações de segurança passaram e compilação sem erros.
 - Limites: não foram salvos cadastros, receitas ou despesas artificiais em contas reais; criação, edição e confirmação de pagamento continuam sem validação de gravação ponta a ponta. Acesso do assinante foi exercitado pela impersonação Master, não por login independente de assinante.
 - Divergência preservada e identificada: planos salvos continuam Basic R$ 49,00, Pro R$ 69,00 e Gratuito inativo; esta verificação não alterou preços nem ativação de planos.
+
+## 15. Salvamentos de teste autorizados (07/11/2026)
+- Cadastro isolado: **TESTE AUTORIZADO MIAnota 20261107 0114**, contato `teste-mianota-20261107-0114@example.com`; lista Master confirmou persistência após recarregar.
+- Corrigido bloqueio de criação: o trigger de créditos desconsiderava a data futura explicitamente liberada pelo Master quando o plano tinha zero dias padrão; migração 0016 respeita a validade futura, mantendo trial sem validade bloqueado. Não altera dados de clientes existentes.
+- A conta preservada na falha inicial foi reutilizada; nenhum cadastro real foi removido. Trial administrativo de sete dias e cinco créditos liberado pela interface, sem chamada à IA ou checkout.
+- Primeiros passos concluídos pela interface com conta financeira de teste; entrada **R$ 1.000,00**, saída **R$ 234,00**, ambas PIX no dia 07/11; conta planejada **R$ 345,00**, PIX, pendente em 10/11. Todos possuem descrição TESTE AUTORIZADO.
+- Persistência confirmada na interface após recarregar cada gravação, e leitura dos três registros confirmou valores em centavos, status, vencimento e forma de pagamento. Planejamento mostrou entrada R$ 1.000,00, saída R$ 234,00, a pagar R$ 345,00 e resultado previsto R$ 421,00.
+- Nenhum pagamento iniciado, nenhuma chamada de IA realizada; saldo de cinco créditos permaneceu íntegro. Os registros de teste ficam identificados e separados para inspeção; não foram apagados registros reais.
+- Escopo validado: criação pelo Master, onboarding e gravações manuais com impersonação autorizada. Signup público com confirmação de e-mail, compra e lançamento via MIA/WhatsApp não foram exercitados nesta rodada.

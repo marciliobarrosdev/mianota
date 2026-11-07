@@ -113,6 +113,13 @@
       "when": 1793985406027,
       "tag": "0015_lead_credits_exhausted",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794014218728,
+      "tag": "0016_respect_explicit_master_trial_expiry",
+      "breakpoints": true
     }
   ]
 }

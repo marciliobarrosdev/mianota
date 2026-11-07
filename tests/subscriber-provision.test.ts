@@ -15,6 +15,10 @@ describe("novo assinante", () => {
   it("plano pago usa os dias de teste digitados", () => {
     expect(provisionTrialDays({ ativo: true, is_free: false }, 3)).toBe(3);
   });
+  it("Master pode liberar sete dias mesmo com trial padrão desabilitado", () => {
+    const plan = { ativo: true, is_free: false, trial_days: 0 };
+    expect(provisionTrialDays(plan, 7)).toBe(7);
+  });
 });
 
 import { freePlanAlreadyUsed } from "@/lib/billing/subscriber-provision-rules";

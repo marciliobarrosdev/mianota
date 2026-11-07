@@ -1,5 +1,10 @@
 # Roadmap — canal central único, onboarding pós-compra, IA e créditos
 
+## Salvamentos autorizados de teste
+- [x] Cadastro TESTE AUTORIZADO criado pelo Master e persistência confirmada após recarregar; corrigido trigger que ignorava validade explícita de trial.
+- [x] Entrada R$ 1.000,00, saída R$ 234,00 e conta planejada R$ 345,00 salvas no cadastro de teste; persistência conferida na interface e na leitura dos registros.
+- [x] Resultados registrados; nenhum dado real apagado, pagamento iniciado ou chamada de IA realizada.
+
 ## Validação autenticada após refatoração
 - [x] Sessão autorizada: Master e impersonação da própria empresa; cadastro/edição carregaram, nove lançamentos reais lidos e planejamento semanal/formulário conferidos sem alterar dados.
 - [x] Nenhum link de execução para Demo encontrado; rótulos de resultado corrigidos sem alterar cálculos.
