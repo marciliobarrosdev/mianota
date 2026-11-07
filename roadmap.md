@@ -3,7 +3,7 @@
 ## Organização geral (07/11/2026)
 - [x] Nomes internos marcia→mia (exceto tabelas e chaves de dados salvos), script antigo removido, documentação atualizada; 227 testes ok.
 - [x] Dividir Notificações, Planos (Master) e comandos financeiros em módulos menores, com comentários, 20 testes novos e docs.
-- [ ] Testar no navegador /app/notificacoes, /app/mia e /master/planos logado — aguardando escolha da conta de teste.
+- [x] Navegador (conta do proprietário, visualização da empresa sem gravar): Planos abriu 3 planos, editor com R$ 29,90 e validação; Notificações e MIA abriram sem erros.
 
 ## Atualização do app instalado
 - [x] Worker no mesmo endereço limpa apenas caches antigos MIA/marcia, sem interceptar arquivos, recarregar ou cancelar notificações; três testes de atualização e três de push passaram. Navegador confirmou localStorage, IndexedDB e cache não relacionado preservados, ícone HTTP 200 e identidade MIAnota; não publicado. Ícones/nomes na tela inicial dependem do celular e podem exigir reinstalação; modo offline antigo retirado.
