@@ -116,6 +116,8 @@ export function LandingHero({
           <div className="mt-7 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-ln-muted lg:justify-start">
             <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> Sem cartão no plano grátis</span>
             <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> Texto, áudio, foto e PDF</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> Responde em segundos</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="size-4 text-ln-lime" /> 7 dias grátis</span>
           </div>
         </div>
 

@@ -817,3 +817,26 @@ body {
   filter: blur(40px);
   animation: ln-blob 18s ease-in-out infinite;
 }
+
+/* Landing — otimizações dinâmicas */
+.ln-marquee-wrap:hover .ln-marquee { animation-play-state: paused; }
+.ln-progress { transform-origin: 0 50%; }
+.ln-spot { position: relative; isolation: isolate; }
+.ln-spot::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--ln-magenta) 22%, transparent), transparent 70%);
+}
+.ln-spot:hover::before { opacity: 1; }
+.ln-shimmer { position: relative; overflow: hidden; }
+.ln-shimmer::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, color-mix(in oklab, var(--ln-ink) 18%, transparent) 50%, transparent 70%);
+  transform: translateX(-100%); animation: ln-shimmer 5s ease-in-out infinite;
+}
+.ln-pulse { animation: ln-pulse 2.4s ease-in-out infinite; }
+.ln-breathe { animation: ln-floaty 6s ease-in-out infinite; }
+@keyframes ln-shimmer { 60%,100% { transform: translateX(100%); } }
+@keyframes ln-pulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--ln-lime) 45%, transparent); } 50% { box-shadow: 0 0 0 12px transparent; } }
+@media (prefers-reduced-motion: reduce) {
+  .ln-shimmer::after, .ln-pulse, .ln-breathe, .ln-marquee { animation: none !important; }
+}

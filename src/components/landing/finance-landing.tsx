@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -143,6 +143,58 @@ export function FinanceLanding({
   const featuredSlug =
     orderedPlans.find((x) => x.featured)?.slug ?? orderedPlans[Math.floor(orderedPlans.length / 2)]?.slug;
 
+  const [faqQuery, setFaqQuery] = useState("");
+  const [active, setActive] = useState("");
+  const progressRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
+  const stepsLineRef = useRef<HTMLDivElement>(null);
+
+  // Barra de progresso de leitura + linha dos passos (um único listener, via rAF)
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      if (progressRef.current) progressRef.current.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+      const steps = stepsRef.current;
+      if (steps && stepsLineRef.current) {
+        const r = steps.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, (window.innerHeight * 0.8 - r.top) / r.height));
+        stepsLineRef.current.style.transform = `scaleX(${ratio})`;
+      }
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (frame) cancelAnimationFrame(frame); };
+  }, []);
+
+  // Menu destaca a seção atual
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return;
+    const ids = ["como-funciona", "mia", "recursos", "planos", "faq"];
+    const els = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(`#${e.target.id}`); }),
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
+  const spot = (e: ReactPointerEvent<HTMLElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+
+  const faqFiltered = FAQS.map((f, i) => [f, i] as const).filter(([[q, a]]) => {
+    const t = faqQuery.trim().toLowerCase();
+    return !t || p(q).toLowerCase().includes(t) || p(a).toLowerCase().includes(t);
+  });
+
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
@@ -175,6 +227,9 @@ export function FinanceLanding({
   return (
     <div ref={rootRef} data-force-motion="gentle" className="min-h-screen overflow-x-hidden bg-ln-bg pb-24 font-sans text-ln-ink lg:pb-0">
       {/* Topo */}
+      <div aria-hidden="true" className="fixed inset-x-0 top-0 z-[55] h-0.5">
+        <div ref={progressRef} className="ln-progress h-full ln-gradient" style={{ transform: "scaleX(0)" }} />
+      </div>
       <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3">
         <nav className="cl-nav ln-glass mx-auto flex h-14 max-w-6xl items-center rounded-2xl px-3.5 sm:px-5">
           <a href="#inicio" className="flex min-w-0 items-center gap-2.5">
@@ -183,7 +238,7 @@ export function FinanceLanding({
           </a>
           <div className="ml-auto hidden items-center gap-6 text-[13px] font-semibold text-ln-muted lg:flex">
             {navLinks.map(([href, label]) => (
-              <a key={href} href={href} className="transition hover:text-ln-ink">{label}</a>
+              <a key={href} href={href} aria-current={active === href ? "true" : undefined} className={`relative transition hover:text-ln-ink ${active === href ? "text-ln-ink after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-ln-magenta" : ""}`}>{label}</a>
             ))}
           </div>
           <div className="ml-auto flex items-center gap-1.5 lg:ml-6">
@@ -225,7 +280,7 @@ export function FinanceLanding({
         <LandingHero assistantName={assistantName} brandName={brandName} slogan={SLOGAN} face={avatar} trialHref={trialHref} />
 
         {/* Faixa */}
-        <div className="overflow-hidden border-y border-ln-line py-4">
+        <div className="ln-marquee-wrap overflow-hidden border-y border-ln-line py-4">
           <div className="ln-marquee flex w-max gap-10">
             {[...MARQUEE, ...MARQUEE].map(([Icon, label], i) => (
               <span key={i} className="inline-flex items-center gap-2 whitespace-nowrap font-sora text-sm font-semibold text-ln-muted">
@@ -237,16 +292,21 @@ export function FinanceLanding({
 
         {/* Como funciona */}
         <Section id="como-funciona" eyebrow="Como funciona" title="Três passos. Nenhuma planilha.">
-          <div data-stagger className="mt-10 grid gap-4 md:grid-cols-3">
+          <div ref={stepsRef} className="relative mt-10">
+          <div aria-hidden="true" className="absolute left-[16%] right-[16%] top-[48px] hidden h-0.5 overflow-hidden rounded-full bg-ln-line md:block">
+            <div ref={stepsLineRef} className="ln-progress h-full ln-gradient" style={{ transform: "scaleX(0)" }} />
+          </div>
+          <div data-stagger className="relative grid gap-4 md:grid-cols-3">
             {STEPS.map(({ icon: Icon, title, text, example }, i) => (
-              <article key={title} className="group relative overflow-hidden rounded-3xl ln-glass p-6 transition hover:-translate-y-1">
+              <article key={title} onPointerMove={spot} className="ln-spot group relative overflow-hidden rounded-3xl ln-glass p-6 transition hover:-translate-y-1">
                 <span className="absolute right-5 top-3 font-sora text-6xl font-extrabold text-ln-line">0{i + 1}</span>
-                <div className="grid size-12 place-items-center rounded-2xl ln-gradient"><Icon className="size-5" /></div>
+                <div className="grid size-12 place-items-center rounded-2xl ln-gradient transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"><Icon className="size-5" /></div>
                 <h3 className="mt-5 font-sora text-xl font-bold">{p(title)}</h3>
                 <p className="mt-2 text-sm leading-6 text-ln-muted">{p(text)}</p>
                 <div className="mt-5 rounded-2xl border border-ln-line bg-ln-bg/60 px-4 py-3 text-[13px] font-medium">{example}</div>
               </article>
             ))}
+          </div>
           </div>
         </Section>
 
@@ -264,8 +324,8 @@ export function FinanceLanding({
         <Section id="recursos" eyebrow="Recursos" title="Tudo o que você precisa, nada que atrapalhe.">
           <div data-stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(({ icon: Icon, title, text, wide }) => (
-              <article key={title} className={`rounded-3xl ln-glass p-6 transition hover:-translate-y-1 ${wide ? "sm:col-span-2" : ""}`}>
-                <Icon className="size-6 text-ln-lime" />
+              <article key={title} onPointerMove={spot} className={`ln-spot group rounded-3xl ln-glass p-6 transition hover:-translate-y-1 hover:border-ln-magenta/40 ${wide ? "sm:col-span-2" : ""}`}>
+                <Icon className="size-6 text-ln-lime transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110" />
                 <h3 className="mt-4 font-sora text-lg font-bold">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-ln-muted">{text}</p>
               </article>
@@ -346,8 +406,19 @@ export function FinanceLanding({
 
         {/* FAQ */}
         <Section id="faq" eyebrow="Dúvidas" title="Perguntas diretas.">
-          <div data-reveal className="mx-auto mt-10 max-w-3xl divide-y divide-ln-line overflow-hidden rounded-3xl ln-glass">
-            {FAQS.map(([q, a], i) => (
+          <div data-reveal className="mx-auto mt-10 max-w-3xl">
+            <input
+              type="search"
+              value={faqQuery}
+              onChange={(e) => setFaqQuery(e.target.value)}
+              placeholder="Buscar uma dúvida…"
+              aria-label="Buscar nas perguntas frequentes"
+              className="mb-4 h-12 w-full rounded-2xl ln-glass bg-transparent px-5 text-sm text-ln-ink outline-none placeholder:text-ln-muted focus:ring-2 focus:ring-ln-magenta/50"
+            />
+          </div>
+          <div data-reveal className="mx-auto max-w-3xl divide-y divide-ln-line overflow-hidden rounded-3xl ln-glass">
+            {faqFiltered.length === 0 && <p role="status" className="px-6 py-6 text-sm text-ln-muted">Nenhuma pergunta encontrada.</p>}
+            {faqFiltered.map(([[q, a], i]) => (
               <div key={q}>
                 <button
                   type="button"
@@ -371,7 +442,7 @@ export function FinanceLanding({
         {/* Chamada final */}
         <section aria-labelledby="final-cta-title" className="px-5 pb-16 pt-8 sm:pb-24">
           <div className="relative mx-auto grid max-w-6xl items-center gap-6 md:grid-cols-[1fr_0.32fr] md:gap-2">
-            <div className="relative overflow-hidden rounded-[28px] border border-ln-ink/15 ln-gradient p-6 ln-glow sm:p-10 lg:p-12">
+            <div className="relative overflow-hidden rounded-[28px] border border-ln-ink/15 ln-gradient ln-shimmer p-6 ln-glow sm:p-10 lg:p-12">
               <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 size-72 rotate-12 rounded-[48px] border border-ln-ink/15" />
               <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 size-72 rotate-12 rounded-[48px] border border-ln-ink/10" />
               <div className="relative flex items-center gap-2 text-xs font-bold text-ln-ink/90">
@@ -389,7 +460,7 @@ export function FinanceLanding({
                 <span className="inline-flex items-center gap-2"><Mic className="size-4 text-ln-lime" /> Do seu jeito</span>
                 <span className="inline-flex items-center gap-2"><ShieldCheck className="size-4 text-ln-lime" /> Você no controle</span>
               </div>
-              <Button asChild size="lg" className="group relative mt-8 h-14 w-full gap-3 rounded-xl bg-ln-lime px-5 text-base font-extrabold text-ln-bg shadow-none transition duration-200 hover:-translate-y-1 hover:bg-ln-lime/90 sm:w-auto sm:px-7">
+              <Button asChild size="lg" className="ln-pulse group relative mt-8 h-14 w-full gap-3 rounded-xl bg-ln-lime px-5 text-base font-extrabold text-ln-bg shadow-none transition duration-200 hover:-translate-y-1 hover:bg-ln-lime/90 sm:w-auto sm:px-7">
                 <a href={trialHref}>
                   Quero começar com a {assistantName} <ArrowRight className="transition-transform group-hover:translate-x-1" />
                 </a>
@@ -397,7 +468,7 @@ export function FinanceLanding({
               <p className="relative mt-3 text-xs text-ln-ink/80">{SLOGAN}</p>
             </div>
             <div className="relative mx-auto flex w-full max-w-sm items-end justify-center gap-4 md:max-w-none md:self-stretch md:justify-start">
-              <img src={miaFinal.url} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="relative h-[400px] w-auto max-w-none shrink-0 object-contain md:absolute md:left-0 md:top-0 md:h-[calc(100%+40px)]" />
+              <img src={miaFinal.url} alt={`${assistantName}, sua assistente financeira, de corpo inteiro`} loading="lazy" decoding="async" className="ln-breathe relative h-[400px] w-auto max-w-none shrink-0 object-contain md:absolute md:left-0 md:top-0 md:h-[calc(100%+40px)]" />
             </div>
           </div>
         </section>
