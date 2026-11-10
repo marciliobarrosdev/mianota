@@ -1,7 +1,7 @@
 # MIAnota — Registro de Novas Implementações
 
 > "Sua assistente financeira na palma da mão." · Assistente: **MIA**
-> Atualizado em 07/11/2026. Site: https://mianota.lovable.app
+> Atualizado em 10/11/2026. Site: https://mianota.lovable.app
 
 ---
 
@@ -10,7 +10,7 @@
 | Item | Situação |
 |---|---|
 | Compilação | Sem erros |
-| Testes automáticos (07/11) | 206 passaram em 33 arquivos; uma verificação SQL histórica é ignorada explicitamente porque a migração original não foi copiada. Sete verificações de segurança passaram. |
+| Testes automáticos (10/11) | 252 passaram em 43 arquivos; uma verificação SQL histórica é ignorada explicitamente porque a migração original não foi copiada. Sete verificações de segurança passaram. |
 | Telas verificadas logado (03/11) | Início, Falar com MIA, Movimentações, Planejamento, Configurações, Comece aqui — sem erros |
 | Publicação | Necessária para levar as últimas mudanças ao site no ar |
 | Pendências conhecidas | Ver seção 12 |
@@ -176,10 +176,32 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - **Preservados:** tabelas `marcia_*`, preferências salvas, assinaturas de push, integrações Stripe/InfinitePay/WhatsApp e todas as mensagens exibidas.
 - **Novos testes (20):** `finance-command-rules`, `notification-center-rules` e `plan-form-rules` (inclui Plano 1 R$ 29,90 e Plano 2 R$ 49,90, preço duplicado, plano grátis). Total: 247 testes passaram em 42 arquivos; sete verificações de segurança ajustadas aos novos arquivos e aprovadas; compilação sem erros.
 
-## 23. Cookies e consentimento (LGPD)
-- Aviso com "Aceitar todos", "Rejeitar opcionais" e "Personalizar"; central com Essenciais, Preferências, Análise e Marketing (opcionais desligados por padrão).
-- Registro no navegador (`mia-cookie-consent`): categorias, data, versão da política e validade de 365 dias; sem dados pessoais.
-- Tema, menu recolhido, filtro de conversas e aviso de instalação só ficam salvos com "Preferências"; revogar apaga esses itens sem afetar o login.
-- `loadOptionalScript` carrega futuras ferramentas de análise/marketing só após autorização.
-- Nova página `/politica-de-cookies`; link "Preferências de cookies" no rodapé e em Configurações → Privacidade.
-- Pendente: razão social, CNPJ e contato do encarregado (DPO).
+## 23. Cookies e consentimento (LGPD) (10/11/2026)
+
+**Como funciona**
+- O aviso aparece em qualquer página enquanto não houver escolha válida, com **Aceitar todos**, **Rejeitar opcionais** e **Personalizar**. Rolar, navegar ou fechar o aviso não grava nada e não equivale a aceite.
+- A escolha é registrada no navegador em `mia-cookie-consent`: categorias ligadas, data da decisão, versão da política (`CONSENT_POLICY_VERSION`) e validade de 365 dias. Sem dados pessoais, financeiros, mensagens, senhas ou chaves.
+- Registro ausente, malformado, de outra versão da política ou vencido faz o aviso voltar; subir a versão da política pede nova escolha em todos os aparelhos.
+- Gravações opcionais passam por `setPreference` (só escreve com a categoria ligada) e leituras por `hasConsent`; o cookie do menu lateral é escrito só com autorização. Scripts de análise/marketing entram por `loadOptionalScript`, que espera a autorização chegar.
+- Revogar apaga na hora os itens de "Preferências" (tema, menu recolhido, filtro de conversas, aviso de instalação, cookie `sidebar_state`) e, se alguma ferramenta de análise/marketing existir, os cookies dela quando a categoria estiver desligada. A sessão de login e o próprio registro de consentimento não são tocados.
+
+**Categorias**
+
+| Categoria | Padrão | O que guarda |
+|---|---|---|
+| Essenciais | sempre ativos (não desligáveis) | sessões de assinante e Master, registro da escolha de cookies, cache público da marca, service worker e notificações ativadas |
+| Preferências | desligado | tema claro/escuro, menu lateral recolhido, filtro da tela de conversas, aviso de instalação do app |
+| Análise | desligado | nenhuma ferramenta em uso no momento |
+| Marketing | desligado | nenhuma ferramenta em uso no momento |
+
+**Pontos de acesso às preferências**
+- Aviso de cookies, fixo no rodapé da tela, em qualquer página (montado uma vez em `__root.tsx`);
+- **Preferências de cookies** no rodapé da página inicial, ao lado do link "Política de Cookies";
+- **Configurações → Privacidade** no app do assinante;
+- Página **/politica-de-cookies** (tabela com fornecedor, finalidade, categoria e duração de cada item), que também abre a central;
+- A rota **/privacidade** aponta para a Política de Cookies.
+
+**Arquivos e verificação**
+- Regras puras em `src/lib/common/consent-rules.ts`, funções do navegador em `src/lib/common/consent.ts`, aviso e central em `src/components/consent/cookie-consent.tsx`, página em `src/routes/politica-de-cookies.tsx`.
+- Cinco testes em `tests/consent-rules.test.ts` (validade, expiração, versão, bloqueio e registro padrão). No navegador: o aviso continua após rolar, rejeitar persiste ao recarregar, "Personalizar" salva só o que foi ligado, revogar apaga o tema e nenhuma requisição de análise/marketing é disparada.
+- Pendente do responsável: razão social, CNPJ e e-mail do encarregado de dados (DPO), marcados na seção 5 da política.

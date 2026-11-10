@@ -32,6 +32,32 @@ A MIA nunca salva uma ação financeira silenciosamente: falta de dado gera perg
 
 Assinantes, planos, CRM de leads, canal central de WhatsApp (QR Code ou Meta, exclusivos), provedor de IA (Lovable AI ou chave própria), e-mails Resend, integrações e auditoria.
 
+## Cookies e privacidade (LGPD)
+
+Nada opcional é gravado no navegador antes de uma escolha explícita. Rolar, navegar ou fechar o aviso **não** conta como aceite.
+
+**Como funciona**
+- O aviso aparece em qualquer página enquanto não houver escolha válida, com **Aceitar todos**, **Rejeitar opcionais** e **Personalizar**.
+- A escolha fica salva em `mia-cookie-consent`: categorias ligadas, data da decisão, versão da política e validade de 365 dias — sem dados pessoais, financeiros, mensagens, senhas ou chaves.
+- Escolha ausente, malformada, vencida ou de outra versão da política faz o aviso voltar. Subir `CONSENT_POLICY_VERSION` pede nova decisão em todos os aparelhos.
+- Revogar apaga na hora os itens opcionais (tema, menu recolhido, filtro de conversas, aviso de instalação, cookie `sidebar_state`); login e segurança continuam funcionando.
+- Toda gravação opcional passa por `setPreference`, toda leitura por `hasConsent`, e scripts de análise ou marketing só entram por `loadOptionalScript`, depois da autorização.
+
+**Categorias**
+
+| Categoria | Padrão | O que guarda |
+|---|---|---|
+| Essenciais | sempre ativos | sessões de assinante e Master, registro da escolha de cookies, cache público da marca, notificações que você ativar |
+| Preferências | desligado | tema claro/escuro, menu lateral recolhido, filtro da tela de conversas, aviso de instalação do app |
+| Análise | desligado | nenhuma ferramenta em uso no momento |
+| Marketing | desligado | nenhuma ferramenta em uso no momento |
+
+**Onde mudar a escolha**
+- Aviso de cookies, em qualquer página;
+- **Preferências de cookies** no rodapé do site;
+- **Configurações → Privacidade** no app do assinante;
+- **/politica-de-cookies**, com a tabela completa de itens, finalidades e prazos.
+
 ## Estrutura de pastas
 
 ```text
@@ -43,13 +69,14 @@ src/
     master/        telas do proprietário (master/plans: cartão, editor e Stripe dos planos)
     notifications/ peças da Central de Notificações
     mia/           peças visuais da MIA
+    consent/       aviso e central de preferências de cookies
     ui/            componentes base (shadcn)
   hooks/           ganchos React (chat da MIA, caixa de avisos, push, app instalado)
   lib/
     ai/            chamadas de IA e regras da MIA
     auth/          sessões separadas de assinante e proprietário
     billing/       planos, checkout InfinitePay, transições de plano
-    common/        dinheiro, telefone, e-mail, segredos de integração
+    common/        dinheiro, telefone, e-mail, consentimento, segredos de integração
     email/         Resend e boas-vindas
     finance/       regras financeiras, notificações, push
     master/        funções do Master, CRM, auditoria
@@ -81,6 +108,7 @@ bun run build
 - dados isolados por conta com RLS;
 - chaves de integração criptografadas no servidor, nunca enviadas ao navegador;
 - sessões independentes para assinante e proprietário;
+- nada opcional no navegador sem consentimento explícito (LGPD);
 - avisos de pagamento reconfirmados antes de liberar plano;
 - ações sensíveis do Master registradas em auditoria.
 
