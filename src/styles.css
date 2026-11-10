@@ -872,3 +872,8 @@ body {
 .ln-theme .text-gradient-brand { background: linear-gradient(100deg, var(--ln-ink) 10%, color-mix(in oklab, var(--ln-magenta) 80%, white) 55%, var(--ln-lime)); background-clip: text; -webkit-background-clip: text; color: transparent; }
 .ln-theme input { background: oklch(1 0 0 / 0.04); }
 .ln-theme .font-display { font-family: var(--font-sora); }
+
+/* Barra lateral recolhida: esconde textos marcados com data-sb-text. */
+[data-sb-collapsed="true"] [data-sb-text] {
+  display: none !important;
+}

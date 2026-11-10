@@ -21,6 +21,7 @@ import {
   KanbanSquare,
   Mail,
 } from "lucide-react";
+import { SidebarBrand, SidebarCollapseButton, useSidebarCollapsed } from "@/components/sidebar-brand";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileBottomNav, type MobileNavItem } from "@/components/mobile-bottom-nav";
 import { useBrand } from "@/contexts/brand-context";
@@ -126,6 +127,7 @@ const mobileItems: MobileNavItem[] = [
 
 function MasterLayout() {
   const branding = useBrand();
+  const sb = useSidebarCollapsed("mianota:sidebar-master");
   const loc = useLocation();
   const ctx = Route.useRouteContext();
   const email: string | null = ctx?.user?.email ?? null;
@@ -183,31 +185,19 @@ function MasterLayout() {
         </header>
 
         <div className="flex flex-1 flex-col md:flex-row">
-          <aside className="hidden md:flex w-[260px] min-h-screen border-r border-[color:var(--hairline)] bg-[color:var(--sidebar-bg)] flex-col">
-            <div className="px-5 py-5 flex items-center gap-3 border-b border-[color:var(--hairline)]">
-              <div
-                className="size-10 rounded-xl grid place-items-center text-primary-foreground shadow-md ring-1 ring-[color:var(--hairline)]"
-                style={{ background: `linear-gradient(135deg, ${RED}, #C026D3)` }}
-              >
-                <Shield className="size-5" strokeWidth={2.5} />
-              </div>
-              <div className="min-w-0">
-                <div
-                  className="font-display font-extrabold tracking-tight truncate text-[16px]"
-                  style={{ color: RED }}
-                >
-                  Master
-                </div>
-                <div className="text-[11.5px] text-muted-foreground truncate -mt-0.5">
-                  {branding.name} · admin
-                </div>
-              </div>
+          <aside
+            data-sb-collapsed={sb.collapsed}
+            className={`hidden md:flex ${sb.collapsed ? "w-[76px]" : "w-[260px]"} min-h-screen border-r border-[color:var(--hairline)] bg-[color:var(--sidebar-bg)] flex-col transition-[width]`}
+          >
+            <div className={`py-5 flex items-center gap-2 border-b border-[color:var(--hairline)] ${sb.collapsed ? "flex-col px-2" : "px-4 justify-between"}`}>
+              <SidebarBrand collapsed={sb.collapsed} />
+              <SidebarCollapseButton collapsed={sb.collapsed} onToggle={sb.toggle} />
             </div>
 
             <nav className="p-3 flex-1 overflow-y-auto space-y-5">
               {sections.map((sec) => (
                 <div key={sec.label}>
-                  <div className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                  <div data-sb-text className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
                     {sec.label}
                   </div>
                   <div className="flex flex-col gap-1">
@@ -218,6 +208,7 @@ function MasterLayout() {
                         <Link
                           key={it.to}
                           to={it.to}
+                          title={it.label}
                           className={`relative flex items-center gap-3 px-3 py-[11px] rounded-lg text-[14.5px] font-medium whitespace-nowrap transition-all ${
                             active
                               ? "text-foreground"
@@ -242,7 +233,7 @@ function MasterLayout() {
                             className="size-[18px] shrink-0"
                             style={active ? { color: RED } : undefined}
                           />
-                          <span className="flex-1 truncate">{it.label}</span>
+                          <span data-sb-text className="flex-1 truncate">{it.label}</span>
                         </Link>
                       );
                     })}
@@ -263,7 +254,7 @@ function MasterLayout() {
                 >
                   {userName.slice(0, 1).toUpperCase()}
                 </div>
-                <div className="min-w-0 flex-1">
+                <div data-sb-text className="min-w-0 flex-1">
                   <div className="text-[13.5px] font-semibold truncate">{userName}</div>
                   <div className="text-[11px] truncate" style={{ color: RED }}>
                     Super admin

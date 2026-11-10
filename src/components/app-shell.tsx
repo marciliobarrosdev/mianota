@@ -20,6 +20,7 @@ import { supabase } from "@/lib/auth/realm-supabase";
 import { supportConfigured, supportWhatsappDisplay, supportWhatsappUrl } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
 import { BrandLogo } from "@/components/brand-logo";
+import { SidebarBrand, SidebarCollapseButton, useSidebarCollapsed } from "@/components/sidebar-brand";
 import { TrialBanner } from "@/components/trial-banner";
 import { CreditsBadge } from "@/components/credits-badge";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -278,7 +279,7 @@ function MobileHeader({
               </div>
             </SheetHeader>
             <nav className="mt-7 space-y-1" aria-label="Mais opções">
-              <div className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.17em] text-muted-foreground/70">
+              <div data-sb-text className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.17em] text-muted-foreground/70">
                 Mais opções
               </div>
               {menuItems.map((item) => {
@@ -358,19 +359,15 @@ function Sidebar({
   const branding = useBrand();
   const mainItems = getMainItems(branding.assistantName);
   const manageItems = getManageItems();
+  const sb = useSidebarCollapsed("mianota:sidebar-app");
   return (
-    <aside className="sticky top-0 hidden h-screen w-[276px] shrink-0 flex-col border-r border-[color:var(--hairline)] bg-white/84 backdrop-blur-2xl dark:bg-[color:var(--sidebar-bg)]/92 md:flex">
-      <div className="flex h-[86px] items-center gap-3 border-b border-[color:var(--hairline)] px-5">
-        <BrandLogo />
-        <div className="min-w-0">
-          <div className="truncate font-display text-[17px] font-extrabold tracking-[-.03em]">
-            {branding.name}
-          </div>
-          <div className="mt-1 flex items-center gap-1.5 min-w-0">
-            {company && <SubscriberAvatar name={company.nome} src={(company as any).logo_url} size={18} />}
-            <span className="truncate text-[11px] text-muted-foreground">{company?.nome || "Sua empresa"}</span>
-          </div>
-        </div>
+    <aside
+      data-sb-collapsed={sb.collapsed}
+      className={`sticky top-0 hidden h-screen ${sb.collapsed ? "w-[76px]" : "w-[276px]"} shrink-0 flex-col border-r border-[color:var(--hairline)] bg-white/84 backdrop-blur-2xl transition-[width] dark:bg-[color:var(--sidebar-bg)]/92 md:flex`}
+    >
+      <div className={`flex min-h-[86px] items-center gap-2 border-b border-[color:var(--hairline)] py-3 ${sb.collapsed ? "flex-col justify-center px-2" : "justify-between px-4"}`}>
+        <SidebarBrand collapsed={sb.collapsed} />
+        <SidebarCollapseButton collapsed={sb.collapsed} onToggle={sb.toggle} />
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <div className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.17em] text-muted-foreground/70">
@@ -395,8 +392,8 @@ function Sidebar({
             to="/master/implantacao"
             className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold text-violet-700 hover:bg-violet-50"
           >
-            <Shield className="size-4" /> Implantação guiada{" "}
-            <ChevronRight className="ml-auto size-4" />
+            <Shield className="size-4" /> <span data-sb-text>Implantação guiada</span>{" "}
+            <ChevronRight data-sb-text className="ml-auto size-4" />
           </Link>
         )}
         {manageItems
@@ -411,7 +408,7 @@ function Sidebar({
           ))}
         <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--panel-2)] p-2.5">
           <SubscriberAvatar name={userName} src={(company as any)?.logo_url} size={36} className="shrink-0" />
-          <div className="min-w-0 flex-1">
+          <div data-sb-text className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-bold">{userName}</div>
             <div className="truncate text-[10px] text-muted-foreground" title={email ?? roleLabel}>
               {email || roleLabel}
@@ -427,6 +424,7 @@ function Sidebar({
         </div>
         {supportConfigured && (
           <a
+            data-sb-text
             href={supportWhatsappUrl}
             target="_blank"
             rel="noreferrer"
@@ -445,6 +443,7 @@ function NavLink({ item, active, primary }: { item: NavItem; active: boolean; pr
   return (
     <Link
       to={item.to}
+      title={item.label}
       className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-semibold transition ${active ? "text-foreground" : item.featured ? "bg-gradient-to-r from-[color:var(--brand-soft)] to-fuchsia-50 text-[color:var(--brand-text)] ring-1 ring-[color:var(--brand-soft-strong)] hover:-translate-y-0.5" : "text-muted-foreground hover:bg-[color:var(--panel-2)] hover:text-foreground"}`}
       style={
         active
@@ -460,7 +459,7 @@ function NavLink({ item, active, primary }: { item: NavItem; active: boolean; pr
         style={active ? { color: primary } : undefined}
         strokeWidth={active ? 2.35 : 1.9}
       />
-      <span className="truncate">{item.label}</span>
+      <span data-sb-text className="truncate">{item.label}</span>
     </Link>
   );
 }
