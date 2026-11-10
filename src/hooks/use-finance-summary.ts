@@ -10,11 +10,21 @@ export function useFinanceSummary(companyId: string | undefined, version: unknow
   useEffect(() => {
     if (!companyId) return;
     let alive = true;
-    load({ data: { companyId } })
-      .then((s) => alive && setSummary(s))
-      .catch(() => alive && setSummary(null));
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    // One delayed retry covers a brief server restart (e.g. while the preview reloads);
+    // a failure never breaks the page — the cards simply stay empty.
+    const run = (attempt: number) =>
+      load({ data: { companyId } })
+        .then((s) => alive && setSummary(s))
+        .catch(() => {
+          if (!alive) return;
+          if (attempt === 0) retry = setTimeout(() => run(1), 1500);
+          else setSummary(null);
+        });
+    run(0);
     return () => {
       alive = false;
+      if (retry) clearTimeout(retry);
     };
   }, [companyId, load, version]);
   return summary;
