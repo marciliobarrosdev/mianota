@@ -175,3 +175,11 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Comentários adicionados nas regras não óbvias: preço único por plano (InfinitePay reconhece pelo valor), soma única por conta no resumo semanal, adiamento de conta atrasada, trava otimista de execução, idempotência por pedido, estorno de crédito de IA.
 - **Preservados:** tabelas `marcia_*`, preferências salvas, assinaturas de push, integrações Stripe/InfinitePay/WhatsApp e todas as mensagens exibidas.
 - **Novos testes (20):** `finance-command-rules`, `notification-center-rules` e `plan-form-rules` (inclui Plano 1 R$ 29,90 e Plano 2 R$ 49,90, preço duplicado, plano grátis). Total: 247 testes passaram em 42 arquivos; sete verificações de segurança ajustadas aos novos arquivos e aprovadas; compilação sem erros.
+
+## 23. Cookies e consentimento (LGPD)
+- Aviso com "Aceitar todos", "Rejeitar opcionais" e "Personalizar"; central com Essenciais, Preferências, Análise e Marketing (opcionais desligados por padrão).
+- Registro no navegador (`mia-cookie-consent`): categorias, data, versão da política e validade de 365 dias; sem dados pessoais.
+- Tema, menu recolhido, filtro de conversas e aviso de instalação só ficam salvos com "Preferências"; revogar apaga esses itens sem afetar o login.
+- `loadOptionalScript` carrega futuras ferramentas de análise/marketing só após autorização.
+- Nova página `/politica-de-cookies`; link "Preferências de cookies" no rodapé e em Configurações → Privacidade.
+- Pendente: razão social, CNPJ e contato do encarregado (DPO).

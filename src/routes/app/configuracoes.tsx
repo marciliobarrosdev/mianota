@@ -1,3 +1,4 @@
+import { CookiePreferencesLink } from "@/components/consent/cookie-consent";
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 import { createFileRoute, redirect, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
@@ -142,7 +143,16 @@ function ConfigPage() {
         <TabsContent value="experiencia" className="mt-5">{companyId && <ExperienceTab companyId={companyId} />}</TabsContent>
         <TabsContent value="canais" className="mt-5">{companyId && <ChannelsTab companyId={companyId} userId={ctx.user.id} />}</TabsContent>
         <TabsContent value="conta" className="mt-5">{companyId && <AccountTab companyId={companyId} />}</TabsContent>
-        <TabsContent value="privacidade" className="mt-5">{companyId && <PrivacyTab companyId={companyId} />}</TabsContent>
+        <TabsContent value="privacidade" className="mt-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-4">
+            <div>
+              <p className="font-medium">Cookies neste navegador</p>
+              <p className="text-sm text-muted-foreground">Reveja ou revogue a qualquer momento o que o MIAnota pode guardar.</p>
+            </div>
+            <CookiePreferencesLink className="rounded-xl border border-border px-3 py-2 text-sm font-medium hover:bg-muted" />
+          </div>
+          {companyId && <PrivacyTab companyId={companyId} />}
+        </TabsContent>
       </Tabs>
     </div>
   );

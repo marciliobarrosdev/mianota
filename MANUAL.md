@@ -167,3 +167,6 @@ Editar via Git Sync não elimina custos de operação. Cloud/runtime, Lovable AI
 - respeite opt-out e a janela de atendimento aplicável;
 - acompanhe falhas, qualidade e bloqueios;
 - nenhuma integração elimina o risco de restrição quando há abuso.
+
+## Cookies e consentimento
+Na primeira visita aparece o aviso de cookies. Para mudar a escolha, use "Preferências de cookies" no rodapé do site ou em Configurações → Privacidade. A política fica em /politica-de-cookies.

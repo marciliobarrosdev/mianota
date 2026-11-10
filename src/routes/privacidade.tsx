@@ -121,9 +121,9 @@ function PrivacidadePage() {
           <section>
             <h2 className="text-xl font-semibold text-slate-900">8. Cookies</h2>
             <p className="mt-2">
-              Utilizamos cookies essenciais para autenticação e funcionamento do Serviço, e cookies
-              de analytics para melhorar a experiência. Você pode gerenciar preferências no seu
-              navegador.
+              Utilizamos cookies e armazenamento local essenciais para autenticação e funcionamento
+              do Serviço. Itens opcionais só são usados com sua autorização. Detalhes na{" "}
+              <Link to="/politica-de-cookies" className="underline">Política de Cookies</Link>.
             </p>
           </section>
 

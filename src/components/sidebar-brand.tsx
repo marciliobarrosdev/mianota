@@ -3,6 +3,7 @@
  * Regra do produto: esta logo/ícone NÃO deve ser usada em outras páginas.
  */
 import { useEffect, useState } from "react";
+import { setPreference } from "@/lib/common/consent";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import logo from "@/assets/mianota-sidebar-logo.webp.asset.json";
 import icon from "@/assets/mianota-sidebar-icon.webp.asset.json";
@@ -15,7 +16,7 @@ export function useSidebarCollapsed(key: string) {
   }, [key]);
   const toggle = () =>
     setCollapsed((v) => {
-      localStorage.setItem(key, v ? "0" : "1");
+      setPreference(key, v ? "0" : "1");
       return !v;
     });
   return { collapsed, toggle };

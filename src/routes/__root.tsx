@@ -15,6 +15,7 @@ import { reportLovableError } from "@/lib/common/lovable-error-reporting";
 import { PwaInstallGuide } from "@/components/pwa-install-guide";
 import { BrandProvider } from "@/components/brand-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { CookieConsent } from "@/components/consent/cookie-consent";
 import { supportConfigured, supportWhatsappUrl, supportWhatsappDisplay } from "@/config/brand";
 import { brand, cloneBrandCssVariables, normalizeCloneBrand } from "@/config/brand";
 import { getPublicCloneBrand } from "@/lib/common/public-brand.functions";
@@ -159,7 +160,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-const NO_FLASH_THEME = `(()=>{try{var t=localStorage.getItem('theme');var d=document.documentElement;if(t==='dark'){d.classList.add('dark')}else{d.classList.remove('dark')}}catch(e){}})();`;
+const NO_FLASH_THEME = `(()=>{try{var c=JSON.parse(localStorage.getItem('mia-cookie-consent')||'null');var t=c&&c.categories&&c.categories.preferences?localStorage.getItem('theme'):null;var d=document.documentElement;if(t==='dark'){d.classList.add('dark')}else{d.classList.remove('dark')}}catch(e){}})();`;
 
 function RootShell({ children }: { children: ReactNode }) {
   const initialBrand = normalizeCloneBrand(Route.useLoaderData() || brand);
@@ -192,6 +193,7 @@ function RootComponent() {
         <Outlet />
         <Toaster richColors position="top-right" />
         <PwaInstallGuide />
+        <CookieConsent />
       </BrandProvider>
     </QueryClientProvider>
   );

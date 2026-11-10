@@ -1,3 +1,4 @@
+import { setPreference } from "@/lib/common/consent";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HelpTip } from "@/components/help-tip";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -137,9 +138,7 @@ function ConversasPage() {
   }, [active, msgs.length]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("conv:filter", filter);
-    } catch {}
+    setPreference("conv:filter", filter);
   }, [filter]);
 
   // Keyboard shortcuts attached after `conversations` is declared (see below).

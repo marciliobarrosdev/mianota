@@ -1,3 +1,4 @@
+import { CookiePreferencesLink } from "@/components/consent/cookie-consent";
 import { BrandWordmark } from "@/components/brand-wordmark";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import {
@@ -500,6 +501,8 @@ export function FinanceLanding({
               <a href="#faq">Perguntas frequentes</a>
               <a href="/termos">Termos de uso</a>
               <a href="/privacidade">Privacidade</a>
+              <a href="/politica-de-cookies">Política de Cookies</a>
+              <CookiePreferencesLink className="text-left hover:underline" />
               <a href="/reembolso">Cancelamento e reembolso</a>
             </FooterColumn>
             <div data-company-footer>

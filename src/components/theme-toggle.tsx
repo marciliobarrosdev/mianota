@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { setPreference } from "@/lib/common/consent";
 
 function getInitialTheme(): "dark" | "light" {
   if (typeof document === "undefined") return "light";
@@ -19,9 +20,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     const root = document.documentElement;
     if (next === "dark") root.classList.add("dark");
     else root.classList.remove("dark");
-    try {
-      localStorage.setItem("theme", next);
-    } catch {}
+    setPreference("theme", next);
   }
 
   const isDark = theme === "dark";

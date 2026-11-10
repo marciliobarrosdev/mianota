@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as MasterRouteImport } from './routes/master'
+import { Route as PoliticaDeCookiesRouteImport } from './routes/politica-de-cookies'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ReembolsoRouteImport } from './routes/reembolso'
 import { Route as ResetSenhaRouteImport } from './routes/reset-senha'
@@ -107,6 +108,11 @@ const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
 const MasterRoute = MasterRouteImport.update({
   id: '/master',
   path: '/master',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliticaDeCookiesRoute = PoliticaDeCookiesRouteImport.update({
+  id: '/politica-de-cookies',
+  path: '/politica-de-cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
@@ -465,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/master': typeof MasterRouteWithChildren
+  '/politica-de-cookies': typeof PoliticaDeCookiesRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reembolso': typeof ReembolsoRoute
   '/reset-senha': typeof ResetSenhaRoute
@@ -539,6 +546,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
+  '/politica-de-cookies': typeof PoliticaDeCookiesRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reembolso': typeof ReembolsoRoute
   '/reset-senha': typeof ResetSenhaRoute
@@ -616,6 +624,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/master': typeof MasterRouteWithChildren
+  '/politica-de-cookies': typeof PoliticaDeCookiesRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reembolso': typeof ReembolsoRoute
   '/reset-senha': typeof ResetSenhaRoute
@@ -694,6 +703,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/esqueci-senha'
     | '/master'
+    | '/politica-de-cookies'
     | '/privacidade'
     | '/reembolso'
     | '/reset-senha'
@@ -768,6 +778,7 @@ export interface FileRouteTypes {
     | '/'
     | '/entrar'
     | '/esqueci-senha'
+    | '/politica-de-cookies'
     | '/privacidade'
     | '/reembolso'
     | '/reset-senha'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/esqueci-senha'
     | '/master'
+    | '/politica-de-cookies'
     | '/privacidade'
     | '/reembolso'
     | '/reset-senha'
@@ -921,6 +933,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   EsqueciSenhaRoute: typeof EsqueciSenhaRoute
   MasterRoute: typeof MasterRouteWithChildren
+  PoliticaDeCookiesRoute: typeof PoliticaDeCookiesRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   ReembolsoRoute: typeof ReembolsoRoute
   ResetSenhaRoute: typeof ResetSenhaRoute
@@ -976,6 +989,13 @@ declare module '@tanstack/react-router' {
       path: '/master'
       fullPath: '/master'
       preLoaderRoute: typeof MasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politica-de-cookies': {
+      id: '/politica-de-cookies'
+      path: '/politica-de-cookies'
+      fullPath: '/politica-de-cookies'
+      preLoaderRoute: typeof PoliticaDeCookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -1599,6 +1619,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   EsqueciSenhaRoute: EsqueciSenhaRoute,
   MasterRoute: MasterRouteWithChildren,
+  PoliticaDeCookiesRoute: PoliticaDeCookiesRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   ReembolsoRoute: ReembolsoRoute,
   ResetSenhaRoute: ResetSenhaRoute,

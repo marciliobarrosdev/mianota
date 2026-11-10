@@ -5,6 +5,7 @@ import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { useBrand } from "@/contexts/brand-context";
 import { BrandLogo } from "@/components/brand-logo";
 
+import { setPreference } from "@/lib/common/consent";
 const DISMISS_KEY = "marcia:pwa-install-dismissed-at";
 const SHOW_AGAIN_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -38,11 +39,8 @@ export function PwaInstallGuide() {
   if (!shouldShow) return null;
 
   function dismiss() {
-    try {
-      window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    } catch {
-      // Private browsing can disable localStorage; dismiss for this session.
-    }
+    // Só fica lembrado com consentimento de "preferências"; senão vale para esta visita.
+    setPreference(DISMISS_KEY, String(Date.now()));
     setDismissed(true);
   }
 
