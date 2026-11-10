@@ -238,14 +238,8 @@ function MobileHeader({
 
   return (
     <header className="sticky top-0 z-40 flex h-[62px] items-center gap-3 border-b border-[color:var(--hairline)] bg-white/80 px-4 backdrop-blur-xl dark:bg-[color:var(--panel)]/80 md:hidden">
-      <BrandLogo compact />
       <div className="min-w-0 flex-1">
-        <div className="truncate font-display text-[15px] font-extrabold leading-none">
-          {branding.name}
-        </div>
-        <div className="mt-1 truncate text-[10px] text-muted-foreground">
-          {company?.nome || "Sua empresa"}
-        </div>
+        <SidebarBrand collapsed={false} small />
       </div>
       <div className="ml-auto flex items-center gap-1">
         {company && <SubscriberAvatar name={company.nome} src={(company as any).logo_url} size={30} />}
@@ -266,17 +260,11 @@ function MobileHeader({
             className="w-[min(88vw,360px)] overflow-y-auto border-l border-[color:var(--hairline)] bg-[color:var(--panel)] p-5"
           >
             <SheetHeader className="pr-8 text-left">
-              <div className="flex items-center gap-3">
-                <BrandLogo />
-                <div className="min-w-0">
-                  <SheetTitle className="truncate font-display text-lg font-extrabold">
-                    {branding.name}
-                  </SheetTitle>
-                  <SheetDescription className="truncate text-xs">
-                    {company?.nome || "Sua empresa"}
-                  </SheetDescription>
-                </div>
-              </div>
+              <SidebarBrand collapsed={false} />
+              <SheetTitle className="sr-only">{branding.name}</SheetTitle>
+              <SheetDescription className="truncate text-xs">
+                {company?.nome || "Sua empresa"}
+              </SheetDescription>
             </SheetHeader>
             <nav className="mt-7 space-y-1" aria-label="Mais opções">
               <div data-sb-text className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.17em] text-muted-foreground/70">

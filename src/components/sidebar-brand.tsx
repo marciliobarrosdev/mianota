@@ -21,13 +21,13 @@ export function useSidebarCollapsed(key: string) {
   return { collapsed, toggle };
 }
 
-export function SidebarBrand({ collapsed }: { collapsed: boolean }) {
+export function SidebarBrand({ collapsed, small }: { collapsed: boolean; small?: boolean }) {
   return collapsed ? (
     <img src={icon.url} alt="MIAnota" width={40} height={40} className="size-10 object-contain" />
   ) : (
     // Fundo claro no tema escuro: as letras da logo são roxo-escuras.
     <span className="inline-flex rounded-xl dark:bg-white/95 dark:px-2.5 dark:py-1.5">
-      <img src={logo.url} alt="MIAnota" width={187} height={58} className="h-11 w-auto object-contain" />
+      <img src={logo.url} alt="MIAnota" width={187} height={58} className={`${small ? "h-8" : "h-11"} w-auto object-contain`} />
     </span>
   );
 }

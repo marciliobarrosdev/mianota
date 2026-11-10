@@ -149,24 +149,8 @@ function MasterLayout() {
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Mobile top bar */}
         <header className="md:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-3 bg-[color:var(--panel)]/80 backdrop-blur-xl border-b border-[color:var(--hairline)]">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className="size-8 rounded-lg grid place-items-center text-primary-foreground shrink-0"
-              style={{ background: `linear-gradient(135deg, ${RED}, #C026D3)` }}
-            >
-              <Shield className="size-4" strokeWidth={2.5} />
-            </div>
-            <div className="min-w-0">
-              <div
-                className="font-display font-bold tracking-tight text-[14.5px] leading-none truncate"
-                style={{ color: RED }}
-              >
-                Master
-              </div>
-              <div className="text-[10.5px] text-muted-foreground truncate mt-0.5">
-                {branding.name} · admin
-              </div>
-            </div>
+          <div className="min-w-0">
+            <SidebarBrand collapsed={false} small />
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <ThemeToggle />
