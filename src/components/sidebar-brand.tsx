@@ -27,7 +27,7 @@ export function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   ) : (
     // Fundo claro no tema escuro: as letras da logo são roxo-escuras.
     <span className="inline-flex rounded-xl dark:bg-white/95 dark:px-2.5 dark:py-1.5">
-      <img src={logo.url} alt="MIAnota" width={170} height={53} className="h-10 w-auto object-contain" />
+      <img src={logo.url} alt="MIAnota" width={187} height={58} className="h-11 w-auto object-contain" />
     </span>
   );
 }

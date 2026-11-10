@@ -365,9 +365,11 @@ function Sidebar({
       data-sb-collapsed={sb.collapsed}
       className={`sticky top-0 hidden h-screen ${sb.collapsed ? "w-[76px]" : "w-[276px]"} shrink-0 flex-col border-r border-[color:var(--hairline)] bg-white/84 backdrop-blur-2xl transition-[width] dark:bg-[color:var(--sidebar-bg)]/92 md:flex`}
     >
-      <div className={`flex min-h-[86px] items-center gap-2 border-b border-[color:var(--hairline)] py-3 ${sb.collapsed ? "flex-col justify-center px-2" : "justify-between px-4"}`}>
+      <div className={`flex min-h-[86px] items-center gap-2 border-b border-[color:var(--hairline)] py-3 ${sb.collapsed ? "flex-col justify-center px-2" : "relative justify-center px-10"}`}>
         <SidebarBrand collapsed={sb.collapsed} />
-        <SidebarCollapseButton collapsed={sb.collapsed} onToggle={sb.toggle} />
+        <div className={sb.collapsed ? "" : "absolute right-2 top-1/2 -translate-y-1/2"}>
+              <SidebarCollapseButton collapsed={sb.collapsed} onToggle={sb.toggle} />
+            </div>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <div className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[.17em] text-muted-foreground/70">

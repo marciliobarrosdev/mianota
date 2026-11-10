@@ -189,9 +189,11 @@ function MasterLayout() {
             data-sb-collapsed={sb.collapsed}
             className={`hidden md:flex ${sb.collapsed ? "w-[76px]" : "w-[260px]"} min-h-screen border-r border-[color:var(--hairline)] bg-[color:var(--sidebar-bg)] flex-col transition-[width]`}
           >
-            <div className={`py-5 flex items-center gap-2 border-b border-[color:var(--hairline)] ${sb.collapsed ? "flex-col px-2" : "px-4 justify-between"}`}>
+            <div className={`py-5 flex items-center gap-2 border-b border-[color:var(--hairline)] ${sb.collapsed ? "flex-col px-2" : "relative px-10 justify-center"}`}>
               <SidebarBrand collapsed={sb.collapsed} />
+              <div className={sb.collapsed ? "" : "absolute right-2 top-1/2 -translate-y-1/2"}>
               <SidebarCollapseButton collapsed={sb.collapsed} onToggle={sb.toggle} />
+            </div>
             </div>
 
             <nav className="p-3 flex-1 overflow-y-auto space-y-5">
