@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, EyeOff, KeyRound, Loader2, ShieldCheck, Sparkles } from
 import { toast } from "sonner";
 import { superadminSupabase } from "@/lib/auth/superadmin-client";
 import { signOutRealm } from "@/lib/auth/realm-supabase";
+import { BrandWordmark } from "@/components/brand-wordmark";
 import { brandedRouteHead } from "@/config/brand";
 import { useBrand } from "@/contexts/brand-context";
 import { ensureRemixBootstrap } from "@/lib/common/remix-bootstrap";
@@ -156,7 +157,8 @@ function SuperAdminAccessPage() {
           >
             <ArrowLeft className="size-4" /> voltar ao site
           </a>
-          <div className="mt-16 flex w-fit items-center gap-2 rounded-full border ln-glass px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] text-ln-lime">
+          <BrandWordmark className="mt-10 h-12" />
+          <div className="mt-10 flex w-fit items-center gap-2 rounded-full border ln-glass px-3 py-1.5 text-[10px] font-black uppercase tracking-[.16em] text-ln-lime">
             <ShieldCheck className="size-3.5" /> acesso exclusivo do proprietário
           </div>
           <h1 className="mt-6 max-w-2xl font-sora text-5xl font-extrabold leading-[1.02] tracking-tight xl:text-6xl">
@@ -182,6 +184,7 @@ function SuperAdminAccessPage() {
         </section>
 
         <section className="mx-auto w-full max-w-md">
+          <div className="mb-6 flex justify-center lg:hidden"><BrandWordmark className="h-10" /></div>
           <a
             href="/"
             className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-ln-muted lg:hidden"

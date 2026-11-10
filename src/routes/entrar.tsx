@@ -21,7 +21,7 @@ import {
 import { brandedRouteHead } from "@/config/brand";
 import fallbackAvatarUrl from "@/assets/mia-avatar-640.png";
 import { useBrand } from "@/contexts/brand-context";
-import { BrandLogo } from "@/components/brand-logo";
+import { BrandWordmark } from "@/components/brand-wordmark";
 import { clearAppAccessCache } from "@/lib/common/app-access-cache";
 import { clearImpersonation } from "@/lib/auth/realm-supabase";
 import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
@@ -322,12 +322,9 @@ function EntrarPage() {
           <div className="relative z-10 grid items-end gap-6 xl:gap-10 grid-cols-[minmax(0,1fr)_200px] xl:grid-cols-[minmax(0,1fr)_240px]">
           <div className="max-w-lg space-y-8">
             <div className="flex items-center gap-3">
-              <BrandLogo />
               <div>
-                <div className="font-display font-extrabold text-2xl text-gradient-brand leading-none">
-                  {branding.name}
-                </div>
-                <div className="text-[12px] text-muted-foreground mt-1">{branding.tagline}</div>
+                <BrandWordmark className="h-12" />
+                <div className="text-[12px] text-muted-foreground mt-2">{branding.tagline}</div>
               </div>
             </div>
 
@@ -392,10 +389,7 @@ function EntrarPage() {
               <ArrowLeft className="size-4" /> voltar
             </Link>
             <div className="flex items-center gap-2">
-              <BrandLogo compact />
-              <div className="font-display font-bold text-[15px] text-gradient-brand">
-                {branding.name}
-              </div>
+              <BrandWordmark className="h-8" />
             </div>
           </div>
 
