@@ -192,10 +192,7 @@ function SuperAdminAccessPage() {
             <ArrowLeft className="size-4" /> voltar ao site
           </a>
           <div className="ln-glass ln-glow relative overflow-hidden rounded-[28px] p-6 sm:p-8">
-            <div className="grid size-12 place-items-center rounded-2xl ln-gradient ln-glow">
-              <ShieldCheck className="size-6" />
-            </div>
-            <div className="mt-6 text-[10px] font-black uppercase tracking-[.16em] text-ln-lime">
+            <div className="text-[10px] font-black uppercase tracking-[.16em] text-ln-lime">
               {setupMode === null
                 ? "Validando instalação"
                 : setupMode
