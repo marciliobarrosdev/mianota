@@ -128,7 +128,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:title", content: `${cloneBrand.name} — ${cloneBrand.tagline}` },
         { property: "og:description", content: cloneBrand.description },
         { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary" },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: `${cloneBrand.name} — ${cloneBrand.tagline}` },
         { name: "twitter:description", content: cloneBrand.description },
       ],
