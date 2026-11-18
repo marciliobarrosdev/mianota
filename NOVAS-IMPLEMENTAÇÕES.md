@@ -221,3 +221,9 @@ Divisão em arquivos menores, sem mudar comportamento, dados ou integrações.
 - **Funções do Master:** `src/lib/master/master.functions.ts` (1017 linhas) agora só reexporta de `master-kpis`, `master-companies`, `master-plans` e `master-admins` (`*.functions.ts`); a checagem de Super Admin está em `master-guards.ts`.
 - **Testes:** novo `tests/transactions-format-rules.test.ts` (Hoje/Ontem, inclusive na virada do mês). 265 testes passando em 46 arquivos.
 - **Verificado no navegador:** Visão do mês e Movimentações (assinante) e Visão geral, Assinantes e Planos (Master), no computador e no celular, temas claro e escuro, sem erros.
+
+## 26. Alerta de carregamento ao abrir áreas protegidas sem sessão (18/11/2026)
+
+- **Causa:** abrir direto `/master/*` ou `/app/*` sem sessão fazia o redirecionamento para o login acontecer no meio da primeira montagem; o roteador perdia a tela em montagem (`reading 'routeId'`) e o React refazia a página inteira. Não dependia do tema.
+- **Correção:** `src/lib/common/hydration-gate.ts` (`guardAfterHydration` + `markHydrated` na raiz). Na primeira carga, redirecionamentos das guardas esperam a página hidratar (teto de 1,5 s); depois seguem imediatos. Regras e destinos de acesso não mudaram.
+- **Verificado:** sem sessão (Master e Assinante, computador/celular, claro/escuro) chega ao login sem erros; com sessão, Master e Assinante carregam sem erros. Testes e `verify-auth-realms` ok.

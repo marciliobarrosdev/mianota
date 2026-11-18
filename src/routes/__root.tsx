@@ -8,6 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
+import { markHydrated } from "@/lib/common/hydration-gate";
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -184,6 +185,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Libera guardas que adiaram um redirecionamento até a primeira página hidratar.
+  useEffect(() => markHydrated(), []);
   const initialBrand = Route.useLoaderData();
 
   return (

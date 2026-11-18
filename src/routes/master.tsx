@@ -1,3 +1,4 @@
+import { guardAfterHydration } from "@/lib/common/hydration-gate";
 import { createFileRoute, Outlet, redirect, Link, useLocation } from "@tanstack/react-router";
 import { superadminSupabase } from "@/lib/auth/superadmin-client";
 import { signOutRealm } from "@/lib/auth/realm-supabase";
@@ -34,36 +35,38 @@ import { readRemixInstallationClaimed } from "@/lib/common/remix-installation-cl
 
 export const Route = createFileRoute("/master")({
   ssr: false,
-  beforeLoad: async () => {
-    // /master usa SOMENTE a sessão administrativa (cliente e storage próprios).
-    const { data: sessionData } = await superadminSupabase.auth.getSession();
-    const sessionUser = sessionData.session?.user;
-    if (!sessionUser) throw redirect({ to: "/superadmin" });
-
-    return getCachedMasterAccess(sessionUser.id, async (): Promise<MasterAccessContext> => {
-      const { data: claimed, error: claimError } = await readRemixInstallationClaimed();
-      if (claimError) {
-        throw new Error(`Não foi possível validar esta instalação: ${claimError.message}`);
-      }
-      if (claimed !== true) throw redirect({ to: "/superadmin" });
-
-      // Revalida o token com o Auth e a permissão real no banco.
-      const { data: verified, error: userError } = await superadminSupabase.auth.getUser();
-      if (userError || !verified.user || verified.user.id !== sessionUser.id) {
-        clearMasterAccessCache();
-        await signOutRealm("superadmin");
-        throw redirect({ to: "/superadmin" });
-      }
-
-      const { data: isSuper, error: roleError } = await superadminSupabase.rpc("is_super_admin");
-      if (roleError) throw new Error(`Não foi possível validar o acesso: ${roleError.message}`);
-      if (!isSuper) {
-        clearMasterAccessCache();
-        await signOutRealm("superadmin");
-        throw redirect({ to: "/superadmin" });
-      }
-
-      return { user: { id: verified.user.id, email: verified.user.email } };
+  beforeLoad: () => {
+    return guardAfterHydration(async () => {
+      // /master usa SOMENTE a sessão administrativa (cliente e storage próprios).
+      const { data: sessionData } = await superadminSupabase.auth.getSession();
+      const sessionUser = sessionData.session?.user;
+      if (!sessionUser) throw redirect({ to: "/superadmin" });
+  
+      return getCachedMasterAccess(sessionUser.id, async (): Promise<MasterAccessContext> => {
+        const { data: claimed, error: claimError } = await readRemixInstallationClaimed();
+        if (claimError) {
+          throw new Error(`Não foi possível validar esta instalação: ${claimError.message}`);
+        }
+        if (claimed !== true) throw redirect({ to: "/superadmin" });
+  
+        // Revalida o token com o Auth e a permissão real no banco.
+        const { data: verified, error: userError } = await superadminSupabase.auth.getUser();
+        if (userError || !verified.user || verified.user.id !== sessionUser.id) {
+          clearMasterAccessCache();
+          await signOutRealm("superadmin");
+          throw redirect({ to: "/superadmin" });
+        }
+  
+        const { data: isSuper, error: roleError } = await superadminSupabase.rpc("is_super_admin");
+        if (roleError) throw new Error(`Não foi possível validar o acesso: ${roleError.message}`);
+        if (!isSuper) {
+          clearMasterAccessCache();
+          await signOutRealm("superadmin");
+          throw redirect({ to: "/superadmin" });
+        }
+  
+        return { user: { id: verified.user.id, email: verified.user.email } };
+      });
     });
   },
   component: MasterLayout,

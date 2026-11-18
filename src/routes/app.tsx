@@ -1,3 +1,4 @@
+import { guardAfterHydration } from "@/lib/common/hydration-gate";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { companyNeedsPayment } from "@/lib/billing/plan-transition-rules";
 import { AppShell } from "@/components/app-shell";
@@ -21,74 +22,76 @@ type Ctx = AppAccessContext;
 
 export const Route = createFileRoute("/app")({
   ssr: false,
-  beforeLoad: async ({ location }): Promise<Ctx> => {
-    // /app usa a sessão do assinante. A única exceção é uma impersonação aberta
-    // pelo Master nesta aba: aí a sessão usada é a do proprietário.
-    const impersonateId = readImpersonationCompanyId();
-    const realm: AuthRealm = impersonateId ? "superadmin" : "subscriber";
-    const client = getRealmClient(realm);
-
-    const { data: sessionData } = await client.auth.getSession();
-    const sessionUser = sessionData.session?.user;
-    if (!sessionUser) {
-      if (realm === "superadmin") {
-        // Impersonação sem sessão administrativa: descarta e segue como assinante.
+  beforeLoad: ({ location }): Promise<Ctx> => {
+    return guardAfterHydration(async () => {
+      // /app usa a sessão do assinante. A única exceção é uma impersonação aberta
+      // pelo Master nesta aba: aí a sessão usada é a do proprietário.
+      const impersonateId = readImpersonationCompanyId();
+      const realm: AuthRealm = impersonateId ? "superadmin" : "subscriber";
+      const client = getRealmClient(realm);
+  
+      const { data: sessionData } = await client.auth.getSession();
+      const sessionUser = sessionData.session?.user;
+      if (!sessionUser) {
+        if (realm === "superadmin") {
+          // Impersonação sem sessão administrativa: descarta e segue como assinante.
+          clearImpersonation();
+          clearAppAccessCache();
+          throw redirect({ href: location.href, replace: true });
+        }
+        throw redirect({ to: "/entrar", search: { modo: "login" } });
+      }
+  
+      const ctx = await getCachedAppAccess(
+        `${realm}:${sessionUser.id}:${impersonateId || "self"}`,
+        async () => loadAppAccess(realm, sessionUser.id, impersonateId),
+      );
+  
+      if (ctx.membership?.forcar_troca_senha && location.pathname !== "/trocar-senha") {
+        throw redirect({ to: "/trocar-senha" });
+      }
+  
+      if (realm === "superadmin" && !ctx.impersonating) {
+        // Empresa da impersonação inválida/inexistente: volta ao Master.
         clearImpersonation();
         clearAppAccessCache();
-        throw redirect({ href: location.href, replace: true });
+        throw redirect({ to: "/master/assinantes" });
       }
-      throw redirect({ to: "/entrar", search: { modo: "login" } });
-    }
-
-    const ctx = await getCachedAppAccess(
-      `${realm}:${sessionUser.id}:${impersonateId || "self"}`,
-      async () => loadAppAccess(realm, sessionUser.id, impersonateId),
-    );
-
-    if (ctx.membership?.forcar_troca_senha && location.pathname !== "/trocar-senha") {
-      throw redirect({ to: "/trocar-senha" });
-    }
-
-    if (realm === "superadmin" && !ctx.impersonating) {
-      // Empresa da impersonação inválida/inexistente: volta ao Master.
-      clearImpersonation();
-      clearAppAccessCache();
-      throw redirect({ to: "/master/assinantes" });
-    }
-
-    if (realm === "subscriber" && ctx.isSuperAdmin) {
-      // Conta de proprietário não usa o painel do assinante: encerra apenas a
-      // sessão de assinante desta conta e mostra o login administrativo.
-      clearAppAccessCache();
-      await signOutRealm("subscriber");
-      throw redirect({ to: "/superadmin" });
-    }
-
-    if (!ctx.company) {
-      if (location.pathname !== "/app/checkout") throw redirect({ to: "/app/checkout" });
+  
+      if (realm === "subscriber" && ctx.isSuperAdmin) {
+        // Conta de proprietário não usa o painel do assinante: encerra apenas a
+        // sessão de assinante desta conta e mostra o login administrativo.
+        clearAppAccessCache();
+        await signOutRealm("subscriber");
+        throw redirect({ to: "/superadmin" });
+      }
+  
+      if (!ctx.company) {
+        if (location.pathname !== "/app/checkout") throw redirect({ to: "/app/checkout" });
+        return ctx;
+      }
+  
+      const company = ctx.company;
+  
+      // Teste vencido, sem créditos ou pagamento pendente → trava no checkout
+      const needsPayment = companyNeedsPayment(company as any);
+  
+      if (needsPayment && location.pathname !== "/app/checkout") {
+        throw redirect({ to: "/app/checkout" });
+      }
+  
+      // Empresa criada mas onboarding não finalizado → força wizard (apenas se já tem acesso)
+      if (
+        !needsPayment &&
+        !company.onboarding_completed &&
+        location.pathname !== "/app/onboarding" &&
+        location.pathname !== "/app/checkout"
+      ) {
+        throw redirect({ to: "/app/onboarding" });
+      }
+  
       return ctx;
-    }
-
-    const company = ctx.company;
-
-    // Teste vencido, sem créditos ou pagamento pendente → trava no checkout
-    const needsPayment = companyNeedsPayment(company as any);
-
-    if (needsPayment && location.pathname !== "/app/checkout") {
-      throw redirect({ to: "/app/checkout" });
-    }
-
-    // Empresa criada mas onboarding não finalizado → força wizard (apenas se já tem acesso)
-    if (
-      !needsPayment &&
-      !company.onboarding_completed &&
-      location.pathname !== "/app/onboarding" &&
-      location.pathname !== "/app/checkout"
-    ) {
-      throw redirect({ to: "/app/onboarding" });
-    }
-
-    return ctx;
+    });
   },
   component: AppLayout,
 });
