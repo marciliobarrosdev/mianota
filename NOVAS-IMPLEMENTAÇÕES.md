@@ -227,3 +227,10 @@ Divisão em arquivos menores, sem mudar comportamento, dados ou integrações.
 - **Causa:** abrir direto `/master/*` ou `/app/*` sem sessão fazia o redirecionamento para o login acontecer no meio da primeira montagem; o roteador perdia a tela em montagem (`reading 'routeId'`) e o React refazia a página inteira. Não dependia do tema.
 - **Correção:** `src/lib/common/hydration-gate.ts` (`guardAfterHydration` + `markHydrated` na raiz). Na primeira carga, redirecionamentos das guardas esperam a página hidratar (teto de 1,5 s); depois seguem imediatos. Regras e destinos de acesso não mudaram.
 - **Verificado:** sem sessão (Master e Assinante, computador/celular, claro/escuro) chega ao login sem erros; com sessão, Master e Assinante carregam sem erros. Testes e `verify-auth-realms` ok.
+
+## 27. Visão geral do Master em partes menores (18/11/2026)
+
+- `src/routes/master/painel.tsx` (588 → 116 linhas) só carrega os dados e monta os cartões na mesma ordem.
+- Cartões em `src/components/master/overview/`: `overview-header`, `setup-progress-card`, `overview-metrics`, `signups-chart-card`, `attention-card`, `recent-companies-card`, `quick-actions-card`, peças em `overview-parts` e tipos em `overview-types`.
+- Regras puras em `src/lib/master/overview-rules.ts` (atalhos de período, datas, rótulos, % de conversão), testadas em `tests/master-overview-rules.test.ts`.
+- Verificado como Super Admin no computador e no celular, claro e escuro; troca de período (7d, 1 ano) e de data atualiza o gráfico, sem erros.
