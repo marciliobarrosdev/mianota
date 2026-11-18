@@ -5,6 +5,12 @@ import type { ChatMsg } from "@/lib/ai/lovable-ai.server";
 import { fetchAiProvider } from "@/lib/ai/ai-request.server";
 import { AI_MODEL_OPTIONS, resolveModel, type AiMode } from "@/lib/ai/ai-model-rules";
 import {
+  circuitAfterFailure,
+  circuitAfterSuccess,
+  isProviderPaused,
+  type CircuitState,
+} from "@/lib/ai/ai-circuit-rules";
+import {
   partSupported,
   partsNeedingConversion,
   readGeminiText,
@@ -23,7 +29,7 @@ export async function getAiProviderConfig(fresh = false) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await (supabaseAdmin as any)
       .from("ai_provider_config")
-      .select("mode,model,optimized,test_ok,last_error")
+      .select("mode,model,optimized,test_ok,last_error,consecutive_failures,paused_until")
       .eq("id", true)
       .maybeSingle();
     cache = { at: Date.now(), value: data ?? { mode: "lovable" } };
@@ -63,12 +69,12 @@ export async function loadModelCatalog(): Promise<
   return data ?? [];
 }
 
-async function recordByokError(message: string | null) {
+async function recordByokError(message: string | null, circuit: CircuitState) {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await (supabaseAdmin as any)
       .from("ai_provider_config")
-      .update({ last_error: message })
+      .update({ last_error: message, ...circuit })
       .eq("id", true);
   } catch {
     /* ignora */
@@ -143,6 +149,8 @@ export async function byokChat(mode: ByokMode, key: string, model: string, messa
 export async function maybeByokChat(messages: ChatMsg[]): Promise<string | null> {
   const cfg = await getAiProviderConfig();
   if (!cfg || cfg.mode === "lovable" || cfg.test_ok !== true) return null;
+  // Em pausa automática: responde direto pela Lovable AI, sem esperar o provedor.
+  if (isProviderPaused(cfg.paused_until)) return null;
   const mode = cfg.mode as ByokMode;
   if (!(mode in BYOK_INTEGRATION)) return null;
   const key = await byokKey(mode);
@@ -152,16 +160,21 @@ export async function maybeByokChat(messages: ChatMsg[]): Promise<string | null>
   try {
     const out = await byokChat(mode, key, model, messages);
     if (!out) throw new Error("O provedor respondeu vazio.");
-    if (cfg.last_error) {
-      cfg.last_error = null;
-      await recordByokError(null);
+    if (cfg.last_error || cfg.consecutive_failures || cfg.paused_until) {
+      const circuit = circuitAfterSuccess();
+      Object.assign(cfg, { last_error: null }, circuit);
+      await recordByokError(null, circuit);
     }
     return out;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Falha no provedor.";
     console.error("[ai] BYOK falhou, usando Lovable AI:", message);
-    cfg.last_error = message;
-    await recordByokError(`${new Date().toISOString()} · ${message}`);
+    // Lê o contador mais recente (outra instância pode ter registrado falhas).
+    const fresh = await getAiProviderConfig(true);
+    const circuit = circuitAfterFailure(fresh?.consecutive_failures ?? cfg.consecutive_failures);
+    Object.assign(cfg, { last_error: message }, circuit);
+    await recordByokError(`${new Date().toISOString()} · ${message}`, circuit);
+    clearAiProviderCache();
     return null;
   }
 }

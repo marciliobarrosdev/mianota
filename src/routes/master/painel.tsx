@@ -44,6 +44,7 @@ import { masterKpis } from "@/lib/master/master.functions";
 import { getMasterSetupProgress } from "@/lib/master/master-setup.functions";
 import { BroadcastCard } from "@/components/master/broadcast-card";
 import { DeletionRequestsCard } from "@/components/master/deletion-requests-card";
+import { SystemHealthCard } from "@/components/master/system-health-card";
 
 type CompanySummary = {
   id: string;
@@ -255,6 +256,8 @@ function OverviewPage() {
           </div>
         </Card>
       )}
+
+      <SystemHealthCard />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard

@@ -319,36 +319,42 @@ export type Database = {
       }
       ai_provider_config: {
         Row: {
+          consecutive_failures: number
           id: boolean
           last_error: string | null
           last_test_ms: number | null
           mode: string
           model: string | null
           optimized: boolean
+          paused_until: string | null
           test_ok: boolean | null
           tested_at: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          consecutive_failures?: number
           id?: boolean
           last_error?: string | null
           last_test_ms?: number | null
           mode?: string
           model?: string | null
           optimized?: boolean
+          paused_until?: string | null
           test_ok?: boolean | null
           tested_at?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          consecutive_failures?: number
           id?: boolean
           last_error?: string | null
           last_test_ms?: number | null
           mode?: string
           model?: string | null
           optimized?: boolean
+          paused_until?: string | null
           test_ok?: boolean | null
           tested_at?: string | null
           updated_at?: string

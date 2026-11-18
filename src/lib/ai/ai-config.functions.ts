@@ -223,6 +223,9 @@ export const saveAiMode = createServerFn({ method: "POST" })
       tested_at: new Date().toISOString(),
       last_test_ms: Date.now() - started,
       last_error: null,
+      // Uma ativação testada com sucesso encerra qualquer pausa automática.
+      consecutive_failures: 0,
+      paused_until: null,
       updated_by: context.userId,
       updated_at: new Date().toISOString(),
     });
