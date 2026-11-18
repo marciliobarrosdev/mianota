@@ -169,6 +169,13 @@
       "when": 1795042660454,
       "tag": "0023_ai_provider_auto_pause",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795043034214,
+      "tag": "0024_master_save_plan_static_update",
+      "breakpoints": true
     }
   ]
 }
