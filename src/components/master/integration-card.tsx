@@ -29,7 +29,7 @@ import { brandedRouteHead } from "@/config/brand";
 
 type Overview = Awaited<ReturnType<typeof getIntegrationsOverview>>;
 type Item = Overview["items"][number];
-type Provider = "evolution" | "stripe" | "google";
+type Provider = "evolution" | "google";
 
 const META: Record<
   Provider,
@@ -48,10 +48,6 @@ const META: Record<
     }[];
   }
 > = {
-  stripe: { title: "Stripe", icon: ShieldCheck, intro: "Credenciais de pagamento e webhook.", steps: ["Copie as chaves no Stripe.", "Salve com segurança.", "Teste a conexão."], fields: [
-{field:"publishable_key",label:"Chave publicável",placeholder:"pk_…",secret:false,help:"Chave publicável Stripe"},
-{field:"secret_key",label:"Chave secreta",placeholder:"sk_…",secret:true,help:"Guardada criptografada"},
-{field:"webhook_secret",label:"Segredo do webhook",placeholder:"whsec_…",secret:true,help:"Webhook: /api/public/stripe-webhook"}] },
   google: { title: "Google (opcional)", icon: ShieldCheck, intro: "Conexão opcional com o Google.", steps: ["Crie um cliente OAuth no Google.", "Salve as credenciais.", "Teste a configuração."], fields: [
 {field:"client_id",label:"Client ID",placeholder:"ID do cliente",secret:false,help:"Cliente OAuth Google"},
 {field:"client_secret",label:"Client Secret",placeholder:"Segredo",secret:true,help:"Guardado criptografado"}] },

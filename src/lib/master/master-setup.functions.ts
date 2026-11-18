@@ -51,21 +51,18 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
 
-    const [plansResult, companiesResult, configResult, stripe, evolution, meta] = await Promise.all(
-      [
-        db
-          .from("plan")
-          .select(
-            "id,nome,ativo,trial_days,creditos_trial,checkout_mode,checkout_url,stripe_price_id,is_free,free_days,preco_cents",
-          )
-          .eq("ativo", true),
-        db.from("company").select("id", { count: "exact", head: true }),
-        db.from("app_config").select("super_admin_emails").eq("id", true).maybeSingle(),
-        describeIntegration("stripe"),
-        describeIntegration("evolution"),
-        describeIntegration("whatsapp_meta"),
-      ],
-    );
+    const [plansResult, companiesResult, configResult, evolution, meta] = await Promise.all([
+      db
+        .from("plan")
+        .select(
+          "id,nome,ativo,trial_days,creditos_trial,checkout_url,is_free,free_days,preco_cents",
+        )
+        .eq("ativo", true),
+      db.from("company").select("id", { count: "exact", head: true }),
+      db.from("app_config").select("super_admin_emails").eq("id", true).maybeSingle(),
+      describeIntegration("evolution"),
+      describeIntegration("whatsapp_meta"),
+    ]);
 
     const plans = plansResult.data ?? [];
     const activePlans = plans.length;
@@ -74,33 +71,18 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
       plans.every(
         (plan: any) => Number(plan.trial_days ?? 0) === 0 || Number(plan.creditos_trial ?? 0) > 0,
       );
-    const plansWithCheckout = plans.filter((plan: any) => {
-      if (plan.checkout_mode === "stripe") {
-        return stripe.testOk === true && String(plan.stripe_price_id || "").startsWith("price_");
-      }
-      return /^https?:\/\//i.test(String(plan.checkout_url || ""));
-    }).length;
-    const paymentPlans = plans.map((plan: any) => {
-      const stripeMode = plan.checkout_mode === "stripe";
-      const ready = stripeMode
-        ? stripe.testOk === true && String(plan.stripe_price_id || "").startsWith("price_")
-        : /^https?:\/\//i.test(String(plan.checkout_url || ""));
-      return {
-        id: String(plan.id),
-        name: String(plan.nome || "Plano"),
-        mode: stripeMode ? ("stripe" as const) : ("external" as const),
-        ready,
-        detail: stripeMode
-          ? stripe.testOk !== true
-            ? "Teste o Stripe antes de vender"
-            : plan.stripe_price_id
-              ? "Preço recorrente vinculado"
-              : "Falta escolher o preço do Stripe"
-          : plan.checkout_url
-            ? "Link externo informado"
-            : "Falta informar o link de checkout",
-      };
-    });
+    // Todo plano cobra por link de checkout (InfinitePay ou link externo).
+    const hasCheckoutLink = (plan: any) => /^https?:\/\//i.test(String(plan.checkout_url || ""));
+    const plansWithCheckout = plans.filter(hasCheckoutLink).length;
+    const paymentPlans = plans.map((plan: any) => ({
+      id: String(plan.id),
+      name: String(plan.nome || "Plano"),
+      mode: "external" as const,
+      ready: hasCheckoutLink(plan),
+      detail: plan.checkout_url
+        ? "Link de checkout informado"
+        : "Falta informar o link de checkout",
+    }));
     const paymentsReady = activePlans > 0 && plansWithCheckout === activePlans;
     const ownerEmails = (configResult.data?.super_admin_emails ?? []).filter(Boolean);
 
@@ -109,7 +91,9 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
     try {
       const result = await db
         .from("platform_support_channel")
-        .select("provider,active_provider,status,instance_name,phone_e164,last_error,meta_template_status")
+        .select(
+          "provider,active_provider,status,instance_name,phone_e164,last_error,meta_template_status",
+        )
         .eq("id", true)
         .maybeSingle();
       if (result.error) throw result.error;
@@ -121,80 +105,91 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
     const supportReady = supportSchemaReady && isActiveChannelConnected(supportChannel);
     const metaActive = supportChannel?.active_provider === "meta";
     const templateReady =
-      !metaActive || String(supportChannel?.meta_template_status || "").toUpperCase() === "APPROVED";
+      !metaActive ||
+      String(supportChannel?.meta_template_status || "").toUpperCase() === "APPROVED";
     const companyCount = companiesResult.count ?? 0;
 
-    const safe = async <T,>(fn: () => Promise<T>, fallback: T): Promise<T> => {
+    const safe = async <T>(fn: () => Promise<T>, fallback: T): Promise<T> => {
       try {
         return await fn();
       } catch {
         return fallback;
       }
     };
-    const [infinitepay, lastPayment, aiConfig, pushDevices, lastNotice, lastReport, pendingDeletions, lastSubscriberMessage] =
-      await Promise.all([
-        safe(() => describeIntegration("infinitepay"), { configured: false } as { configured: boolean }),
-        safe(async () => {
-          const { data } = await db
-            .from("billing_event_log")
-            .select("created_at,error,processed")
-            .eq("provider", "infinitepay")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          return data as { created_at: string; error: string | null } | null;
-        }, null),
-        safe(async () => {
-          const { data } = await db.from("ai_provider_config").select("*").limit(1).maybeSingle();
-          return data as any;
-        }, null),
-        safe(async () => {
-          const { count } = await db
-            .from("marcia_push_subscription")
-            .select("id", { count: "exact", head: true })
-            .eq("active", true);
-          return count ?? 0;
-        }, 0),
-        safe(async () => {
-          const { data } = await db
-            .from("marcia_notification")
-            .select("created_at")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          return (data?.created_at as string | undefined) ?? null;
-        }, null),
-        safe(async () => {
-          const { data } = await db
-            .from("marcia_notification")
-            .select("created_at")
-            .eq("type", "system.monthly_report")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          return (data?.created_at as string | undefined) ?? null;
-        }, null),
-        safe(async () => {
-          const { count } = await db
-            .from("account_deletion_request")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "pending");
-          return count ?? 0;
-        }, 0),
-        safe(async () => {
-          const { data } = await db
-            .from("fin_whatsapp_identity")
-            .select("last_used_at")
-            .not("last_used_at", "is", null)
-            .order("last_used_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          return (data?.last_used_at as string | undefined) ?? null;
-        }, null),
-      ]);
+    const [
+      infinitepay,
+      lastPayment,
+      aiConfig,
+      pushDevices,
+      lastNotice,
+      lastReport,
+      pendingDeletions,
+      lastSubscriberMessage,
+    ] = await Promise.all([
+      safe(() => describeIntegration("infinitepay"), { configured: false } as {
+        configured: boolean;
+      }),
+      safe(async () => {
+        const { data } = await db
+          .from("billing_event_log")
+          .select("created_at,error,processed")
+          .eq("provider", "infinitepay")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return data as { created_at: string; error: string | null } | null;
+      }, null),
+      safe(async () => {
+        const { data } = await db.from("ai_provider_config").select("*").limit(1).maybeSingle();
+        return data as any;
+      }, null),
+      safe(async () => {
+        const { count } = await db
+          .from("marcia_push_subscription")
+          .select("id", { count: "exact", head: true })
+          .eq("active", true);
+        return count ?? 0;
+      }, 0),
+      safe(async () => {
+        const { data } = await db
+          .from("marcia_notification")
+          .select("created_at")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return (data?.created_at as string | undefined) ?? null;
+      }, null),
+      safe(async () => {
+        const { data } = await db
+          .from("marcia_notification")
+          .select("created_at")
+          .eq("type", "system.monthly_report")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return (data?.created_at as string | undefined) ?? null;
+      }, null),
+      safe(async () => {
+        const { count } = await db
+          .from("account_deletion_request")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending");
+        return count ?? 0;
+      }, 0),
+      safe(async () => {
+        const { data } = await db
+          .from("fin_whatsapp_identity")
+          .select("last_used_at")
+          .not("last_used_at", "is", null)
+          .order("last_used_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return (data?.last_used_at as string | undefined) ?? null;
+      }, null),
+    ]);
     const freePlans = plans.filter((p: any) => p.is_free);
     const usesInfinitePay = plans.some(
-      (p: any) => !p.is_free && p.checkout_mode !== "stripe" && /infinitepay/i.test(String(p.checkout_url || "")),
+      (p: any) => !p.is_free && /infinitepay/i.test(String(p.checkout_url || "")),
     );
     const aiMode = String(aiConfig?.mode || "lovable");
     const vapidReady = Boolean(
@@ -237,7 +232,7 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
       {
         id: "payments",
         title: "Faça uma venda sair do outro lado",
-        description: "Cada plano precisa ter Stripe testado ou um link externo válido.",
+        description: "Cada plano pago precisa de um link de checkout válido (InfinitePay).",
         ready: paymentsReady,
         optional: false,
         detail: `${plansWithCheckout} de ${activePlans} plano(s) prontos para cobrar`,
@@ -343,7 +338,9 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         description: "Contas a vencer, orçamento e resumos gerados nas últimas 48 horas.",
         ready: companyCount === 0 || isRecent(lastNotice, 48),
         optional: companyCount === 0,
-        detail: lastNotice ? `Último aviso gerado ${timeAgo(lastNotice)}` : "Nenhum aviso gerado ainda",
+        detail: lastNotice
+          ? `Último aviso gerado ${timeAgo(lastNotice)}`
+          : "Nenhum aviso gerado ainda",
         to: "/master/painel",
         action: "Ver painel",
       },

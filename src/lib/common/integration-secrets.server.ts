@@ -6,7 +6,6 @@
 export type IntegrationProvider =
   | "evolution"
   | "google"
-  | "stripe"
   | "whatsapp_meta"
   | "ai_openai"
   | "ai_anthropic"
@@ -25,11 +24,6 @@ export const INTEGRATION_FIELDS: Record<
   google: [
     { field: "client_id", env: "GOOGLE_CLIENT_ID", secret: false },
     { field: "client_secret", env: "GOOGLE_CLIENT_SECRET", secret: true },
-  ],
-  stripe: [
-    { field: "publishable_key", env: "STRIPE_PUBLISHABLE_KEY", secret: false },
-    { field: "secret_key", env: "STRIPE_SECRET_KEY", secret: true },
-    { field: "webhook_secret", env: "STRIPE_WEBHOOK_SECRET", secret: true },
   ],
   whatsapp_meta: [
     { field: "waba_id", env: "WHATSAPP_META_WABA_ID", secret: false },

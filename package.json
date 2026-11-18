@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:clone-security": "node scripts/verify-owner-routing.mjs && node scripts/verify-auth-realms.mjs && node scripts/verify-stripe-catalog.mjs && node scripts/verify-clone-brand-onboarding.mjs && node scripts/verify-service-onboarding.mjs && node scripts/verify-app-responsiveness.mjs && node scripts/verify-master-setup.mjs",
+    "test:clone-security": "node scripts/verify-owner-routing.mjs && node scripts/verify-auth-realms.mjs && node scripts/verify-clone-brand-onboarding.mjs && node scripts/verify-service-onboarding.mjs && node scripts/verify-app-responsiveness.mjs && node scripts/verify-master-setup.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {

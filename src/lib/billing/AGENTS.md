@@ -1,0 +1,1 @@
+- InfinitePay is the only integrated checkout (plans always use `checkout_mode = external` + `checkout_url`); Stripe code was removed while legacy `stripe_*` columns/tables stay unused in the database — why: one payment path, no destructive schema change.

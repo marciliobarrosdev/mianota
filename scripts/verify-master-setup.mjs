@@ -28,8 +28,8 @@ expect(
 );
 expect(
   "src/routes/master/pagamentos.tsx",
-  /Segredo do webhook/,
-  "Guia de Stripe deve orientar o webhook",
+  /URL do Webhook/,
+  "Guia da InfinitePay deve orientar o webhook",
 );
 expect(
   "src/routes/master/pagamentos.tsx",

@@ -100,7 +100,6 @@ function Limit({ label, v }: { label: string; v: number }) {
 
 // Resumo do checkout no card do plano: o estado depende do modo escolhido.
 function CheckoutStatus({ plan }: { plan: Plan }) {
-  const priceId = (plan.stripe_price_id ?? "").trim();
   const url = (plan.checkout_url ?? "").trim();
 
   if (plan.is_free) {
@@ -109,27 +108,6 @@ function CheckoutStatus({ plan }: { plan: Plan }) {
         <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
           <Gift className="size-3" /> Gratuito · {plan.free_days ?? plan.trial_days} dias
         </span>
-      </div>
-    );
-  }
-
-  if (plan.checkout_mode === "stripe") {
-    if (priceId) {
-      return (
-        <div className="flex items-center gap-1.5 -mt-1 min-w-0">
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-            <CheckCircle2 className="size-3" /> Stripe integrado
-          </span>
-          <span className="truncate font-mono text-[10px] text-muted-foreground" title={priceId}>
-            {priceId}
-          </span>
-        </div>
-      );
-    }
-    return (
-      <div className="-mt-1 flex items-start gap-1.5 text-[10px] text-amber-600 dark:text-amber-400">
-        <AlertTriangle className="mt-0.5 size-3 shrink-0" />
-        <span>Falta o Price ID do Stripe — clientes não conseguem assinar</span>
       </div>
     );
   }

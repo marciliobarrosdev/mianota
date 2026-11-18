@@ -80,7 +80,7 @@
 - Nomes internos "Marcia" → "Mia" (arquivos, componentes, hooks). Banco (`marcia_*`) e endereço `/app/marcia` mantidos.
 
 ## 10. Integrações ativas
-InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI · OpenAI/Anthropic (opcional) · Notificações web (VAPID) · Google · Lovable Cloud (banco, login, arquivos).
+InfinitePay (único checkout integrado) · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI · OpenAI/Anthropic (opcional) · Notificações web (VAPID) · Google · Lovable Cloud (banco, login, arquivos).
 
 ## 11. URLs importantes
 - Sucesso do pagamento: `https://mianota.lovable.app/app/sucesso`
@@ -234,3 +234,11 @@ Divisão em arquivos menores, sem mudar comportamento, dados ou integrações.
 - Cartões em `src/components/master/overview/`: `overview-header`, `setup-progress-card`, `overview-metrics`, `signups-chart-card`, `attention-card`, `recent-companies-card`, `quick-actions-card`, peças em `overview-parts` e tipos em `overview-types`.
 - Regras puras em `src/lib/master/overview-rules.ts` (atalhos de período, datas, rótulos, % de conversão), testadas em `tests/master-overview-rules.test.ts`.
 - Verificado como Super Admin no computador e no celular, claro e escuro; troca de período (7d, 1 ano) e de data atualiza o gráfico, sem erros.
+
+## 28. Remoção da integração com Stripe (18/11/2026)
+
+- **Regra:** a InfinitePay é a única integração de pagamento. Links externos (Kiwify, Cakto, PerfectPay) continuam aceitos, por escolha do proprietário.
+- **Removido:** checkout Stripe do assinante, webhook `/api/public/stripe-webhook`, catálogo de preços Stripe no editor de planos, cartão "Stripe integrado" em Master → Pagamentos, credenciais e teste de conexão do Stripe, filtro "stripe" em Configurações e o script `verify-stripe-catalog.mjs`.
+- **Planos:** todo plano pago usa o campo "Link de Checkout InfinitePay"; a conferência "Prontos para cobrar" e o progresso de implantação passam a olhar só esse link.
+- **Dados preservados:** nenhum plano nem cobrança usava Stripe; as colunas/tabelas antigas `stripe_*` continuam no banco, vazias e sem uso, para não apagar nada.
+- **Verificação:** testes automáticos passaram (268) e as telas Master → Pagamentos e Master → Planos foram abertas logado.

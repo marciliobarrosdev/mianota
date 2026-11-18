@@ -21,7 +21,6 @@ import { MoneyInput } from "@/components/money-input";
 import { isInfinitePayLink } from "@/lib/billing/infinitepay-rules";
 import type { PlanDraft } from "@/lib/billing/plan-form-rules";
 import { PlanField as Field } from "@/components/master/plans/plan-field";
-import { PlanStripeCatalog } from "@/components/master/plans/plan-stripe-catalog";
 
 type Props = {
   editing: PlanDraft | null;
@@ -278,70 +277,36 @@ export function PlanEditorDialog({
             </Field>
             {!editing.is_free && (
               <>
-                <Field label="Como o cliente paga este plano?" full>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(
-                      [
-                        [
-                          "stripe",
-                          "Stripe integrado",
-                          "Cartão direto no sistema, liberação automática.",
-                        ],
-                        ["external", "Link externo", "Kiwify, Cakto, Perfectpay ou outro link."],
-                      ] as const
-                    ).map(([value, title, hint]) => (
-                      <button
-                        type="button"
-                        key={value}
-                        onClick={() => setEditing({ ...editing, checkout_mode: value })}
-                        className={`rounded-xl border p-3 text-left text-sm transition ${
-                          (editing.checkout_mode ?? "external") === value
-                            ? "border-primary bg-primary/10"
-                            : "border-border hover:bg-muted"
-                        }`}
-                      >
-                        <div className="font-semibold">{title}</div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>
-                      </button>
-                    ))}
+                <Field label="Link de Checkout InfinitePay" full>
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    autoComplete="url"
+                    spellCheck={false}
+                    value={editing.checkout_url ?? ""}
+                    onChange={(e) => setEditing({ ...editing, checkout_url: e.target.value })}
+                    placeholder="https://checkout.infinitepay.io/sua-tag/abc123"
+                  />
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <p className="text-[11px] text-muted-foreground">
+                      Plano Basic → Link 1 · Plano Pro → Link 2. Crie na InfinitePay um link com o
+                      mesmo valor deste plano. O cliente deve pagar com o mesmo e-mail da conta.
+                    </p>
+                    {isInfinitePayLink(editing.checkout_url) && (
+                      <Button asChild type="button" variant="outline" size="sm">
+                        <a href={editing.checkout_url!.trim()} target="_blank" rel="noreferrer">
+                          Testar link
+                        </a>
+                      </Button>
+                    )}
                   </div>
-                </Field>
-                {editing.checkout_mode === "stripe" && (
-                  <PlanStripeCatalog editing={editing} setEditing={setEditing} />
-                )}
-                {editing.checkout_mode !== "stripe" && (
-                  <Field label="Link de Checkout InfinitePay" full>
-                    <Input
-                      type="url"
-                      inputMode="url"
-                      autoComplete="url"
-                      spellCheck={false}
-                      value={editing.checkout_url ?? ""}
-                      onChange={(e) => setEditing({ ...editing, checkout_url: e.target.value })}
-                      placeholder="https://checkout.infinitepay.io/sua-tag/abc123"
-                    />
-                    <div className="flex items-center justify-between gap-2 mt-1">
-                      <p className="text-[11px] text-muted-foreground">
-                        Plano Basic → Link 1 · Plano Pro → Link 2. Crie na InfinitePay um link com o
-                        mesmo valor deste plano. O cliente deve pagar com o mesmo e-mail da conta.
+                  {(editing.checkout_url ?? "").trim() &&
+                    !isInfinitePayLink(editing.checkout_url) && (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                        Este não parece um link da InfinitePay (https://checkout.infinitepay.io/…).
                       </p>
-                      {isInfinitePayLink(editing.checkout_url) && (
-                        <Button asChild type="button" variant="outline" size="sm">
-                          <a href={editing.checkout_url!.trim()} target="_blank" rel="noreferrer">
-                            Testar link
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                    {(editing.checkout_url ?? "").trim() &&
-                      !isInfinitePayLink(editing.checkout_url) && (
-                        <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
-                          Este não parece um link da InfinitePay
-                          (https://checkout.infinitepay.io/…).
-                        </p>
-                      )}
-                  </Field>
-                )}
+                    )}
+                </Field>
               </>
             )}
             <div className="col-span-2 flex items-center gap-6 pt-1">

@@ -30,9 +30,8 @@ export type Plan = {
   paddle_product_id: string | null;
   paddle_price_id: string | null;
   checkout_url: string | null;
-  checkout_mode: "external" | "stripe";
-  stripe_price_id: string | null;
-  stripe_product_id: string | null;
+  /** Sempre "external": o plano cobra pelo link de checkout (InfinitePay). */
+  checkout_mode: "external";
   is_free: boolean;
   free_days: number | null;
 };
@@ -94,7 +93,7 @@ export function validatePlanDraft(editing: PlanDraft, plans: Plan[]): string | n
   if (plans.some((p) => p.slug === slug && p.id !== editing.id))
     return "Já existe um plano com esse slug.";
   const checkoutUrl = (editing.checkout_url ?? "").trim();
-  if (editing.checkout_mode !== "stripe" && checkoutUrl && !isValidHttpUrl(checkoutUrl))
+  if (checkoutUrl && !isValidHttpUrl(checkoutUrl))
     return "Link de checkout inválido. Use o endereço completo, começando com https://";
   const dup = duplicatePricePlans([
     ...plans.filter((p) => p.slug !== slug && editing.id !== p.id),
@@ -142,9 +141,7 @@ export function buildPlanPayload(editing: PlanDraft, featuresText: string): Reco
     paddle_product_id: editing.paddle_product_id ?? null,
     paddle_price_id: editing.paddle_price_id ?? null,
     checkout_url: isFree ? null : checkoutUrl || null,
-    checkout_mode: !isFree && editing.checkout_mode === "stripe" ? "stripe" : "external",
-    stripe_price_id: (editing.stripe_price_id ?? "").trim() || null,
-    stripe_product_id: (editing.stripe_product_id ?? "").trim() || null,
+    checkout_mode: "external",
   };
 }
 

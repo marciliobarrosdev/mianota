@@ -40,7 +40,7 @@ export function formatBrazilianPhone(value?: string | null): string {
 
 // ---------------------------------------------------------------------------
 // Campos de telefone/WhatsApp de pessoas (não usar em IDs técnicos da Meta,
-// Evolution ou Stripe).
+// Evolution ou InfinitePay).
 // ---------------------------------------------------------------------------
 
 /** Dígitos nacionais (DDD + número), removendo +55/0055 quando presentes. */

@@ -27,7 +27,6 @@ import {
   Lock,
 } from "lucide-react";
 import { createCheckoutCompany } from "@/lib/billing/checkout.functions";
-import { createStripeCheckout } from "@/lib/billing/stripe.functions";
 import { createInfinitePayCheckout } from "@/lib/billing/infinitepay.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { trialDaysLeft } from "@/lib/common/tenant";
@@ -43,7 +42,6 @@ type Plano = {
   trial_days: number;
   checkout_url: string | null;
   checkout_mode?: string | null;
-  stripe_price_id?: string | null;
   destaque: boolean;
   is_free?: boolean | null;
   limite_mensagens: number;
@@ -113,7 +111,6 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/app/checkout" }) as Search;
   const createCompany = useServerFn(createCheckoutCompany);
-  const startStripe = useServerFn(createStripeCheckout);
   const startInfinite = useServerFn(createInfinitePayCheckout);
 
   const [plans, setPlans] = useState<Plano[]>([]);
@@ -230,18 +227,6 @@ function CheckoutPage() {
 
   async function pagarAgora() {
     if (!plano) return toast.error("Selecione um plano.");
-    if (plano.checkout_mode === "stripe" && plano.stripe_price_id) {
-      if (!ctx.company?.id) return toast.error("Crie sua empresa antes de assinar.");
-      try {
-        const { url } = await startStripe({
-          data: { planSlug: plano.slug, companyId: ctx.company.id },
-        });
-        window.location.href = url;
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Não foi possível abrir o pagamento.");
-      }
-      return;
-    }
     if (ctx.company?.id) {
       try {
         const { url } = await startInfinite({

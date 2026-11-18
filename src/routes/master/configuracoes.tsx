@@ -505,7 +505,7 @@ function SecurityPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas plataformas</SelectItem>
-                  {["infinitepay", "stripe", "kiwify", "cakto", "perfectpay"].map((p) => (
+                  {["infinitepay", "kiwify", "cakto", "perfectpay"].map((p) => (
                     <SelectItem key={p} value={p}>
                       {p}
                     </SelectItem>

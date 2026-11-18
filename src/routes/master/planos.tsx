@@ -76,8 +76,6 @@ function PlanosPage() {
     const invalid = validatePlanDraft(editing, plans);
     if (invalid) return toast.error(invalid);
     const payload = buildPlanPayload(editing, featuresText);
-    if (payload.checkout_mode === "stripe" && !payload.stripe_price_id?.startsWith("price_"))
-      return toast.error("Informe o Stripe Price ID (começa com price_) ou escolha link externo.");
     setSaving(true);
     try {
       await savePlanFn({ data: { id: editing.id ?? null, payload } });

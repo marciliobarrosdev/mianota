@@ -84,3 +84,4 @@
 - [x] Gravação de áudio real no app (transcrição + confirmação)
 - [ ] Vários lançamentos numa mensagem
 - [ ] Conversa unificada com WhatsApp
+- [x] Remover integração Stripe; InfinitePay é o único checkout integrado (Kiwify/Cakto/PerfectPay mantidos)

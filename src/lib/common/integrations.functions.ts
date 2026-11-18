@@ -12,7 +12,7 @@ import {
   type IntegrationProvider,
 } from "@/lib/common/integration-secrets.server";
 
-const PROVIDERS: IntegrationProvider[] = ["evolution", "google", "stripe", "infinitepay"];
+const PROVIDERS: IntegrationProvider[] = ["evolution", "google", "infinitepay"];
 
 async function assertSuperAdmin(supabase: any) {
   const { data, error } = await supabase.rpc("is_super_admin");
@@ -56,7 +56,6 @@ export const getIntegrationsOverview = createServerFn({ method: "GET" })
     return {
       origin,
       googleCallbackUrl: `${origin}/api/public/google-callback`,
-      stripeWebhookUrl: `${origin}/api/public/stripe-webhook`,
       infinitepayWebhookUrl: `${origin}/api/public/billing/infinitepay`,
       infinitepaySuccessUrl: `${origin}/app/sucesso`,
       googleConnected,
@@ -76,14 +75,6 @@ export const saveIntegration = createServerFn({ method: "POST" })
     }
     if (provider === "evolution" && values.api_url && !/^https?:\/\/[^\s]+$/i.test(values.api_url))
       throw new Error("Informe a URL completa, começando com https://");
-    if (provider === "stripe") {
-      if (values.publishable_key && !values.publishable_key.startsWith("pk_"))
-        throw new Error("A chave publicável do Stripe começa com pk_.");
-      if (values.secret_key && !/^(sk|rk)_/.test(values.secret_key))
-        throw new Error("A chave secreta do Stripe começa com sk_ ou rk_.");
-      if (values.webhook_secret && !values.webhook_secret.startsWith("whsec_"))
-        throw new Error("O segredo do webhook do Stripe começa com whsec_.");
-    }
     if (provider === "infinitepay") {
       values.handle = values.handle.replace(/^\$/, "");
       if (values.handle && !/^[a-z0-9._-]{2,80}$/i.test(values.handle))
@@ -191,7 +182,8 @@ export const testIntegration = createServerFn({ method: "POST" })
           throw new Error("O Google recusou o Client ID ou o Client Secret.");
         ok = true;
         message = "Credenciais reconhecidas pelo Google.";
-      } else if (data.provider === "infinitepay") {
+      } else {
+        // InfinitePay: único checkout de pagamento integrado.
         if (!v.handle) throw new Error("Preencha a InfiniteTag.");
         if (!v.checkout_link && !v.checkout_link_2)
           throw new Error("Preencha ao menos um link de checkout.");
@@ -203,18 +195,6 @@ export const testIntegration = createServerFn({ method: "POST" })
         }
         ok = true;
         message = "InfiniteTag salva e links de checkout respondendo.";
-      } else {
-        if (!v.secret_key) throw new Error("Preencha a Secret Key.");
-        const res = await fetch("https://api.stripe.com/v1/account", {
-          headers: { Authorization: `Bearer ${v.secret_key}` },
-        });
-        if (res.status === 401) throw new Error("O Stripe recusou a Secret Key.");
-        if (!res.ok) throw new Error(`O Stripe respondeu com erro (${res.status}).`);
-        if (!v.webhook_secret) {
-          message =
-            "Chave válida. Falta o segredo do webhook para liberar clientes automaticamente.";
-        } else message = "Chave do Stripe válida.";
-        ok = true;
       }
     } catch (e) {
       ok = false;

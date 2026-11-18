@@ -303,8 +303,8 @@ describe("fluxo completo com backend simulado", () => {
     seed({ active_provider: "meta" });
     const { enqueuePurchaseOnboarding } = await service();
     await enqueuePurchaseOnboarding({
-      source: "stripe",
-      eventKey: "stripe:evt_1",
+      source: "infinitepay",
+      eventKey: "infinitepay:evt_1",
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
@@ -322,8 +322,8 @@ describe("fluxo completo com backend simulado", () => {
     });
     const { enqueuePurchaseOnboarding } = await service();
     await enqueuePurchaseOnboarding({
-      source: "stripe",
-      eventKey: "stripe:evt_2",
+      source: "infinitepay",
+      eventKey: "infinitepay:evt_2",
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
@@ -460,8 +460,8 @@ describe("fluxo completo com backend simulado", () => {
     });
     const { enqueuePurchaseOnboarding, tryActivatePurchase } = await service();
     await enqueuePurchaseOnboarding({
-      source: "stripe",
-      eventKey: "stripe:token-phone",
+      source: "infinitepay",
+      eventKey: "infinitepay:token-phone",
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });
@@ -569,8 +569,8 @@ describe("provedor ativo diferente do registro configurado", () => {
     });
     const { enqueuePurchaseOnboarding } = await service();
     await enqueuePurchaseOnboarding({
-      source: "stripe",
-      eventKey: "stripe:mismatch-meta",
+      source: "infinitepay",
+      eventKey: "infinitepay:mismatch-meta",
       companyId: COMPANY,
       buyerPhone: "11987654321",
     });

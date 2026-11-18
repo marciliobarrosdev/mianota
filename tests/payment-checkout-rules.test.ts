@@ -5,12 +5,20 @@ const plans = [{ mode: "external" as const, ready: true }];
 
 describe("checkoutStatus", () => {
   it("is active when saved, tested and used by a ready plan", () => {
-    expect(checkoutStatus("infinitepay", { configured: true, testOk: true }, plans).active).toBe(true);
+    expect(checkoutStatus("infinitepay", { configured: true, testOk: true }, plans).active).toBe(
+      true,
+    );
   });
   it("is not active without a successful test", () => {
-    expect(checkoutStatus("infinitepay", { configured: true, testOk: false }, plans).label).toBe("Falta testar");
+    expect(checkoutStatus("infinitepay", { configured: true, testOk: false }, plans).label).toBe(
+      "Falta testar",
+    );
   });
   it("is not active when no plan uses it", () => {
-    expect(checkoutStatus("stripe", { configured: true, testOk: true }, plans).active).toBe(false);
+    expect(
+      checkoutStatus("infinitepay", { configured: true, testOk: true }, [
+        { mode: "external", ready: false },
+      ]).active,
+    ).toBe(false);
   });
 });

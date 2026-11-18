@@ -1,7 +1,7 @@
 /**
  * Valores monetários em reais (pt-BR).
  *
- * A interface mostra e edita "R$ 49,00"; banco, Stripe e servidores continuam
+ * A interface mostra e edita "R$ 49,00"; banco, InfinitePay e servidores continuam
  * recebendo centavos inteiros (4900). Toda conversão passa por aqui para que
  * R$ 49,00 nunca vire R$ 4.900,00 nem R$ 0,49.
  */

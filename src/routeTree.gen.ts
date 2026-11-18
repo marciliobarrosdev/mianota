@@ -75,7 +75,6 @@ import { Route as MasterWhatsappMetaRouteImport } from './routes/master/whatsapp
 import { Route as MasterWhatsappQrRouteImport } from './routes/master/whatsapp-qr'
 import { Route as ApiPublicBrandAssetRouteImport } from './routes/api/public/brand-asset'
 import { Route as ApiPublicGoogleCallbackRouteImport } from './routes/api/public/google-callback'
-import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSupportWhatsappWebhookRouteImport } from './routes/api/public/support-whatsapp-webhook'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp-webhook'
 import { Route as AppOrdensOrderIdRouteImport } from './routes/app/ordens.$orderId'
@@ -416,11 +415,6 @@ const ApiPublicGoogleCallbackRoute = ApiPublicGoogleCallbackRouteImport.update({
   path: '/api/public/google-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
-  id: '/api/public/stripe-webhook',
-  path: '/api/public/stripe-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicSupportWhatsappWebhookRoute =
   ApiPublicSupportWhatsappWebhookRouteImport.update({
     id: '/api/public/support-whatsapp-webhook',
@@ -532,7 +526,6 @@ export interface FileRoutesByFullPath {
   '/master/': typeof MasterIndexRoute
   '/api/public/brand-asset': typeof ApiPublicBrandAssetRoute
   '/api/public/google-callback': typeof ApiPublicGoogleCallbackRoute
-  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/support-whatsapp-webhook': typeof ApiPublicSupportWhatsappWebhookRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
@@ -607,7 +600,6 @@ export interface FileRoutesByTo {
   '/master': typeof MasterIndexRoute
   '/api/public/brand-asset': typeof ApiPublicBrandAssetRoute
   '/api/public/google-callback': typeof ApiPublicGoogleCallbackRoute
-  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/support-whatsapp-webhook': typeof ApiPublicSupportWhatsappWebhookRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
@@ -685,7 +677,6 @@ export interface FileRoutesById {
   '/master/': typeof MasterIndexRoute
   '/api/public/brand-asset': typeof ApiPublicBrandAssetRoute
   '/api/public/google-callback': typeof ApiPublicGoogleCallbackRoute
-  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/support-whatsapp-webhook': typeof ApiPublicSupportWhatsappWebhookRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/app/ordens/$orderId': typeof AppOrdensOrderIdRoute
@@ -764,7 +755,6 @@ export interface FileRouteTypes {
     | '/master/'
     | '/api/public/brand-asset'
     | '/api/public/google-callback'
-    | '/api/public/stripe-webhook'
     | '/api/public/support-whatsapp-webhook'
     | '/api/public/whatsapp-webhook'
     | '/app/ordens/$orderId'
@@ -839,7 +829,6 @@ export interface FileRouteTypes {
     | '/master'
     | '/api/public/brand-asset'
     | '/api/public/google-callback'
-    | '/api/public/stripe-webhook'
     | '/api/public/support-whatsapp-webhook'
     | '/api/public/whatsapp-webhook'
     | '/app/ordens/$orderId'
@@ -916,7 +905,6 @@ export interface FileRouteTypes {
     | '/master/'
     | '/api/public/brand-asset'
     | '/api/public/google-callback'
-    | '/api/public/stripe-webhook'
     | '/api/public/support-whatsapp-webhook'
     | '/api/public/whatsapp-webhook'
     | '/app/ordens/$orderId'
@@ -944,7 +932,6 @@ export interface RootRouteChildren {
   CsatTokenRoute: typeof CsatTokenRoute
   ApiPublicBrandAssetRoute: typeof ApiPublicBrandAssetRoute
   ApiPublicGoogleCallbackRoute: typeof ApiPublicGoogleCallbackRoute
-  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicSupportWhatsappWebhookRoute: typeof ApiPublicSupportWhatsappWebhookRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   ApiPublicBillingInfinitepayRoute: typeof ApiPublicBillingInfinitepayRoute
@@ -1418,13 +1405,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/stripe-webhook': {
-      id: '/api/public/stripe-webhook'
-      path: '/api/public/stripe-webhook'
-      fullPath: '/api/public/stripe-webhook'
-      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/support-whatsapp-webhook': {
       id: '/api/public/support-whatsapp-webhook'
       path: '/api/public/support-whatsapp-webhook'
@@ -1630,7 +1610,6 @@ const rootRouteChildren: RootRouteChildren = {
   CsatTokenRoute: CsatTokenRoute,
   ApiPublicBrandAssetRoute: ApiPublicBrandAssetRoute,
   ApiPublicGoogleCallbackRoute: ApiPublicGoogleCallbackRoute,
-  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicSupportWhatsappWebhookRoute: ApiPublicSupportWhatsappWebhookRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   ApiPublicBillingInfinitepayRoute: ApiPublicBillingInfinitepayRoute,

@@ -66,7 +66,7 @@ src/
   components/
     landing/       página inicial
     finance/       telas financeiras do assinante
-    master/        telas do proprietário (master/plans: cartão, editor e Stripe dos planos)
+    master/        telas do proprietário (master/plans: cartão, editor e campos dos planos)
     notifications/ peças da Central de Notificações
     mia/           peças visuais da MIA
     consent/       aviso e central de preferências de cookies
