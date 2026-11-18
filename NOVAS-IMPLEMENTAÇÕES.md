@@ -205,3 +205,9 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - Regras puras em `src/lib/common/consent-rules.ts`, funções do navegador em `src/lib/common/consent.ts`, aviso e central em `src/components/consent/cookie-consent.tsx`, página em `src/routes/politica-de-cookies.tsx`.
 - Cinco testes em `tests/consent-rules.test.ts` (validade, expiração, versão, bloqueio e registro padrão). No navegador: o aviso continua após rolar, rejeitar persiste ao recarregar, "Personalizar" salva só o que foi ligado, revogar apaga o tema e nenhuma requisição de análise/marketing é disparada.
 - Pendente do responsável: razão social, CNPJ e e-mail do encarregado de dados (DPO), marcados na seção 5 da política.
+
+## 24. Pausa automática da IA e Saúde do sistema (18/11/2026)
+- **Pausa automática do provedor de IA**: depois de 3 falhas seguidas do provedor próprio (OpenRouter, OpenAI, Anthropic ou Gemini), a MIA passa 5 minutos respondendo direto pela Lovable AI, sem esperar o tempo limite a cada mensagem. Depois tenta de novo; uma resposta certa ou uma nova ativação no Master encerra a pausa.
+- **Saúde do sistema (Master → Visão geral)**: cartão com o estado do provedor de IA, comandos da MIA com erro (24h), mensagens do WhatsApp travadas, avisos de pagamento com erro (7 dias), envios automáticos com erro e webhooks com erro (24h). Só leitura e só para o Super Admin.
+- **Prévia de compartilhamento** mais leve (≈330 KB) para o WhatsApp exibir a imagem.
+- Testes: `tests/ai-circuit-rules.test.ts` e `tests/system-health-rules.test.ts`.

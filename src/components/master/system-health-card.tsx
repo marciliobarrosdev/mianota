@@ -49,7 +49,12 @@ export function SystemHealthCard() {
         </div>
         <div className="flex items-center gap-2">
           {overall && (
-            <Badge variant={data!.overall === "ok" ? "secondary" : "destructive"}>{overall.label}</Badge>
+            <Badge
+              variant={data!.overall === "critical" ? "destructive" : "secondary"}
+              className={data!.overall === "warn" ? "bg-warning text-warning-foreground" : undefined}
+            >
+              {overall.label}
+            </Badge>
           )}
           <Button size="sm" variant="outline" onClick={load} disabled={loading} aria-label="Atualizar saúde do sistema">
             {loading ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}

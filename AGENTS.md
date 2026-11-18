@@ -27,3 +27,4 @@
 - Large screens are thin compositions: pure rules in `*-rules.ts` (tested in `tests/`), data access in hooks or `*.server.ts` loaded via dynamic import inside handlers, UI pieces in `src/components/<area>/` (e.g. notifications, master/plans; MIA commands split into rules/server/functions) — why: smaller files with testable rules and no server code in the browser bundle.
 
 - Cookies & consent: optional browser storage/cookies are written only via `setPreference`/`hasConsent` and third-party trackers only via `loadOptionalScript` (`src/lib/common/consent.ts`, rules in `consent-rules.ts`); bump `CONSENT_POLICY_VERSION` when the cookie policy changes — why: nothing optional runs before explicit consent.
+- BYOK auto-pause: `ai-circuit-rules.ts`; Master health panel read-only — why: no waits on dead providers.
