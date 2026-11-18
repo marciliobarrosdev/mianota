@@ -1,0 +1,1 @@
+- Client-only route guards (`/master`, `/app`) wrap `beforeLoad` in `guardAfterHydration` (`src/lib/common/hydration-gate.ts`) — why: a redirect thrown during first-page hydration crashes the router match and forces a full re-render.

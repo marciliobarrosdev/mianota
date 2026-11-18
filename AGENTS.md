@@ -28,4 +28,3 @@
 
 - Cookies & consent: optional browser storage/cookies are written only via `setPreference`/`hasConsent` and third-party trackers only via `loadOptionalScript` (`src/lib/common/consent.ts`, rules in `consent-rules.ts`); bump `CONSENT_POLICY_VERSION` when the cookie policy changes — why: nothing optional runs before explicit consent.
 - BYOK auto-pause: `ai-circuit-rules.ts`; Master health panel read-only — why: no waits on dead providers.
-- Client-only route guards (`/master`, `/app`) wrap `beforeLoad` in `guardAfterHydration` (`src/lib/common/hydration-gate.ts`) — why: a redirect thrown during first-page hydration crashes the router match and forces a full re-render.
