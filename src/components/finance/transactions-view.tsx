@@ -1,51 +1,21 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  CalendarDays,
-  Check,
-  ChevronDown,
-  Clock,
-  Copy,
-  FileDown,
-  FileText,
-  Paperclip,
-  Pencil,
-  Search,
-  Split,
-  Tag,
-  Upload,
-  Sparkles,
-  Trash2,
-  Undo2,
-  Wallet,
-  X,
-} from "lucide-react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ArrowDownLeft, ArrowUpRight, Check, ChevronDown, Clock, FileDown, FileText, Paperclip, Search, Split, Tag, Upload, Trash2, Wallet, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { MoneyInput } from "@/components/money-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { FinanceTransactionDetail } from "@/lib/finance/finance-dashboard.functions";
 import { PAYMENT_METHOD_LABELS, sourceLabel, statusLabel, toIsoDate, type FinancePeriod } from "@/lib/finance/finance-period";
-import {
-  EMPTY_TX_FILTERS,
-  filterTx,
-  groupTxByDay,
-  sortTx,
-  txStatus,
-  txToCsv,
-  txTotals,
-  type TxFilters,
-  type TxSort,
-} from "@/lib/finance/transactions-rules";
+import { EMPTY_TX_FILTERS, filterTx, groupTxByDay, sortTx, txToCsv, txTotals, type TxFilters, type TxSort } from "@/lib/finance/transactions-rules";
 import { PeriodFilter } from "./period-filter";
 import { money } from "./finance-overview";
 import { ExpenseCharts, SplitDialog, TagInput } from "./transactions-extras";
+import { formatTxDate, formatTxDayHeader } from "@/lib/finance/transactions-rules";
+import { SORTS, STATUS_CHIPS, SOURCE_CHIPS } from "./transactions/tx-constants";
+import { SummaryCard, FilterChip, TypeIcon, Amount, StatusPill, Details } from "./transactions/tx-parts";
+import { EditDialog } from "./transactions/edit-dialog";
 
 /** Compatibilidade com chamadas antigas. */
 export function filterTransactions(items: FinanceTransactionDetail[], f: Partial<TxFilters>) {
@@ -76,35 +46,6 @@ export type TransactionsActions = {
   onImport?: () => void;
   onExportPdf?: () => Promise<void> | void;
 };
-
-const STATUS_STYLES: Record<string, string> = {
-  Pago: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
-  Recebido: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300",
-  Previsto: "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300",
-  Vencido: "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300",
-};
-
-const SORTS: { key: TxSort; label: string }[] = [
-  { key: "date_desc", label: "Mais recentes" },
-  { key: "date_asc", label: "Mais antigas" },
-  { key: "amount_desc", label: "Maior valor" },
-  { key: "amount_asc", label: "Menor valor" },
-  { key: "category", label: "Categoria" },
-];
-const STATUS_CHIPS: { key: TxFilters["status"]; label: string }[] = [
-  { key: "all", label: "Todas" },
-  { key: "pago", label: "Pagas" },
-  { key: "pendente", label: "Pendentes" },
-  { key: "vencido", label: "Vencidas" },
-];
-const SOURCE_CHIPS: { key: TxFilters["source"]; label: string }[] = [
-  { key: "all", label: "Qualquer origem" },
-  { key: "whatsapp", label: "WhatsApp" },
-  { key: "ia", label: "Chat MIA" },
-  { key: "manual", label: "Manual" },
-  { key: "foto", label: "Foto/PDF" },
-];
-
 /** Extrato detalhado do assinante. */
 export function TransactionsView({
   items,
@@ -327,7 +268,7 @@ export function TransactionsView({
               <div key={g.date || "all"}>
                 {g.date && (
                   <div className="sticky top-0 z-[5] flex items-center justify-between border-b border-border bg-muted/70 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[.1em] text-muted-foreground backdrop-blur sm:px-4">
-                    <span>{formatDayHeader(g.date, today)}</span>
+                    <span>{formatTxDayHeader(g.date, today)}</span>
                     <span className="flex flex-wrap justify-end gap-x-3 tabular-nums normal-case tracking-normal">
                       <span className={g.netCents >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"} title="Entradas menos saídas só deste dia">
                         Resultado do dia {g.netCents >= 0 ? "+" : "−"} {money(Math.abs(g.netCents))}
@@ -351,7 +292,7 @@ export function TransactionsView({
                             <div className="min-w-0 flex-1">
                               <div className="truncate text-sm font-bold">{item.description}</div>
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-                                {!g.date && <span>{formatDate(item.date)}</span>}
+                                {!g.date && <span>{formatTxDate(item.date)}</span>}
                                 {item.time && <span>{item.time}</span>}
                                 {item.splits?.length ? (
                                   <span className="inline-flex items-center gap-1 font-bold"><Split className="size-3" /> Dividido em {item.splits.length}</span>
@@ -434,304 +375,5 @@ export function TransactionsView({
         </Dialog>
       )}
     </div>
-  );
-}
-
-function SummaryCard({ icon, label, value, tone, onClick, active }: { icon: ReactNode; label: string; value: string; tone?: string; onClick?: () => void; active?: boolean }) {
-  const Tag = onClick ? "button" : "div";
-  return (
-    <Tag
-      type={onClick ? "button" : undefined}
-      onClick={onClick}
-      className={`rounded-2xl border bg-card p-3 text-left shadow-[var(--shadow-card)] transition sm:p-4 ${active ? "border-[color:var(--brand-text)]" : "border-border"} ${onClick ? "hover:bg-muted/40" : ""}`}
-    >
-      <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[.12em] text-muted-foreground">
-        {icon} {label}
-      </div>
-      <div className={`mt-1 truncate text-lg font-extrabold tabular-nums sm:text-xl ${tone || ""}`}>{value}</div>
-    </Tag>
-  );
-}
-
-function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`rounded-full border px-2.5 py-1 text-[11px] font-bold transition ${active ? "border-[color:var(--brand-text)] bg-muted text-[color:var(--brand-text)]" : "border-border text-muted-foreground hover:bg-muted/50"}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function formatDate(iso: string) {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function formatDayHeader(iso: string, today: string) {
-  const d = new Date(`${iso}T12:00:00`);
-  const y = new Date(`${today}T12:00:00`);
-  y.setDate(y.getDate() - 1);
-  const prefix = iso === today ? "Hoje · " : iso === toIsoDate(y) ? "Ontem · " : "";
-  return prefix + d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
-}
-
-function TypeIcon({ type }: { type: "receita" | "despesa" }) {
-  return (
-    <span
-      className={`grid size-9 shrink-0 place-items-center rounded-lg ${type === "receita" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" : "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"}`}
-      aria-label={type === "receita" ? "Entrada" : "Saída"}
-    >
-      {type === "receita" ? <ArrowDownLeft className="size-3.5" /> : <ArrowUpRight className="size-3.5" />}
-    </span>
-  );
-}
-
-function Amount({ item }: { item: FinanceTransactionDetail }) {
-  return (
-    <strong className={`whitespace-nowrap text-sm tabular-nums ${item.type === "receita" ? "text-emerald-700 dark:text-emerald-400" : ""}`}>
-      {item.type === "receita" ? "+" : "−"} {money(item.amountCents)}
-    </strong>
-  );
-}
-
-function StatusPill({ label }: { label: string }) {
-  return <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-extrabold ${STATUS_STYLES[label] || STATUS_STYLES.Previsto}`}>{label}</span>;
-}
-
-function Details({
-  item,
-  today,
-  budget,
-  actions,
-  busy,
-}: {
-  item: FinanceTransactionDetail;
-  today: string;
-  budget?: { limitCents: number; spentCents: number; percentage: number };
-  actions?: { act: (a: TxSingleAction) => void; edit: () => void; split?: () => void };
-  busy: boolean;
-}) {
-  const paid = item.status === "pago";
-  const rows: Array<[string, string]> = [
-    ["Data", formatDate(item.date)],
-    ["Hora", item.time || "Não informada"],
-    ["Tipo", item.type === "receita" ? "Entrada" : "Saída"],
-    ["Estabelecimento", item.merchant || "Não informado"],
-    ["Categoria", item.splits?.length ? item.splits.map((p) => `${p.category || "Sem categoria"} ${money(p.amountCents)}`).join(" + ") : item.category || "Sem categoria"],
-    ["Tags", item.tags?.length ? item.tags.map((t) => `#${t}`).join(" ") : "Nenhuma"],
-    ["Valor", money(item.amountCents)],
-    ["Forma de pagamento", item.paymentMethod ? PAYMENT_METHOD_LABELS[item.paymentMethod] || item.paymentMethod : "Não informada"],
-    ["Conta / carteira / cartão", item.card || item.account || "Não informado"],
-    ["Origem", sourceLabel(item.source, item.hasAttachment)],
-    ["Status", statusLabel(item.type, item.status, item.dueDate || item.date, today)],
-  ];
-  if (item.dueDate) rows.push(["Vencimento", formatDate(item.dueDate)]);
-  if (item.paidAt) rows.push([item.type === "receita" ? "Recebido em" : "Pago em", formatDate(item.paidAt)]);
-  if (item.installment) rows.push(["Parcela", item.installment]);
-  const question = `Me explique este ${item.type === "receita" ? "recebimento" : "gasto"}: ${item.description} de ${money(item.amountCents)} em ${formatDate(item.date)} (${item.category || "sem categoria"}).`;
-  const fixCategory = `Qual a melhor categoria para "${item.merchant || item.description}"? Hoje está como ${item.category || "sem categoria"}.`;
-  const overdue = txStatus(item, today) === "vencido";
-
-  return (
-    <div className="space-y-2 px-3 pb-3 md:px-4">
-      {actions && (
-        <div className="flex flex-wrap gap-1.5">
-          {!paid ? (
-            <Button size="sm" className="h-8 rounded-lg" disabled={busy} onClick={() => actions.act("pay")}>
-              <Check /> {item.type === "receita" ? "Marcar como recebida" : "Marcar como paga"}
-            </Button>
-          ) : (
-            <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={() => actions.act("unpay")}>
-              <Undo2 /> Voltar para pendente
-            </Button>
-          )}
-          <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={actions.edit}><Pencil /> Editar</Button>
-          {actions.split && <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={actions.split}><Split /> {item.splits?.length ? "Ajustar divisão" : "Dividir em categorias"}</Button>}
-          <Button size="sm" variant="outline" className="h-8 rounded-lg" disabled={busy} onClick={() => actions.act("duplicate")}><Copy /> Duplicar</Button>
-          <Button size="sm" variant="outline" className="h-8 rounded-lg text-rose-700 dark:text-rose-400" disabled={busy} onClick={() => actions.act("delete")}><Trash2 /> Excluir</Button>
-        </div>
-      )}
-      {overdue && <p className="rounded-lg bg-rose-50 px-2.5 py-1.5 text-[11px] font-bold text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">Esta conta está vencida. Marque como paga para atualizar os avisos.</p>}
-      {budget && item.type === "despesa" && (
-        <div className="rounded-xl border border-border bg-card p-2.5 text-xs">
-          <div className="flex justify-between font-bold">
-            <span>Orçamento de {item.category}</span>
-            <span className={budget.percentage >= 100 ? "text-rose-700 dark:text-rose-400" : budget.percentage >= 80 ? "text-amber-700 dark:text-amber-400" : ""}>{budget.percentage}% do limite</span>
-          </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-            <div className={`h-full rounded-full ${budget.percentage >= 100 ? "bg-rose-500" : budget.percentage >= 80 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${Math.min(100, budget.percentage)}%` }} />
-          </div>
-          <div className="mt-1 text-[11px] text-muted-foreground">{money(budget.spentCents)} de {money(budget.limitCents)} no mês</div>
-        </div>
-      )}
-      <dl className="grid gap-x-6 gap-y-2 rounded-xl border border-border bg-card p-3 text-xs sm:grid-cols-2 lg:grid-cols-3">
-        {rows.map(([label, value]) => (
-          <div key={label} className="min-w-0">
-            <dt className="text-[10px] font-bold uppercase tracking-[.1em] text-muted-foreground">{label}</dt>
-            <dd className="mt-0.5 truncate font-semibold">{value}</dd>
-          </div>
-        ))}
-        <div className="min-w-0 sm:col-span-2 lg:col-span-3">
-          <dt className="text-[10px] font-bold uppercase tracking-[.1em] text-muted-foreground">Observação</dt>
-          <dd className="mt-0.5 whitespace-pre-wrap font-semibold">{item.note || "Sem observação"}</dd>
-        </div>
-        {item.originalInput && (
-          <div className="min-w-0 sm:col-span-2 lg:col-span-3">
-            <dt className="text-[10px] font-bold uppercase tracking-[.1em] text-muted-foreground">Como foi registrado</dt>
-            <dd className="mt-0.5 italic text-muted-foreground">“{item.originalInput}”</dd>
-          </div>
-        )}
-        {item.hasAttachment && (
-          <div className="min-w-0 sm:col-span-2 lg:col-span-3">
-            <dt className="text-[10px] font-bold uppercase tracking-[.1em] text-muted-foreground">Comprovante</dt>
-            <dd className="mt-1">
-              {item.attachmentUrl ? (
-                /\.(png|jpe?g|webp|gif)(\?|$)/i.test(item.attachmentUrl) ? (
-                  <a href={item.attachmentUrl} target="_blank" rel="noreferrer"><img src={item.attachmentUrl} alt="Comprovante" className="max-h-48 rounded-lg border border-border" /></a>
-                ) : (
-                  <a href={item.attachmentUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-bold text-[color:var(--brand-text)] hover:underline"><Paperclip className="size-3" /> Abrir comprovante</a>
-                )
-              ) : (
-                <span className="text-muted-foreground">Recebido pela MIA (o arquivo original não fica guardado).</span>
-              )}
-            </dd>
-          </div>
-        )}
-      </dl>
-      <div className="flex flex-wrap gap-1.5">
-        <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
-          <Link to="/app/planejamento"><CalendarDays /> Ver no calendário</Link>
-        </Button>
-        <>
-            <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
-              <Link to="/app/mia" search={{ pergunta: question }}><Sparkles /> Perguntar à MIA</Link>
-            </Button>
-            <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg">
-              <Link to="/app/mia" search={{ pergunta: fixCategory }}><Sparkles /> Corrigir categoria com a MIA</Link>
-            </Button>
-        </>
-      </div>
-    </div>
-  );
-}
-
-function EditDialog({
-  item,
-  categories,
-  tagSuggestions,
-  onClose,
-  onSave,
-  busy,
-}: {
-  item: FinanceTransactionDetail;
-  categories: { id: string; name: string; type: string }[];
-  tagSuggestions: string[];
-  onClose: () => void;
-  onSave: (patch: TxEditPatch) => void;
-  busy: boolean;
-}) {
-  const [description, setDescription] = useState(item.description);
-  const [merchant, setMerchant] = useState(item.merchant || "");
-  const [amountCents, setAmountCents] = useState<number | null>(item.amountCents);
-  const [date, setDate] = useState(item.date);
-  const [categoryId, setCategoryId] = useState(item.categoryId || "none");
-  const [paymentMethod, setPaymentMethod] = useState(item.paymentMethod || "none");
-  const [payError, setPayError] = useState(false);
-  const [note, setNote] = useState(item.note || "");
-  const [learn, setLearn] = useState(true);
-  const [tags, setTags] = useState<string[]>(item.tags || []);
-  const split = Boolean(item.splits?.length);
-  const options = categories.filter((c) => c.type === item.type || !c.type);
-  const categoryChanged = (categoryId === "none" ? null : categoryId) !== (item.categoryId || null);
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!amountCents || !description.trim()) return;
-    if (paymentMethod === "none") { setPayError(true); return; }
-    onSave({
-      description: description.trim(),
-      merchant: merchant.trim() || null,
-      amountCents,
-      date,
-      categoryId: categoryId === "none" ? null : categoryId,
-      paymentMethod: paymentMethod === "none" ? null : paymentMethod,
-      note: note.trim() || null,
-      tags,
-      learn: learn && categoryChanged,
-    });
-  };
-
-  return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Editar movimentação</DialogTitle>
-          <DialogDescription>As mudanças aparecem também no calendário e nos avisos.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={submit} className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1 sm:col-span-2">
-              <Label>Descrição</Label>
-              <Input value={description} onChange={(e) => setDescription(e.target.value)} required maxLength={240} />
-            </div>
-            <div className="space-y-1">
-              <Label>Estabelecimento</Label>
-              <Input value={merchant} onChange={(e) => setMerchant(e.target.value)} placeholder="Opcional" maxLength={160} />
-            </div>
-            <div className="space-y-1">
-              <Label>Valor</Label>
-              <MoneyInput aria-label="Valor" cents={amountCents} onChange={setAmountCents} required allowZero={false} disabled={split} />
-              {split && <p className="text-[10px] text-muted-foreground">Dividido: ajuste a divisão para mudar o valor.</p>}
-            </div>
-            <div className="space-y-1">
-              <Label>Data</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-            </div>
-            <div className="space-y-1">
-              <Label>Forma de pagamento *</Label>
-              <Select value={paymentMethod} onValueChange={(v) => { setPaymentMethod(v); setPayError(false); }}>
-                <SelectTrigger aria-invalid={payError}><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {paymentMethod === "none" && <SelectItem value="none" disabled>Selecione</SelectItem>}
-                  {Object.entries(PAYMENT_METHOD_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {payError && <p className="text-xs text-destructive">Informe a forma de pagamento</p>}
-            </div>
-            <div className="space-y-1 sm:col-span-2">
-              <Label>Categoria</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sem categoria</SelectItem>
-                  {options.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {categoryChanged && categoryId !== "none" && (
-                <label className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                  <Checkbox checked={learn} onCheckedChange={(v) => setLearn(Boolean(v))} />
-                  Ensinar a MIA a usar esta categoria para “{merchant || description}”
-                </label>
-              )}
-            </div>
-            <div className="space-y-1 sm:col-span-2">
-              <Label>Tags</Label>
-              <TagInput value={tags} onChange={setTags} suggestions={tagSuggestions} />
-            </div>
-            <div className="space-y-1 sm:col-span-2">
-              <Label>Observação</Label>
-              <Textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Opcional" />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" disabled={busy || !amountCents}>Salvar</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }

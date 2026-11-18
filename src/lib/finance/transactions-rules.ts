@@ -197,3 +197,18 @@ export function learnCategoryRule(rules: CategoryRule[], keyword: string, catego
   const rest = rules.filter((r) => norm(r.keyword) !== k);
   return [{ keyword: k, categoryId }, ...rest].slice(0, MAX_CATEGORY_RULES);
 }
+
+/** Data curta do extrato (ex.: "05 de nov. de 2026"). Meio-dia evita virar o dia por fuso. */
+export function formatTxDate(iso: string) {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/** Cabeçalho de grupo do extrato: prefixa "Hoje · " ou "Ontem · " relativo a `today` (AAAA-MM-DD). */
+export function formatTxDayHeader(iso: string, today: string) {
+  const d = new Date(`${iso}T12:00:00`);
+  const y = new Date(`${today}T12:00:00`);
+  y.setDate(y.getDate() - 1);
+  const yesterday = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, "0")}-${String(y.getDate()).padStart(2, "0")}`;
+  const prefix = iso === today ? "Hoje · " : iso === yesterday ? "Ontem · " : "";
+  return prefix + d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
+}
