@@ -211,3 +211,13 @@ InfinitePay · Stripe · Evolution (WhatsApp QR) · Meta WhatsApp · Lovable AI 
 - **Saúde do sistema (Master → Visão geral)**: cartão com o estado do provedor de IA, comandos da MIA com erro (24h), mensagens do WhatsApp travadas, avisos de pagamento com erro (7 dias), envios automáticos com erro e webhooks com erro (24h). Só leitura e só para o Super Admin.
 - **Prévia de compartilhamento** mais leve (≈330 KB) para o WhatsApp exibir a imagem.
 - Testes: `tests/ai-circuit-rules.test.ts` e `tests/system-health-rules.test.ts`.
+
+## 25. Organização do painel financeiro, movimentações e funções do Master (18/11/2026)
+
+Divisão em arquivos menores, sem mudar comportamento, dados ou integrações.
+
+- **Painel financeiro:** `src/components/finance/finance-overview.tsx` (816 → 240 linhas) virou composição; blocos em `src/components/finance/overview/` (`overview-cards`, `overview-planning`, `overview-charts`, `overview-lists`, `overview-shared`). `money` e os tipos continuam exportados do arquivo original.
+- **Movimentações:** `src/components/finance/transactions-view.tsx` (737 → 379 linhas); peças em `src/components/finance/transactions/` (`tx-constants`, `tx-parts`, `edit-dialog`). Formatação de datas do extrato passou para `formatTxDate`/`formatTxDayHeader` em `src/lib/finance/transactions-rules.ts`.
+- **Funções do Master:** `src/lib/master/master.functions.ts` (1017 linhas) agora só reexporta de `master-kpis`, `master-companies`, `master-plans` e `master-admins` (`*.functions.ts`); a checagem de Super Admin está em `master-guards.ts`.
+- **Testes:** novo `tests/transactions-format-rules.test.ts` (Hoje/Ontem, inclusive na virada do mês). 265 testes passando em 46 arquivos.
+- **Verificado no navegador:** Visão do mês e Movimentações (assinante) e Visão geral, Assinantes e Planos (Master), no computador e no celular, temas claro e escuro, sem erros.

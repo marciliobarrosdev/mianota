@@ -113,3 +113,8 @@ bun run build
 - ações sensíveis do Master registradas em auditoria.
 
 Documentação complementar: `MANUAL.md` (uso) e `NOVAS-IMPLEMENTAÇÕES.md` (histórico de mudanças).
+
+### Organização dos módulos grandes
+
+- Painel financeiro: blocos em `src/components/finance/overview/`; extrato em `src/components/finance/transactions/`.
+- Funções do Master por assunto em `src/lib/master/master-{kpis,companies,plans,admins}.functions.ts`; `master.functions.ts` só reexporta.

@@ -170,3 +170,9 @@ Editar via Git Sync não elimina custos de operação. Cloud/runtime, Lovable AI
 
 ## Cookies e consentimento
 Na primeira visita aparece o aviso de cookies. Para mudar a escolha, use "Preferências de cookies" no rodapé do site ou em Configurações → Privacidade. A política fica em /politica-de-cookies.
+
+## Onde fica cada parte (manutenção)
+
+- Visão do mês: `src/components/finance/finance-overview.tsx` + `overview/`.
+- Movimentações: `src/components/finance/transactions-view.tsx` + `transactions/`.
+- Funções do Master: um arquivo por assunto em `src/lib/master/` (indicadores, assinantes, planos, administradores).
