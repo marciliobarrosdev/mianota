@@ -30,6 +30,7 @@ import { createCheckoutCompany } from "@/lib/billing/checkout.functions";
 import { createInfinitePayCheckout } from "@/lib/billing/infinitepay.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { trialDaysLeft } from "@/lib/common/tenant";
+import { startButtonLabel, trialBadgeText, trialDays } from "@/lib/billing/trial-copy-rules";
 
 type Search = { plano?: string };
 
@@ -250,6 +251,7 @@ function CheckoutPage() {
     setWaiting(true);
   }
 
+  const hasTrial = trialDays(plano) > 0;
   const headerBadge = paywallMode
     ? {
         icon: <Lock className="size-3.5 mr-1.5" />,
@@ -261,17 +263,19 @@ function CheckoutPage() {
       }
     : {
         icon: <Sparkles className="size-3.5 mr-1.5" />,
-        text: `${plans[0]?.trial_days ?? 3} dias grátis sem cartão`,
+        text: trialBadgeText(plano),
       };
   const headerTitle = renewing
     ? "Renove ou troque seu plano"
     : paywallMode
-      ? "Ative seu plano para continuar" : "Comece grátis em segundos";
+      ? "Ative seu plano para continuar" : hasTrial ? "Comece grátis em segundos" : "Escolha seu plano";
   const headerSubtitle = renewing
     ? "Escolha Basic ou Pro. Assim que o pagamento for confirmado, suas cotas são renovadas conforme o plano escolhido."
     : paywallMode
     ? "Seus dados ficam aqui esperando. Assim que o pagamento for confirmado, seu acesso é liberado automaticamente."
-    : "Escolha um plano para começar. Você não precisa pagar agora — só vai cobrar no final do período de teste, se quiser continuar.";
+    : hasTrial
+    ? "Escolha um plano para começar. Você não precisa pagar agora — só vai cobrar no final do período de teste, se quiser continuar."
+    : "Escolha o plano ideal para você. O acesso é liberado assim que o pagamento for confirmado.";
 
   if (!hasCompany && search.plano) {
     const directPlan = plans.find((item) => item.slug === search.plano);
@@ -411,7 +415,7 @@ function CheckoutPage() {
                       <p className="text-sm text-muted-foreground mt-2 min-h-[2.5rem]">
                         {p.descricao}
                       </p>
-                      {!paywallMode && (
+                      {!paywallMode && p.trial_days > 0 && (
                         <p className="text-[11px] text-primary font-semibold mt-1">
                           {p.trial_days} dias grátis — sem cartão
                         </p>
@@ -511,15 +515,19 @@ function CheckoutPage() {
                     </div>
                     {!plano ? (
                       <p className="text-sm text-muted-foreground mb-5">
-                        Escolha Basic ou Pro acima para começar seu teste grátis.
+                        Escolha um plano acima para começar.
                       </p>
                     ) : (
                       <p className="text-sm text-muted-foreground mb-5">
                         Plano escolhido:{" "}
                         <span className="font-semibold text-foreground">{plano.nome}</span> —{" "}
-                        {formatBRL(plano.preco_cents)}/mês. Você ganha{" "}
-                        <b>{plano?.trial_days ?? 3} dias grátis</b> pra explorar tudo, sem precisar
-                        de cartão. Cobramos só se você decidir continuar.
+                        {formatBRL(plano.preco_cents)}/mês.
+                        {hasTrial && (
+                          <>
+                            {" "}Você ganha <b>{trialDays(plano)} dias grátis</b> pra explorar tudo,
+                            sem precisar de cartão. Cobramos só se você decidir continuar.
+                          </>
+                        )}
                       </p>
                     )}
                     <Button
@@ -533,7 +541,7 @@ function CheckoutPage() {
                       ) : (
                         <Sparkles className="size-4 mr-2" />
                       )}
-                      Começar {plano?.trial_days ?? 3} dias grátis
+                      {startButtonLabel(plano)}
                     </Button>
                   </>
                 )}
