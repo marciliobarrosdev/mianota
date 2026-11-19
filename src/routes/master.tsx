@@ -263,7 +263,7 @@ function MasterLayout() {
               </div>
             </div>
           </aside>
-          <main className="flex-1 px-4 pt-4 pb-28 md:p-8 md:pb-8 max-w-7xl w-full mx-auto">
+          <main className="min-w-0 flex-1 px-4 pt-4 pb-28 md:p-8 md:pb-8 max-w-7xl w-full mx-auto">
             <div className="hidden md:flex items-center justify-between gap-3 mb-6">
               <div
                 className="flex items-center gap-2 text-[13.5px] font-medium px-3 py-1.5 rounded-full bg-[color:var(--panel)] border border-[color:var(--hairline)]"

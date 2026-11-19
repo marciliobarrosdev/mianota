@@ -298,7 +298,7 @@ function EmpresasPage() {
           <p className="text-xs text-muted-foreground">{total} resultado(s){statusFilter ? ` · filtro: ${statusFilter}` : ""}</p>
         </div>
         <form
-          className="flex gap-2"
+          className="flex flex-wrap gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             setLimit(COMPANIES_PAGE);
@@ -310,7 +310,7 @@ function EmpresasPage() {
             placeholder="Buscar por nome…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
+            className="min-w-0 flex-1 sm:w-64 sm:flex-none"
           />
           <Button type="submit" variant="outline">
             Buscar

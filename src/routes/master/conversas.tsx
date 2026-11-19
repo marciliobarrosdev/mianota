@@ -294,8 +294,8 @@ function SupportInboxPage() {
         </div>
       )}
 
-      <section className="grid h-[calc(100dvh-7rem)] min-h-[480px] grid-rows-1 overflow-hidden rounded-[24px] border bg-card shadow-sm lg:grid-cols-[380px_1fr]">
-        <aside className={`${activeId ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r`}>
+      <section className="grid h-[calc(100dvh-7rem)] min-h-[480px] grid-cols-1 grid-rows-1 overflow-hidden rounded-[24px] border bg-card shadow-sm lg:grid-cols-[380px_1fr]">
+        <aside className={`${activeId ? "hidden lg:flex" : "flex"} min-h-0 min-w-0 flex-col border-r`}>
           <div className="border-b p-4 space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

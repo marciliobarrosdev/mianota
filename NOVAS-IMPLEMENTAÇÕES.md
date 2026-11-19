@@ -261,7 +261,7 @@ Nenhuma lista corta mais registros em silêncio. Cada uma mostra "Mostrando X de
 | Master → Acesso e segurança | avisos de pagamento e registro limitados a 200; resumo e filtros só sobre o que estava carregado | 50 por vez; filtros (plataforma, status, e-mail, tipo de ação) e resumos (hoje, processados, erros, último aviso) contados no banco inteiro; "Ações registradas" mostra sempre o total geral |
 | Assinante → Configurações → Privacidade | 200 atividades, grupos filtrados no navegador | 20 por vez, grupo (Acessos, Lançamentos e dados, Conta e plano) filtrado no servidor com a mesma regra |
 
-Também corrigido: no celular, "voltar" na conversa não reabre mais sozinha a primeira conversa a cada 8 segundos; abrir outra conversa desce até a última mensagem; aviso de estrutura de página em Leads.
+Também corrigido: no celular, "voltar" na conversa não reabre mais sozinha a primeira conversa a cada 8 segundos; abrir outra conversa desce até a última mensagem; aviso de estrutura de página em Leads; a lista de conversas no celular cortava o texto à direita; em Leads (computador) os botões Atualizar/CSV/Novo Lead e o cartão Receita convertida ficavam fora da tela; a busca de Assinantes saía da tela no celular.
 
 **Como funciona:** regra comum em `src/lib/common/pagination-rules.ts` (janela que cresce, blocos de até 1000 linhas, total real, busca segura). Testes: `tests/pagination-rules.test.ts` e `tests/audit-group-filter.test.ts` (o filtro do banco escolhe exatamente o mesmo grupo de antes).
 
