@@ -266,3 +266,12 @@ Também corrigido: no celular, "voltar" na conversa não reabre mais sozinha a p
 **Como funciona:** regra comum em `src/lib/common/pagination-rules.ts` (janela que cresce, blocos de até 1000 linhas, total real, busca segura). Testes: `tests/pagination-rules.test.ts` e `tests/audit-group-filter.test.ts` (o filtro do banco escolhe exatamente o mesmo grupo de antes).
 
 **Conferido no navegador** (Super Admin, computador e celular): totais iguais aos do banco — 2 conversas, 225 mensagens (100 → 200 → 225), 3 assinantes, 1 lead, 17 ações (5 de `plan.update`), 1 aviso de pagamento. Com páginas simuladas menores, Conversas (1 → 2), Assinantes (1 → 2 → 3) e Registro (5 → 10 → 15 → 17) carregaram corretamente. O histórico do assinante não tem atividades gravadas hoje; os quatro filtros responderam sem erro.
+
+## 31. Refatoração por etapas — etapa 4, parte 1: painel financeiro (19/11/2026)
+
+- `src/lib/finance/finance-dashboard.functions.ts` passou de 888 para 497 linhas, sem mudar nenhum resultado:
+  - **`finance-dashboard-rules.ts`** (novo): todos os cálculos — saldo, entrou/saiu, a receber/a pagar, sobra prevista, maiores categorias, evolução por dia, orçamentos, metas, dica da MIA e a expansão das contas recorrentes do Planejamento.
+  - **`finance-dashboard-types.ts`** (novo): os formatos usados pelas telas (as telas continuam importando do arquivo antigo).
+  - O arquivo de funções ficou só com a leitura do banco e as permissões.
+- Testes novos em `tests/finance-dashboard-rules.test.ts` (totais, categoria líder, orçamento acima de 100%, meta limitada a 100%, recorrência sem repetir data já lançada).
+- **Conferido no navegador** (visualização de um assinante real, sem gravar nada), computador e celular, tema claro e escuro: Início, Movimentações, Planejamento e MIA mostram Entrou R$ 719,74 e Saiu R$ 1.388,48 em novembro — os mesmos valores somados direto no banco.
