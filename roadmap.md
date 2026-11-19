@@ -90,8 +90,10 @@
 - [x] 1. Uma única verificação de Super Admin (master-guards.ts) + testes
 - [x] 2. Falhas escondidas passam a ser registradas; aviso "senha copiada" só quando copiou
 - [x] 3. Listas com "Carregar mais" (Conversas, Assinantes, Leads, Segurança) — totais conferidos com o banco no navegador
-- [ ] 4. Dividir arquivos grandes — feito: painel financeiro (888→497). Faltam: WhatsApp financeiro, Assinantes Master, Planejamento, Configurações, MIA, Conversas
+- [ ] 4. Dividir arquivos grandes — feito: painel financeiro (888→497), WhatsApp financeiro (726→261 + 3 partes). Faltam: Assinantes Master, Planejamento, Configurações, MIA, Conversas
 - [ ] 5. Carregar antes de abrir (Início, Movimentações, Visão geral, Assinantes)
 - [ ] 6. Tirar `any` dos arquivos tocados
 - [ ] 7. Comentários e documentação de cada etapa
 - [ ] Aviso de estrutura de página em IA e créditos (parágrafo com bloco dentro)
+
+- [ ] WhatsApp: aceitar o número da lista ao responder a forma de pagamento (aguarda o usuário decidir)

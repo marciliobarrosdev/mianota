@@ -434,7 +434,7 @@ function NavLink({ item, active, primary }: { item: NavItem; active: boolean; pr
     <Link
       to={item.to}
       title={item.label}
-      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-semibold transition ${active ? "text-foreground" : item.featured ? "bg-gradient-to-r from-[color:var(--brand-soft)] to-fuchsia-50 text-[color:var(--brand-text)] ring-1 ring-[color:var(--brand-soft-strong)] hover:-translate-y-0.5" : "text-muted-foreground hover:bg-[color:var(--panel-2)] hover:text-foreground"}`}
+      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-semibold transition ${active ? "text-foreground" : item.featured ? "bg-gradient-to-r from-[color:var(--brand-soft)] to-fuchsia-50 text-[color:var(--brand-text)] dark:to-fuchsia-500/10 ring-1 ring-[color:var(--brand-soft-strong)] hover:-translate-y-0.5" : "text-muted-foreground hover:bg-[color:var(--panel-2)] hover:text-foreground"}`}
       style={
         active
           ? {

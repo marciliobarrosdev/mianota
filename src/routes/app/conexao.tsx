@@ -165,7 +165,7 @@ function ConexaoPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-10">
-      <header className="rounded-[28px] border border-violet-200 bg-gradient-to-br from-white via-violet-50 to-fuchsia-50 p-6 shadow-[var(--shadow-card)] sm:p-8">
+      <header className="rounded-[28px] border border-violet-200 bg-gradient-to-br from-white via-violet-50 to-fuchsia-50 p-6 dark:border-violet-500/25 dark:from-card dark:via-violet-500/10 dark:to-fuchsia-500/10 shadow-[var(--shadow-card)] sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="text-[10px] font-black uppercase tracking-[.18em] text-violet-700">
@@ -332,8 +332,8 @@ function ConexaoPage() {
         ))}
       </div>
 
-      <div className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-xs leading-5 text-emerald-950">
-        <ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-700" />
+      <div className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-xs leading-5 text-emerald-950 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-100">
+        <ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
         <span>
           <b>Dados separados por conta.</b> Seu número identifica sua assinatura antes de qualquer
           consulta ou lançamento. Nunca envie senha bancária, código de cartão ou credencial de API.

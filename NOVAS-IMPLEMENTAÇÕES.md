@@ -275,3 +275,15 @@ Também corrigido: no celular, "voltar" na conversa não reabre mais sozinha a p
   - O arquivo de funções ficou só com a leitura do banco e as permissões.
 - Testes novos em `tests/finance-dashboard-rules.test.ts` (totais, categoria líder, orçamento acima de 100%, meta limitada a 100%, recorrência sem repetir data já lançada).
 - **Conferido no navegador** (visualização de um assinante real, sem gravar nada), computador e celular, tema claro e escuro: Início, Movimentações, Planejamento e MIA mostram Entrou R$ 719,74 e Saiu R$ 1.388,48 em novembro — os mesmos valores somados direto no banco.
+
+## 32. Refatoração por etapas — etapa 4, parte 2: WhatsApp financeiro (19/11/2026)
+
+- `src/lib/finance/finance-whatsapp.server.ts` (726 linhas) virou quatro partes, sem mudar o comportamento:
+  - **`finance-whatsapp-rules.ts`**: regras puras — leitura do JSON da IA, rascunho, categorias/contas reais, o que falta perguntar, prévia, VINCULAR/CONFIRMAR/CANCELAR e o texto do resumo.
+  - **`finance-whatsapp-ai.server.ts`**: a leitura da mensagem/comprovante pela IA.
+  - **`finance-whatsapp-actions.server.ts`**: banco — plano com o recurso, categorias/contas, resumo e gravação do pedido confirmado (sem gravar duas vezes).
+  - **`finance-whatsapp.server.ts`** (261 linhas): só o fluxo da mensagem, com o passo a passo comentado no topo.
+- **Comparação antes/depois:** 14 situações simuladas (vincular ok/vencido, sem plano, celular não vinculado, cancelar, confirmar, sem créditos, pergunta de pagamento, prévia, conta a pagar, resumo, falha da IA com devolução do crédito) deram exatamente as mesmas respostas e as mesmas leituras/gravações nas duas versões.
+- Testes permanentes em `tests/finance-whatsapp-rules.test.ts`.
+- Tela WhatsApp do assinante conferida no computador e no celular, claro e escuro. Corrigido no tema escuro: o topo da tela ficava branco com o título quase invisível, o aviso "Dados separados por conta" ficava cinza e o item "Falar com MIA" do menu clareava.
+- **Achado (não alterado):** responder só com o número da lista de formas de pagamento (ex.: "1") não é aceito; a MIA repete a pergunta. Responder com o nome (PIX, cartão…) funciona.

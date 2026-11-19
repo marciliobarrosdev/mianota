@@ -53,7 +53,11 @@ export const getFinanceWhatsappChannel = createServerFn({ method: "POST" })
       connected,
       provider: result.data?.active_provider || null,
       phone: connected ? result.data?.phone_e164 || null : null,
-      status: connected ? "connected" : result.data?.status === "connected" ? "disconnected" : result.data?.status || "disconnected",
+      status: connected
+        ? "connected"
+        : result.data?.status === "connected"
+          ? "disconnected"
+          : result.data?.status || "disconnected",
       lastError: result.data?.last_error || null,
     };
   });
