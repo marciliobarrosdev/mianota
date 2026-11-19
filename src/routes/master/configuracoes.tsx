@@ -1,7 +1,7 @@
 import { IntegrationSection } from "@/components/master/integration-card";
 import { EMAIL_INPUT_PROPS, emailError, normalizeEmail } from "@/lib/common/masks";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   AlertCircle,
@@ -50,30 +50,38 @@ import { brandedRouteHead } from "@/config/brand";
 import { getBillingWebhookInfo } from "@/lib/billing/billing.functions";
 import { getSuperAdminEmails, setSuperAdminEmails } from "@/lib/master/master.functions";
 import {
+  BILLING_EVENTS_PAGE,
+  MASTER_AUDIT_PAGE,
   getAdminAccessDetails,
   listBillingEventsAdmin,
   listMasterAudit,
   reprocessBillingEvent,
 } from "@/lib/master/master-security.functions";
+import { hasMore } from "@/lib/common/pagination-rules";
 import { getIntegrationsOverview } from "@/lib/common/integrations.functions";
 import { getMasterSetupProgress } from "@/lib/master/master-setup.functions";
 import { checkoutStatus, type CheckoutPlan } from "@/lib/billing/payment-checkout-rules";
 import {
+  AUDIT_ACTION_LABEL,
   REMOVAL_BLOCK_LABEL,
   adminRemovalBlock,
   auditActionLabel,
   eventStatus,
   eventsCsv,
-  filterEvents,
-  lastEventByProvider,
   sameEmailList,
-  summarizeEvents,
   type EventStatus,
 } from "@/lib/master/security-rules";
 
 type Provider = "kiwify" | "cakto" | "perfectpay";
-type BillingEvent = Awaited<ReturnType<typeof listBillingEventsAdmin>>[number];
-type AuditRow = Awaited<ReturnType<typeof listMasterAudit>>[number];
+type EventsPage = Awaited<ReturnType<typeof listBillingEventsAdmin>>;
+type AuditPage = Awaited<ReturnType<typeof listMasterAudit>>;
+const EMPTY_EVENTS: EventsPage = {
+  rows: [],
+  total: 0,
+  summary: { today: 0, ok: 0, errors: 0, errors24h: 0 },
+  lastBy: {},
+};
+const EMPTY_AUDIT: AuditPage = { rows: [], total: 0, all: 0 };
 type AccessDetails = Awaited<ReturnType<typeof getAdminAccessDetails>>;
 
 const PROVIDERS: { id: Provider; secret: string }[] = [
@@ -116,8 +124,12 @@ function SecurityPage() {
   const [newEmail, setNewEmail] = useState("");
   const [toRemove, setToRemove] = useState<string | null>(null);
   const [tokens, setTokens] = useState<Record<Provider, boolean> | null>(null);
-  const [events, setEvents] = useState<BillingEvent[]>([]);
-  const [audit, setAudit] = useState<AuditRow[]>([]);
+  // Avisos e registro chegam por janela ("Carregar mais"), já filtrados pelo servidor.
+  const [eventsPage, setEventsPage] = useState<EventsPage>(EMPTY_EVENTS);
+  const [auditPage, setAuditPage] = useState<AuditPage>(EMPTY_AUDIT);
+  const [eventsLimit, setEventsLimit] = useState(BILLING_EVENTS_PAGE);
+  const [auditLimit, setAuditLimit] = useState(MASTER_AUDIT_PAGE);
+  const [moreBusy, setMoreBusy] = useState<"events" | "audit" | null>(null);
   const [ip, setIp] = useState<{ configured?: boolean; testOk?: boolean } | undefined>();
   const [plans, setPlans] = useState<CheckoutPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,22 +138,79 @@ function SecurityPage() {
   const [fProvider, setFProvider] = useState("all");
   const [fStatus, setFStatus] = useState<EventStatus | "all">("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [auditFilter, setAuditFilter] = useState("all");
 
+  const fetchEvents = useCallback(
+    (limit: number) =>
+      getEvents({ data: { limit, provider: fProvider, status: fStatus, search: debouncedSearch } }),
+    [getEvents, fProvider, fStatus, debouncedSearch],
+  );
+  const fetchAudit = useCallback(
+    (limit: number) => getAudit({ data: { limit, action: auditFilter } }),
+    [getAudit, auditFilter],
+  );
+
   const reloadEvents = useCallback(async () => {
-    const [ev, au] = await Promise.all([getEvents(), getAudit()]);
-    setEvents(ev);
-    setAudit(au);
-  }, [getEvents, getAudit]);
+    const [ev, au] = await Promise.all([fetchEvents(eventsLimit), fetchAudit(auditLimit)]);
+    setEventsPage(ev);
+    setAuditPage(au);
+  }, [fetchEvents, fetchAudit, eventsLimit, auditLimit]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+  // Filtros novos voltam para a primeira janela. A primeira execução fica com a carga inicial.
+  const filtersReady = useRef({ events: false, audit: false });
+  useEffect(() => {
+    if (!filtersReady.current.events) {
+      filtersReady.current.events = true;
+      return;
+    }
+    setEventsLimit(BILLING_EVENTS_PAGE);
+    void fetchEvents(BILLING_EVENTS_PAGE)
+      .then(setEventsPage)
+      .catch((e: unknown) => toast.error(e instanceof Error ? e.message : "Falha ao filtrar."));
+  }, [fetchEvents]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!filtersReady.current.audit) {
+      filtersReady.current.audit = true;
+      return;
+    }
+    setAuditLimit(MASTER_AUDIT_PAGE);
+    void fetchAudit(MASTER_AUDIT_PAGE)
+      .then(setAuditPage)
+      .catch((e: unknown) => toast.error(e instanceof Error ? e.message : "Falha ao filtrar."));
+  }, [fetchAudit]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function loadMore(kind: "events" | "audit") {
+    setMoreBusy(kind);
+    try {
+      if (kind === "events") {
+        const next = eventsLimit + BILLING_EVENTS_PAGE;
+        setEventsLimit(next);
+        setEventsPage(await fetchEvents(next));
+      } else {
+        const next = auditLimit + MASTER_AUDIT_PAGE;
+        setAuditLimit(next);
+        setAuditPage(await fetchAudit(next));
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível carregar mais.");
+    } finally {
+      setMoreBusy(null);
+    }
+  }
 
   useEffect(() => {
     const safe = <T,>(p: Promise<T>) => p.catch(() => null);
     void Promise.all([
       getEmails(),
       getWebhooks(),
-      getEvents(),
+      getEvents({ data: { limit: BILLING_EVENTS_PAGE } }),
       safe(getAccess()),
-      safe(getAudit()),
+      safe(getAudit({ data: { limit: MASTER_AUDIT_PAGE } })),
       safe(getIntegrations()),
       safe(getSetup()),
     ])
@@ -149,9 +218,9 @@ function SecurityPage() {
         setEmails(emailResult.emails);
         setSavedEmails(emailResult.emails);
         setTokens(tokenResult);
-        setEvents(eventResult);
+        setEventsPage(eventResult);
         setAccess(accessResult);
-        setAudit(auditResult ?? []);
+        setAuditPage(auditResult ?? EMPTY_AUDIT);
         setIp(integ?.items.find((i) => i.provider === "infinitepay"));
         setPlans(setup?.paymentPlans ?? []);
       })
@@ -165,14 +234,22 @@ function SecurityPage() {
   const webhookUrl = (provider: Provider) =>
     tokens?.[provider] ? `${origin}/api/public/billing/webhook?provider=${provider}` : "";
   const ipStatus = checkoutStatus("infinitepay", ip, plans);
-  const summary = useMemo(() => summarizeEvents(events), [events]);
-  const lastBy = useMemo(() => lastEventByProvider(events), [events]);
-  const shown = useMemo(
-    () => filterEvents(events, { provider: fProvider, status: fStatus, search }),
-    [events, fProvider, fStatus, search],
-  );
+  // Resumo e "último aviso" vêm contados no banco inteiro.
+  const { summary, lastBy } = eventsPage;
+  const shown = eventsPage.rows;
   const dirty = !sameEmailList(emails, savedEmails);
-  const auditShown = audit.filter((a) => auditFilter === "all" || a.action === auditFilter);
+  const auditShown = auditPage.rows;
+  const auditOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...Object.keys(AUDIT_ACTION_LABEL),
+          ...auditPage.rows.map((a) => a.action),
+          ...(auditFilter === "all" ? [] : [auditFilter]),
+        ]),
+      ),
+    [auditPage.rows, auditFilter],
+  );
 
   function addEmail(event: React.FormEvent) {
     event.preventDefault();
@@ -196,7 +273,7 @@ function SecurityPage() {
       await saveEmails({ data: { emails } });
       setSavedEmails(emails);
       toast.success("Acessos administrativos atualizados.");
-      void getAudit().then(setAudit).catch(() => undefined);
+      void fetchAudit(auditLimit).then(setAuditPage).catch(() => undefined);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
@@ -240,7 +317,7 @@ function SecurityPage() {
       value: String(summary.errors24h),
       tone: summary.errors24h ? "text-destructive" : "text-success",
     },
-    { icon: History, label: "Ações registradas", value: String(audit.length), tone: "" },
+    { icon: History, label: "Ações registradas", value: String(auditPage.all), tone: "" },
   ];
 
   return (
@@ -610,6 +687,14 @@ function SecurityPage() {
                 </table>
               </div>
             )}
+            {!loading && shown.length > 0 && (
+              <ListMore
+                shown={shown.length}
+                total={eventsPage.total}
+                busy={moreBusy === "events"}
+                onClick={() => void loadMore("events")}
+              />
+            )}
           </Card>
         </TabsContent>
 
@@ -628,7 +713,7 @@ function SecurityPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as ações</SelectItem>
-                  {Array.from(new Set(audit.map((a) => a.action))).map((a) => (
+                  {auditOptions.map((a) => (
                     <SelectItem key={a} value={a}>
                       {auditActionLabel(a)}
                     </SelectItem>
@@ -669,6 +754,14 @@ function SecurityPage() {
                 })}
               </ul>
             )}
+            {auditShown.length > 0 && (
+              <ListMore
+                shown={auditShown.length}
+                total={auditPage.total}
+                busy={moreBusy === "audit"}
+                onClick={() => void loadMore("audit")}
+              />
+            )}
           </Card>
         </TabsContent>
       </Tabs>
@@ -694,6 +787,32 @@ function SecurityPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+/** "Mostrando X de Y" + botão "Carregar mais" quando ainda há linhas no servidor. */
+function ListMore({
+  shown,
+  total,
+  busy,
+  onClick,
+}: {
+  shown: number;
+  total: number;
+  busy: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-2 text-xs text-muted-foreground">
+      <span>
+        Mostrando {shown} de {total}
+      </span>
+      {hasMore(shown, total) && (
+        <Button variant="outline" size="sm" disabled={busy} onClick={onClick}>
+          {busy && <Loader2 className="size-4 animate-spin" />} Carregar mais
+        </Button>
+      )}
     </div>
   );
 }

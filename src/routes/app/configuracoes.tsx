@@ -1,7 +1,7 @@
 import { CookiePreferencesLink } from "@/components/consent/cookie-consent";
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 import { createFileRoute, redirect, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/lib/auth/realm-supabase";
 import { Card } from "@/components/ui/card";
@@ -47,7 +47,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
-import { listAuditLog, exportLgpd } from "@/lib/master/security.functions";
+import { AUDIT_LOG_PAGE, listAuditLog, exportLgpd } from "@/lib/master/security.functions";
+import { hasMore } from "@/lib/common/pagination-rules";
 import { patchCachedAppCompany } from "@/lib/common/app-access-cache";
 import { PageHeader } from "@/components/mia/page-kit";
 import { useBrand } from "@/contexts/brand-context";
@@ -66,7 +67,6 @@ import {
 import { useMiaNotifications } from "@/hooks/use-mia-notifications";
 import { normalizeAssistantProfile, type AssistantProfile } from "@/lib/ai/assistant-profile-rules";
 import {
-  auditGroup,
   auditLabel,
   maskPhone,
   parseSettingsTab,
@@ -580,10 +580,13 @@ function PrivacyTab({ companyId }: { companyId: string }) {
   const getDel = useServerFn(getDeletionRequest);
   const reqDel = useServerFn(requestAccountDeletion);
   const cancelDel = useServerFn(cancelAccountDeletion);
+  // Histórico por "Carregar mais": o servidor filtra pelo grupo e devolve o total real.
   const [rows, setRows] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [group, setGroup] = useState<"all" | "acesso" | "dados" | "conta">("all");
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(AUDIT_LOG_PAGE);
   const [busy, setBusy] = useState("");
   const [devices, setDevices] = useState<number | null>(null);
   const [pending, setPending] = useState<{ created_at: string } | null>(null);
@@ -592,12 +595,33 @@ function PrivacyTab({ companyId }: { companyId: string }) {
   const [reason, setReason] = useState("");
 
   useEffect(() => {
-    void fetchLog().then(setRows).catch(() => setRows([])).finally(() => setLoading(false));
     void fetchStatus({ data: { companyId } }).then((s) => setDevices(s.pushDevices)).catch(() => setDevices(null));
     void getDel().then(setPending).catch(() => setPending(null));
   }, [companyId]);
 
-  const visible = useMemo(() => rows.filter((r) => group === "all" || auditGroup(r.acao) === group), [rows, group]);
+  async function loadLog(nextGroup: typeof group, nextLimit: number) {
+    try {
+      const page = await fetchLog({ data: { group: nextGroup, limit: nextLimit } });
+      setRows(page.rows);
+      setTotal(page.total);
+    } catch (e) {
+      console.warn("[privacidade] histórico indisponível", e);
+      setRows([]);
+      setTotal(0);
+    }
+  }
+  useEffect(() => {
+    setLoading(true);
+    void loadLog(group, AUDIT_LOG_PAGE).finally(() => setLoading(false));
+  }, [companyId, group]); // eslint-disable-line react-hooks/exhaustive-deps
+  async function loadMoreLog() {
+    const next = limit + AUDIT_LOG_PAGE;
+    setLimit(next);
+    setLoadingMore(true);
+    await loadLog(group, next);
+    setLoadingMore(false);
+  }
+  const visible = rows;
 
   function download(content: string, name: string, type: string) {
     const url = URL.createObjectURL(new Blob([content], { type }));
@@ -635,12 +659,12 @@ function PrivacyTab({ companyId }: { companyId: string }) {
         <SectionTitle icon={Shield} title="Histórico de atividades" text="O que foi feito na sua conta, do mais recente ao mais antigo." />
         <div className="flex flex-wrap gap-2">
           {([["all", "Tudo"], ["acesso", "Acessos"], ["dados", "Lançamentos e dados"], ["conta", "Conta e plano"]] as const).map(([k, l]) => (
-            <button key={k} type="button" onClick={() => { setGroup(k); setLimit(20); }} className={`rounded-full px-3 py-1.5 text-xs font-bold ${group === k ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{l}</button>
+            <button key={k} type="button" onClick={() => { setGroup(k); setLimit(AUDIT_LOG_PAGE); }} className={`rounded-full px-3 py-1.5 text-xs font-bold ${group === k ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{l}</button>
           ))}
         </div>
         {loading ? <Loader2 className="animate-spin text-muted-foreground" /> : visible.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma atividade registrada.</p> : (
           <div className="divide-y divide-border rounded-2xl border border-border">
-            {visible.slice(0, limit).map((r) => (
+            {visible.map((r) => (
               <div key={r.id} className="flex items-start justify-between gap-3 p-3 text-sm">
                 <div className="min-w-0"><p className="truncate font-semibold">{auditLabel(r.acao, r.recurso)}</p><p className="truncate text-xs text-muted-foreground">{r.actor_email ?? "Sistema"}</p></div>
                 <span className="whitespace-nowrap text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("pt-BR")}</span>
@@ -648,7 +672,12 @@ function PrivacyTab({ companyId }: { companyId: string }) {
             ))}
           </div>
         )}
-        {visible.length > limit && <Button variant="outline" size="sm" onClick={() => setLimit((l) => l + 20)}>Ver mais</Button>}
+        {!loading && visible.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span>Mostrando {visible.length} de {total}</span>
+            {hasMore(visible.length, total) && <Button variant="outline" size="sm" disabled={loadingMore} onClick={() => void loadMoreLog()}>{loadingMore && <Loader2 className="animate-spin" />} Carregar mais</Button>}
+          </div>
+        )}
       </Card>
       <Card className={`${cardCls} border-destructive/30 lg:col-span-2`}>
         <SectionTitle icon={Trash2} title="Excluir minha conta" text={pending ? `Pedido enviado em ${fmtDate(pending.created_at)}. Está em análise.` : "Pedido de exclusão dos seus dados (LGPD). A equipe confirma em até 15 dias."}

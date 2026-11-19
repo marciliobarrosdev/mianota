@@ -32,6 +32,10 @@ import {
 } from "@/lib/master/lead-pipeline-rules";
 import type { LeadRow } from "@/lib/master/leads.functions";
 import { cn } from "@/lib/utils";
+import { hasMore } from "@/lib/common/pagination-rules";
+
+/** Cartões visíveis por coluna antes de "Carregar mais" (contagem e valor somam a coluna toda). */
+export const LEADS_COLUMN_PAGE = 30;
 
 const TEMP: Record<string, { label: string; cls: string }> = {
   frio: { label: "Frio", cls: "bg-muted text-muted-foreground" },
@@ -57,6 +61,7 @@ export function LeadBoard({
   mobileStage: LeadStage;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [visible, setVisible] = useState<Partial<Record<LeadStage, number>>>({});
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor),
@@ -99,6 +104,8 @@ export function LeadBoard({
       <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
         {LEAD_STAGES.map((s) => {
           const items = byStage(s.id);
+          const limit = visible[s.id] ?? LEADS_COLUMN_PAGE;
+          const shown = items.slice(0, limit);
           return (
             <Column
               key={s.id}
@@ -114,7 +121,17 @@ export function LeadBoard({
                   Arraste um lead para cá
                 </p>
               ) : (
-                items.map((l) => <LeadCard key={l.id} lead={l} actions={actions} dragging={l.id === activeId} />)
+                shown.map((l) => <LeadCard key={l.id} lead={l} actions={actions} dragging={l.id === activeId} />)
+              )}
+              {hasMore(shown.length, items.length) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setVisible((v) => ({ ...v, [s.id]: limit + LEADS_COLUMN_PAGE }))}
+                >
+                  Carregar mais ({items.length - shown.length})
+                </Button>
               )}
             </Column>
           );

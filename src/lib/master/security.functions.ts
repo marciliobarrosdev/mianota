@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { clampWindow, fetchWindow } from "@/lib/common/pagination-rules";
+import { auditGroupFilter } from "@/lib/finance/settings-rules";
 
 // The password and the forced-change flag are handled in the same trusted
 // server action. That prevents a caller from clearing the flag without first
@@ -63,17 +65,37 @@ async function requireOwnerOrAdmin(supabase: any, userId: string): Promise<strin
 }
 
 // ---------- Audit log ----------
+/** Atividades por "Carregar mais", já filtradas pelo grupo escolhido. */
+export const AUDIT_LOG_PAGE = 20;
+
 export const listAuditLog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: { limit?: number; group?: string } | undefined) => ({
+    limit: clampWindow(d?.limit, AUDIT_LOG_PAGE),
+    group: (["acesso", "dados", "conta"].includes(String(d?.group)) ? d?.group : "all") as
+      | "all"
+      | "acesso"
+      | "dados"
+      | "conta",
+  }))
+  .handler(async ({ context, data }) => {
     const cid = await requireOwnerOrAdmin(context.supabase, context.userId);
-    const { data } = await context.supabase
-      .from("audit_log")
-      .select("*")
-      .eq("company_id", cid)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    return data ?? [];
+    const { anyOf, noneOf } = auditGroupFilter(data.group);
+    return fetchWindow(data.limit, (from, to) => {
+      let q = context.supabase
+        .from("audit_log")
+        .select("*", { count: "exact" })
+        .eq("company_id", cid)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (anyOf.length) q = q.or(anyOf.map((w) => `acao.ilike.%${w}%`).join(","));
+      for (const w of noneOf) q = q.not("acao", "ilike", `%${w}%`);
+      return q.then(({ data: rows, count, error }) => {
+        if (error) throw new Error(error.message);
+        return { rows: rows ?? [], count };
+      });
+    });
   });
 
 // ---------- LGPD export ----------

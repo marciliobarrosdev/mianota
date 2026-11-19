@@ -42,6 +42,7 @@ export function eventStatus(e: Pick<EventLike, "processed" | "error">): EventSta
   return "ok";
 }
 
+/** Regra de referência do resumo; o servidor aplica a mesma contagem no banco inteiro. */
 export function summarizeEvents(events: EventLike[], now = new Date()) {
   const dayAgo = now.getTime() - 24 * 3600 * 1000;
   const today = now.toISOString().slice(0, 10);
@@ -71,13 +72,6 @@ export function filterEvents<T extends EventLike>(
       (!f.status || f.status === "all" || eventStatus(e) === f.status) &&
       (!q || (e.buyer_email ?? "").toLowerCase().includes(q)),
   );
-}
-
-/** Last received date per provider. */
-export function lastEventByProvider(events: EventLike[]): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const e of events) if (!out[e.provider] || e.created_at > out[e.provider]) out[e.provider] = e.created_at;
-  return out;
 }
 
 const csvCell = (v: unknown) => {

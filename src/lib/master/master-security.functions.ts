@@ -2,6 +2,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertSuper } from "@/lib/master/master-guards";
+import { clampWindow, fetchWindow, safeSearchTerm } from "@/lib/common/pagination-rules";
+import type { EventStatus } from "@/lib/master/security-rules";
 
 /** Admins with owner flag, creation and last sign-in, plus the caller's e-mail. */
 export const getAdminAccessDetails = createServerFn({ method: "POST" })
@@ -34,19 +36,95 @@ export const getAdminAccessDetails = createServerFn({ method: "POST" })
     };
   });
 
+/** Avisos de pagamento e registro do Master por "Carregar mais". */
+export const BILLING_EVENTS_PAGE = 50;
+export const MASTER_AUDIT_PAGE = 50;
+const BILLING_PROVIDERS = ["infinitepay", "kiwify", "cakto", "perfectpay"];
+// Mesma regra de `eventStatus`: "evento ignorado" não é erro; erro = texto de erro ou não processado.
+const NOT_IGNORED = 'error.is.null,error.neq."evento ignorado"';
+const HAS_ERROR = "error.not.is.null,processed.is.false";
+
 export const listBillingEventsAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator(
+    (d: { limit?: number; provider?: string; status?: string; search?: string } | undefined) => ({
+      limit: clampWindow(d?.limit, BILLING_EVENTS_PAGE),
+      provider: BILLING_PROVIDERS.includes(String(d?.provider)) ? String(d?.provider) : "",
+      status: (["ok", "ignored", "error"].includes(String(d?.status)) ? d?.status : "all") as
+        | EventStatus
+        | "all",
+      search: safeSearchTerm(d?.search),
+    }),
+  )
+  .handler(async ({ context, data }) => {
     await assertSuper(context.supabase);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("billing_event_log")
-      .select("id, provider, event_type, buyer_email, processed, error, matched_company_id, created_at")
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) throw new Error(error.message);
-    return data ?? [];
+    const db = supabaseAdmin as any;
+    const base = (fields: string, opts: Record<string, unknown>) =>
+      db.from("billing_event_log").select(fields, opts);
+    const onlyErrors = (q: any) => q.or(NOT_IGNORED).or(HAS_ERROR);
+    const count = async (apply: (q: any) => any) => {
+      const { count: n, error } = await apply(base("id", { count: "exact", head: true }));
+      if (error) throw new Error(error.message);
+      return n ?? 0;
+    };
+
+    const page = await fetchWindow<BillingEventRow>(data.limit, (from, to) => {
+      let q = base("id, provider, event_type, buyer_email, processed, error, matched_company_id, created_at", {
+        count: "exact",
+      })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (data.provider) q = q.eq("provider", data.provider);
+      if (data.status === "ok") q = q.is("error", null).eq("processed", true);
+      if (data.status === "ignored") q = q.eq("error", "evento ignorado");
+      if (data.status === "error") q = onlyErrors(q);
+      if (data.search) q = q.ilike("buyer_email", `%${data.search}%`);
+      return q.then(({ data: rows, count: n, error }: any) => {
+        if (error) throw new Error(error.message);
+        return { rows: (rows ?? []) as BillingEventRow[], count: n as number | null };
+      });
+    });
+
+    // Resumo e "último aviso" contam no banco inteiro, não só nas linhas carregadas.
+    const now = new Date();
+    const todayStart = `${now.toISOString().slice(0, 10)}T00:00:00.000Z`;
+    const dayAgo = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+    const [total, errors, errors24h, today, ...latest] = await Promise.all([
+      count((q) => q),
+      count(onlyErrors),
+      count((q) => onlyErrors(q).gte("created_at", dayAgo)),
+      count((q) => q.gte("created_at", todayStart)),
+      ...BILLING_PROVIDERS.map((provider) =>
+        base("created_at", {})
+          .eq("provider", provider)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+          .then(({ data: row }: any) => [provider, row?.created_at ?? null] as const),
+      ),
+    ]);
+    const lastBy: Record<string, string> = {};
+    for (const [provider, at] of latest as (readonly [string, string | null])[]) if (at) lastBy[provider] = at;
+    return {
+      rows: page.rows,
+      total: page.total,
+      summary: { today, ok: total - errors, errors, errors24h },
+      lastBy,
+    };
   });
+
+type BillingEventRow = {
+  id: string;
+  provider: string;
+  event_type: string | null;
+  buyer_email: string | null;
+  processed: boolean;
+  error: string | null;
+  matched_company_id: string | null;
+  created_at: string;
+};
 
 /** Re-applies a failed billing event from its stored payload. */
 export const reprocessBillingEvent = createServerFn({ method: "POST" })
@@ -82,20 +160,38 @@ export const reprocessBillingEvent = createServerFn({ method: "POST" })
 
 export const listMasterAudit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: { limit?: number; action?: string } | undefined) => ({
+    limit: clampWindow(d?.limit, MASTER_AUDIT_PAGE),
+    action: d?.action && d.action !== "all" ? String(d.action).slice(0, 80) : "",
+  }))
+  .handler(async ({ context, data }) => {
     await assertSuper(context.supabase);
-    const { data, error } = await (context.supabase as any)
-      .from("master_audit_log")
-      .select("id, actor_email, action, target, details, created_at")
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) throw new Error(error.message);
-    return (data ?? []) as {
-      id: string;
-      actor_email: string | null;
-      action: string;
-      target: string | null;
-      details: { added?: string[]; removed?: string[]; fields?: string[] } | null;
-      created_at: string;
-    }[];
+    const sb = context.supabase as any;
+    const page = await fetchWindow<MasterAuditRow>(data.limit, (from, to) => {
+        let q = sb
+          .from("master_audit_log")
+          .select("id, actor_email, action, target, details, created_at", { count: "exact" })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to);
+        if (data.action) q = q.eq("action", data.action);
+        return q.then(({ data: rows, count, error }: any) => {
+          if (error) throw new Error(error.message);
+          return { rows: (rows ?? []) as MasterAuditRow[], count: count as number | null };
+        });
+      });
+    // Total geral para o cartão "Ações registradas", independente do filtro.
+    const all = data.action
+      ? ((await sb.from("master_audit_log").select("id", { count: "exact", head: true })).count ?? 0)
+      : page.total;
+    return { rows: page.rows, total: page.total, all };
   });
+
+type MasterAuditRow = {
+  id: string;
+  actor_email: string | null;
+  action: string;
+  target: string | null;
+  details: { added?: string[]; removed?: string[]; fields?: string[] } | null;
+  created_at: string;
+};

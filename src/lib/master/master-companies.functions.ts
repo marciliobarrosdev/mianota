@@ -6,71 +6,86 @@ import { slugify } from "@/lib/common/tenant";
 import { normalizeValidBrazilianPhone } from "@/lib/common/phone";
 import { normalizeAvatarValue } from "@/lib/master/subscriber-avatar-rules";
 import { personTypeForStorage } from "@/lib/master/subscriber-identity-rules";
+import { clampWindow, fetchWindow, safeSearchTerm } from "@/lib/common/pagination-rules";
 import { freePlanAlreadyUsed, provisionTrialDays } from "@/lib/billing/subscriber-provision-rules";
+
+/** Assinantes por "Carregar mais": a tela pede uma janela que cresce de 20 em 20. */
+export const COMPANIES_PAGE = 20;
 
 export const listCompanies = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { search?: string; page?: number; tipoPessoa?: "pf" | "pj" | ""; status?: string }) => ({
+  .inputValidator((d: { search?: string; limit?: number; tipoPessoa?: "pf" | "pj" | ""; status?: string }) => ({
     status: ["ativo", "trial", "suspenso", "pendente"].includes(d.status ?? "") ? (d.status as string) : "",
     tipoPessoa: d.tipoPessoa === "pf" || d.tipoPessoa === "pj" ? d.tipoPessoa : "",
-    search: (d.search ?? "").trim().toLowerCase(),
-    page: Math.max(0, d.page ?? 0),
+    search: safeSearchTerm((d.search ?? "").toLowerCase()),
+    limit: clampWindow(d.limit, COMPANIES_PAGE),
   }))
   .handler(async ({ context, data }) => {
     await assertSuper(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const pageSize = 20;
-    let q = supabaseAdmin
-      .from("company")
-      .select("*", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(data.page * pageSize, data.page * pageSize + pageSize - 1);
-    if (data.tipoPessoa === "pf" || data.tipoPessoa === "pj") {
-      q = q.eq("tipo_pessoa", personTypeForStorage(data.tipoPessoa));
-    }
-    if (data.status === "pendente") q = q.in("status_cobranca", ["pendente", "checkout_pending"]);
-    else if (data.status) q = q.eq("status_cobranca", data.status);
-    if (data.search) q = q.ilike("nome", `%${data.search}%`);
-    const { data: rows, count, error } = await q;
-    if (error) throw error;
-    const { data: statusRows, error: statusError } = await supabaseAdmin
-      .from("company")
-      .select("status_cobranca,trial_ate");
-    if (statusError) throw statusError;
-    const ids = (rows ?? []).map((c: any) => c.id);
-    let ultByCompany: Record<string, string> = {};
-    if (ids.length) {
-      const { data: movements } = await (supabaseAdmin as any)
-        .from("fin_lancamento")
-        .select("company_id, updated_at")
-        .in("company_id", ids)
-        .order("updated_at", { ascending: false })
-        .limit(500);
-      for (const movement of movements ?? []) {
-        if (!ultByCompany[(movement as any).company_id]) {
-          ultByCompany[(movement as any).company_id] = (movement as any).updated_at;
-        }
+    const page = await fetchWindow(data.limit, (from, to) => {
+      let q = supabaseAdmin
+        .from("company")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (data.tipoPessoa === "pf" || data.tipoPessoa === "pj") {
+        q = q.eq("tipo_pessoa", personTypeForStorage(data.tipoPessoa));
       }
-    }
-    const list = (rows ?? []).map((c: any) => ({
+      if (data.status === "pendente") q = q.in("status_cobranca", ["pendente", "checkout_pending"]);
+      else if (data.status) q = q.eq("status_cobranca", data.status);
+      if (data.search) q = q.ilike("nome", `%${data.search}%`);
+      return q.then(({ data: rows, count, error }) => {
+        if (error) throw error;
+        return { rows: (rows ?? []) as any[], count };
+      });
+    });
+
+    // Contadores do topo contam no banco (antes vinham de uma leitura limitada a 1000 linhas).
+    const now = new Date();
+    const inSevenDays = new Date(now.getTime() + 7 * 86_400_000);
+    const count = async (apply: (q: any) => any) => {
+      const { count: n, error } = await apply(
+        supabaseAdmin.from("company").select("id", { count: "exact", head: true }),
+      );
+      if (error) throw error;
+      return n ?? 0;
+    };
+    const [total, active, trial, suspended, pending, trialEnding] = await Promise.all([
+      count((q) => q),
+      count((q) => q.eq("status_cobranca", "ativo")),
+      count((q) => q.eq("status_cobranca", "trial")),
+      count((q) => q.eq("status_cobranca", "suspenso")),
+      count((q) => q.in("status_cobranca", ["pendente", "checkout_pending"])),
+      count((q) =>
+        q
+          .eq("status_cobranca", "trial")
+          .gte("trial_ate", now.toISOString())
+          .lte("trial_ate", inSevenDays.toISOString()),
+      ),
+    ]);
+
+    // Última movimentação de cada assinante da tela (uma leitura curta por assinante).
+    const ultByCompany: Record<string, string> = {};
+    await Promise.all(
+      page.rows.map(async (c: any) => {
+        const { data: last } = await (supabaseAdmin as any)
+          .from("fin_lancamento")
+          .select("updated_at")
+          .eq("company_id", c.id)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (last?.updated_at) ultByCompany[c.id] = last.updated_at;
+      }),
+    );
+    const list = page.rows.map((c: any) => ({
       ...c,
       ultima_atividade: ultByCompany[c.id] ?? null,
     }));
-    const now = Date.now();
-    const inSevenDays = now + 7 * 86_400_000;
-    const stats = {
-      total: statusRows?.length ?? 0,
-      active: (statusRows ?? []).filter((row: any) => row.status_cobranca === "ativo").length,
-      trial: (statusRows ?? []).filter((row: any) => row.status_cobranca === "trial").length,
-      suspended: (statusRows ?? []).filter((row: any) => row.status_cobranca === "suspenso").length,
-      attention: (statusRows ?? []).filter((row: any) => {
-        if (["pendente", "checkout_pending"].includes(row.status_cobranca)) return true;
-        if (row.status_cobranca !== "trial" || !row.trial_ate) return false;
-        const expiry = new Date(row.trial_ate).getTime();
-        return expiry >= now && expiry <= inSevenDays;
-      }).length,
-    };
-    return { rows: list, total: count ?? 0, pageSize, stats };
+    const stats = { total, active, trial, suspended, attention: pending + trialEnding };
+    return { rows: list, total: page.total, pageSize: COMPANIES_PAGE, stats };
   });
 
 export const suspendCompany = createServerFn({ method: "POST" })

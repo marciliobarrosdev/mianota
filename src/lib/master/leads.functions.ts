@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isLeadStage, needsCreditUpgrade, shouldAutoLose, type LeadStage, type LeadTemp } from "@/lib/master/lead-pipeline-rules";
 import { assertSuper } from "@/lib/master/master-guards";
+import { chunkList, fetchAll } from "@/lib/common/pagination-rules";
 
 async function audit(actorId: string, action: string, target: string, details: Record<string, unknown> = {}) {
   const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
@@ -45,25 +46,36 @@ export const listLeads = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const sb = context.supabase as any;
     await assertSuper(sb);
-    const { data: leads, error } = await sb.from("master_lead").select("*").order("position").order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    const ids = (leads ?? []).map((l: any) => l.company_id).filter(Boolean);
+    // O funil precisa de TODOS os leads (métricas, posições e regras automáticas):
+    // lemos em blocos de 1000 para não esbarrar no limite por pedido do banco.
+    const rowsOrThrow = ({ data, error }: any) => {
+      if (error) throw new Error(error.message);
+      return (data ?? []) as any[];
+    };
+    const leads = await fetchAll<any>((from, to) =>
+      sb.from("master_lead").select("*").order("position").order("created_at", { ascending: false }).order("id").range(from, to).then(rowsOrThrow),
+    );
+    const ids = Array.from(new Set(leads.map((l: any) => l.company_id).filter(Boolean))) as string[];
     const companies = new Map<string, any>();
-    if (ids.length) {
-      const { data: cs } = await sb.from("company").select("id, logo_url, trial_ate, creditos_saldo, selected_plan_slug").in("id", ids);
+    for (const part of chunkList(ids)) {
+      const { data: cs } = await sb.from("company").select("id, logo_url, trial_ate, creditos_saldo, selected_plan_slug").in("id", part);
       for (const c of cs ?? []) companies.set(c.id, c);
     }
-    const slugs = Array.from(new Set(Array.from(companies.values()).map((c: any) => c.selected_plan_slug).filter(Boolean)));
+    const slugs = Array.from(new Set(Array.from(companies.values()).map((c: any) => c.selected_plan_slug).filter(Boolean))) as string[];
     const freeBySlug = new Map<string, boolean>();
-    if (slugs.length) {
-      const { data: ps } = await sb.from("plan").select("slug, is_free").in("slug", slugs);
+    for (const part of chunkList(slugs)) {
+      const { data: ps } = await sb.from("plan").select("slug, is_free").in("slug", part);
       for (const p of ps ?? []) freeBySlug.set(p.slug, !!p.is_free);
     }
-    const { data: tasks } = await sb.from("master_lead_task").select("lead_id, due_at").eq("done", false);
+    const tasks = await fetchAll<{ lead_id: string; due_at: string | null }>((from, to) =>
+      sb.from("master_lead_task").select("lead_id, due_at").eq("done", false).order("id").range(from, to).then(rowsOrThrow),
+    );
+    const tasksByLead = new Map<string, any[]>();
+    for (const task of tasks) tasksByLead.set(task.lead_id, [...(tasksByLead.get(task.lead_id) ?? []), task]);
     const now = Date.now();
-    const rows: LeadRow[] = (leads ?? []).map((l: any) => {
+    const rows: LeadRow[] = leads.map((l: any) => {
       const c = l.company_id ? companies.get(l.company_id) : null;
-      const t = (tasks ?? []).filter((x: any) => x.lead_id === l.id);
+      const t = tasksByLead.get(l.id) ?? [];
       return {
         ...l,
         tags: l.tags ?? [],
@@ -89,7 +101,9 @@ export const listLeads = createServerFn({ method: "POST" })
       }
     }
     if (newlyExhausted.length) {
-      await sb.from("master_lead").update({ credits_exhausted_at: nowIso0 }).in("id", newlyExhausted.map((r) => r.id));
+      for (const part of chunkList(newlyExhausted.map((r) => r.id))) {
+        await sb.from("master_lead").update({ credits_exhausted_at: nowIso0 }).in("id", part);
+      }
       await sb.from("master_lead_activity").insert(newlyExhausted.map((r) => ({
         lead_id: r.id, kind: "creditos", body: "Créditos IA do Plano Grátis esgotados — precisa fazer upgrade para Basic ou Pro",
       })));
@@ -98,8 +112,10 @@ export const listLeads = createServerFn({ method: "POST" })
     const toLose = rows.filter((r) => shouldAutoLose(r));
     if (toLose.length) {
       const nowIso = new Date().toISOString();
-      await sb.from("master_lead").update({ stage: "perdido", auto_moved: true, motivo_perda: "Não fez upgrade", stage_changed_at: nowIso })
-        .in("id", toLose.map((r) => r.id));
+      for (const part of chunkList(toLose.map((r) => r.id))) {
+        await sb.from("master_lead").update({ stage: "perdido", auto_moved: true, motivo_perda: "Não fez upgrade", stage_changed_at: nowIso })
+          .in("id", part);
+      }
       await sb.from("master_lead_activity").insert(toLose.map((r) => ({ lead_id: r.id, kind: "etapa", body: "Plano grátis expirado sem upgrade → Perdidos (automático)" })));
       for (const r of toLose) Object.assign(r, { stage: "perdido", auto_moved: true, motivo_perda: "Não fez upgrade", stage_changed_at: nowIso });
     }

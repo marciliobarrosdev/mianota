@@ -44,6 +44,28 @@ export function auditLabel(acao: string | null | undefined, recurso?: string | n
   return txt.charAt(0).toUpperCase() + txt.slice(1);
 }
 
+/** Palavras que definem cada grupo do histórico (mesmas regras de `auditGroup`). */
+export const AUDIT_GROUP_WORDS = {
+  acesso: ["login", "logout", "password"],
+  conta: ["plan", "subscription", "lgpd"],
+} as const;
+
+/**
+ * O mesmo agrupamento de `auditGroup`, descrito como filtro para o banco:
+ * a ação precisa conter uma de `anyOf` e nenhuma de `noneOf`. Assim "Carregar mais"
+ * pagina já dentro do grupo escolhido.
+ */
+export function auditGroupFilter(group: "all" | "acesso" | "dados" | "conta"): {
+  anyOf: string[];
+  noneOf: string[];
+} {
+  const { acesso, conta } = AUDIT_GROUP_WORDS;
+  if (group === "acesso") return { anyOf: [...acesso], noneOf: [] };
+  if (group === "conta") return { anyOf: [...conta], noneOf: [...acesso] };
+  if (group === "dados") return { anyOf: [], noneOf: [...acesso, ...conta] };
+  return { anyOf: [], noneOf: [] };
+}
+
 export function auditGroup(acao: string | null | undefined): "acesso" | "dados" | "conta" {
   const a = String(acao || "").toLowerCase();
   if (a.includes("login") || a.includes("logout") || a.includes("password")) return "acesso";

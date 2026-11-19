@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
 import { dayLabel, isNearBottom, startsNewDay } from "@/lib/whatsapp/support-inbox-rules";
+import { hasMore } from "@/lib/common/pagination-rules";
 
 type CompanyInfo = {
   nome?: string;
@@ -36,6 +37,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
+  SUPPORT_MESSAGES_PAGE,
+  SUPPORT_PAGE,
   getSupportInbox,
   sendSupportReply,
   updateSupportConversation,
@@ -72,9 +75,16 @@ interface Message {
 interface InboxData {
   channel: { provider: "evolution" | "meta"; status: string; phone: string | null };
   conversations: Conversation[];
+  /** Total de conversas no filtro atual (no servidor, não só as carregadas). */
+  totalConversations: number;
+  counts: { all: number; unread: number; open: number };
+  /** Conversa aberta, mesmo quando o filtro a tira da lista. */
+  activeConversation: Conversation | null;
   messages: Message[];
+  hasOlderMessages: boolean;
 }
 type Filter = "all" | "unread" | "open" | "resolved";
+type InboxParams = { limit: number; messageLimit: number; filter: Filter; search: string };
 
 function SupportInboxPage() {
   const fetchInbox = useServerFn(getSupportInbox);
@@ -83,19 +93,36 @@ function SupportInboxPage() {
   const [data, setData] = useState<InboxData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  const [limit, setLimit] = useState(SUPPORT_PAGE);
+  const [messageLimit, setMessageLimit] = useState(SUPPORT_MESSAGES_PAGE);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
   const threadRef = useRef<HTMLDivElement>(null);
+  // Parâmetros atuais da janela: o polling de 8s recarrega exatamente o que está na tela.
+  const params = useRef<InboxParams>({ limit, messageLimit, filter, search: debouncedSearch });
+  params.current = { limit, messageLimit, filter, search: debouncedSearch };
+  // Posição do histórico antes de "Mensagens anteriores", para a tela não pular.
+  const olderAnchor = useRef<{ height: number; top: number } | null>(null);
+  const autoOpened = useRef(false);
 
   const load = useCallback(
-    async (conversationId = activeId, quiet = false) => {
+    async (conversationId = activeId, quiet = false, override: Partial<InboxParams> = {}) => {
       try {
-        const result = await fetchInbox({ data: { conversationId } });
+        const query = { ...params.current, ...override };
+        const result = await fetchInbox({ data: { conversationId, ...query } });
         setData(result);
-        if (!conversationId && result.conversations.length && !activeId) {
+        // Abre a primeira conversa só na primeira carga; depois, "voltar" no celular
+        // (sem conversa aberta) não pode ser desfeito pelo polling ou por "Carregar mais".
+        if (!autoOpened.current && !conversationId && result.conversations.length && !activeId) {
+          autoOpened.current = true;
           setActiveId(result.conversations[0].id);
-          const first = await fetchInbox({ data: { conversationId: result.conversations[0].id } });
+          const first = await fetchInbox({
+            data: { ...query, conversationId: result.conversations[0].id },
+          });
           setData(first);
         }
       } catch (error) {
@@ -113,45 +140,85 @@ function SupportInboxPage() {
     const timer = window.setInterval(() => void load(activeId, true), 8000);
     return () => window.clearInterval(timer);
   }, [activeId, load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+  // Filtro ou busca novos voltam para a primeira página.
+  const firstFilterRun = useRef(true);
+  useEffect(() => {
+    if (firstFilterRun.current) {
+      firstFilterRun.current = false;
+      return;
+    }
+    setLimit(SUPPORT_PAGE);
+    void load(activeId, true, { limit: SUPPORT_PAGE });
+  }, [filter, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function loadMore() {
+    const next = limit + SUPPORT_PAGE;
+    setLimit(next);
+    setLoadingMore(true);
+    await load(activeId, false, { limit: next });
+    setLoadingMore(false);
+  }
+
+  async function loadOlder() {
+    const el = threadRef.current;
+    if (el) olderAnchor.current = { height: el.scrollHeight, top: el.scrollTop };
+    const next = messageLimit + SUPPORT_MESSAGES_PAGE;
+    setMessageLimit(next);
+    setLoadingOlder(true);
+    await load(activeId, false, { messageLimit: next });
+    setLoadingOlder(false);
+  }
+
   const [hasNew, setHasNew] = useState(false);
   const lastActive = useRef<string | null>(null);
   function scrollToBottom() {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
     setHasNew(false);
   }
-  useEffect(() => {
+  const messages = (data?.messages ?? []) as Message[];
+  const firstMessageId = messages[0]?.id;
+  const lastMessageId = messages[messages.length - 1]?.id;
+  // Conversa a que as mensagens carregadas pertencem: troca só conta quando elas chegam.
+  const threadConversationId = messages[0]?.conversation_id ?? null;
+  // Observa a primeira e a última mensagem (não a quantidade): com a janela cheia,
+  // uma mensagem nova mantém o total igual, mas muda a última.
+  useLayoutEffect(() => {
     const el = threadRef.current;
-    if (!el) return;
-    const switched = lastActive.current !== activeId;
-    lastActive.current = activeId;
+    if (!el) {
+      lastActive.current = null; // histórico fechado (celular): reabrir desce até o fim
+      return;
+    }
+    const anchor = olderAnchor.current;
+    if (anchor) {
+      olderAnchor.current = null;
+      el.scrollTop = el.scrollHeight - anchor.height + anchor.top;
+      return;
+    }
+    const switched = lastActive.current !== threadConversationId;
+    lastActive.current = threadConversationId;
     if (switched || isNearBottom(el.scrollTop, el.clientHeight, el.scrollHeight, 200)) {
       requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight }));
       setHasNew(false);
     } else setHasNew(true);
-  }, [data?.messages.length, activeId]);
+  }, [firstMessageId, lastMessageId, threadConversationId, activeId]);
 
-  const conversations = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return (data?.conversations ?? []).filter((item) => {
-      const company = companyName(item);
-      if (
-        query &&
-        !`${item.contact_name || ""} ${item.phone_e164} ${company}`.toLowerCase().includes(query)
-      )
-        return false;
-      if (filter === "unread") return Number(item.unread_count) > 0;
-      if (filter === "open") return item.status !== "resolved";
-      if (filter === "resolved") return item.status === "resolved";
-      return true;
-    });
-  }, [data?.conversations, filter, search]);
-
-  const active = data?.conversations.find((item) => item.id === activeId) ?? null;
-  const messages = (data?.messages ?? []) as Message[];
+  // A lista já chega filtrada e buscada pelo servidor.
+  const conversations = data?.conversations ?? [];
+  const active =
+    (data?.activeConversation?.id === activeId ? data?.activeConversation : null) ??
+    data?.conversations.find((item) => item.id === activeId) ??
+    null;
 
   async function selectConversation(item: Conversation) {
     setActiveId(item.id);
-    const result = await fetchInbox({ data: { conversationId: item.id } });
+    setMessageLimit(SUPPORT_MESSAGES_PAGE);
+    const result = await fetchInbox({
+      data: { ...params.current, messageLimit: SUPPORT_MESSAGES_PAGE, conversationId: item.id },
+    });
     setData(result);
   }
 
@@ -185,8 +252,6 @@ function SupportInboxPage() {
     );
 
   const connected = data.channel.status === "connected";
-  const unread = data.conversations.filter((item) => Number(item.unread_count) > 0).length;
-  const open = data.conversations.filter((item) => item.status !== "resolved").length;
 
   return (
     <main className="mx-auto w-full max-w-[1500px] px-3 py-4 md:px-6 md:py-7">
@@ -203,9 +268,9 @@ function SupportInboxPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Stat label="Conversas" value={data.conversations.length} />
-          <Stat label="Não lidas" value={unread} accent />
-          <Stat label="Em aberto" value={open} />
+          <Stat label="Conversas" value={data.counts.all} />
+          <Stat label="Não lidas" value={data.counts.unread} accent />
+          <Stat label="Em aberto" value={data.counts.open} />
           <Button variant="outline" size="sm" onClick={() => load(activeId)}>
             <RefreshCw className="size-4" /> Atualizar
           </Button>
@@ -274,6 +339,14 @@ function SupportInboxPage() {
             ) : (
               <EmptyList />
             )}
+            {conversations.length > 0 && (
+              <LoadMoreFooter
+                shown={conversations.length}
+                total={data.totalConversations}
+                loading={loadingMore}
+                onClick={() => void loadMore()}
+              />
+            )}
           </div>
         </aside>
 
@@ -327,6 +400,19 @@ function SupportInboxPage() {
                   className="absolute inset-0 overflow-y-auto overscroll-contain bg-muted/25 p-4 md:p-6"
                 >
                   <div className="mx-auto max-w-3xl space-y-3">
+                    {data.hasOlderMessages && (
+                      <div className="flex justify-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={loadingOlder}
+                          onClick={() => void loadOlder()}
+                        >
+                          {loadingOlder && <Loader2 className="size-4 animate-spin" />} Mensagens
+                          anteriores
+                        </Button>
+                      </div>
+                    )}
                     {messages.length ? (
                       messages.map((message, index) => (
                         <div key={message.id} className="space-y-3">
@@ -521,6 +607,32 @@ function StatusPicker({
       <option value="pending">Aguardando</option>
       <option value="resolved">Resolvida</option>
     </select>
+  );
+}
+
+/** Rodapé da lista: quantas aparecem do total e o botão "Carregar mais". */
+function LoadMoreFooter({
+  shown,
+  total,
+  loading,
+  onClick,
+}: {
+  shown: number;
+  total: number;
+  loading: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-2 p-4 text-xs text-muted-foreground">
+      <span>
+        Mostrando {shown} de {total}
+      </span>
+      {hasMore(shown, total) && (
+        <Button variant="outline" size="sm" disabled={loading} onClick={onClick}>
+          {loading && <Loader2 className="size-4 animate-spin" />} Carregar mais
+        </Button>
+      )}
+    </div>
   );
 }
 

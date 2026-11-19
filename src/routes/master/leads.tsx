@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { hasMore } from "@/lib/common/pagination-rules";
+
+/** Linhas da visão em lista antes de "Carregar mais". */
+const LEADS_LIST_PAGE = 50;
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -49,6 +53,9 @@ function LeadsPage() {
   const [viewing, setViewing] = useState<LeadRow | null>(null);
   const [deleting, setDeleting] = useState<LeadRow | null>(null);
   const [pendingLost, setPendingLost] = useState<{ id: string; position: number } | null>(null);
+  const [listLimit, setListLimit] = useState(LEADS_LIST_PAGE);
+  // Filtro novo volta a lista para as primeiras linhas.
+  useEffect(() => setListLimit(LEADS_LIST_PAGE), [q, tag, origem, temp, from, to, onlyUpgrade]);
 
   const allTags = useMemo(() => Array.from(new Set(leads.flatMap((l) => l.tags))).sort(), [leads]);
   const filtered = useMemo(
@@ -135,7 +142,7 @@ function LeadsPage() {
         {kpis.map((k) => (
           <Card key={k.label} className="p-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">{k.label}<k.icon className="h-4 w-4" /></div>
-            <p className="mt-1 text-xl font-bold">{isLoading ? <Skeleton className="h-6 w-16" /> : k.value}</p>
+            <div className="mt-1 text-xl font-bold">{isLoading ? <Skeleton className="h-6 w-16" /> : k.value}</div>
           </Card>
         ))}
       </div>
@@ -190,7 +197,7 @@ function LeadsPage() {
           <Table>
             <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Contato</TableHead><TableHead>Etapa</TableHead><TableHead>Origem</TableHead><TableHead>Valor</TableHead><TableHead>Criado</TableHead></TableRow></TableHeader>
             <TableBody>
-              {filtered.map((l) => (
+              {filtered.slice(0, listLimit).map((l) => (
                 <TableRow key={l.id} className="cursor-pointer" onClick={() => setViewing(l)}>
                   <TableCell className="font-medium">{l.nome}</TableCell>
                   <TableCell className="text-xs">{l.email}<br />{l.telefone}</TableCell>
@@ -203,6 +210,14 @@ function LeadsPage() {
               {!filtered.length && <TableRow><TableCell colSpan={6} className="py-10 text-center text-muted-foreground">Nenhum lead encontrado.</TableCell></TableRow>}
             </TableBody>
           </Table>
+          {filtered.length > 0 && (
+            <div className="flex flex-col items-center gap-2 border-t p-3 text-xs text-muted-foreground">
+              <span>Mostrando {Math.min(listLimit, filtered.length)} de {filtered.length}</span>
+              {hasMore(listLimit, filtered.length) && (
+                <Button variant="outline" size="sm" onClick={() => setListLimit((n) => n + LEADS_LIST_PAGE)}>Carregar mais</Button>
+              )}
+            </div>
+          )}
         </Card>
       )}
 

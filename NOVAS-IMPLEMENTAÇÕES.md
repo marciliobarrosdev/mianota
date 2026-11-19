@@ -248,3 +248,21 @@ Divisão em arquivos menores, sem mudar comportamento, dados ou integrações.
 - **Verificação de Super Admin única:** as 11 cópias espalhadas foram trocadas por `assertSuperAdmin` em `src/lib/master/master-guards.ts`. Mensagem igual em todo o Master; o erro técnico do banco fica só no registro do servidor. Testado em `tests/master-guards.test.ts`.
 - **Falhas visíveis:** consultas auxiliares da Evolution e os selos de crédito agora registram a falha em vez de ignorá-la. Em Assinantes, o aviso de senha temporária só diz "(copiada)" quando a cópia realmente aconteceu.
 - **Próximas etapas:** listas com "Carregar mais", divisão dos arquivos grandes, carregamento antes de abrir a tela, tipagem e documentação (ver roadmap.md).
+
+## 30. Refatoração por etapas — etapa 3: listas com "Carregar mais" (19/11/2026)
+
+Nenhuma lista corta mais registros em silêncio. Cada uma mostra "Mostrando X de Y" com o total real do banco e um botão **Carregar mais** enquanto houver itens.
+
+| Tela | Antes | Agora |
+| --- | --- | --- |
+| Master → Conversas | até 250 conversas; só as 500 mensagens **mais antigas** (as novas sumiam em conversas longas); contadores contavam só o que estava carregado | 30 conversas por vez; filtros e busca (inclusive nome/e-mail do assinante) feitos no servidor; abre nas 100 mensagens mais recentes com **Mensagens anteriores**; contadores contam todas as conversas |
+| Master → Assinantes | páginas Anterior/Próxima; cartões do topo liam no máximo 1000 empresas; "Atividade" podia faltar | 20 por vez com **Carregar mais**; cartões contados direto no banco; última movimentação lida por assinante |
+| Master → Leads | leitura única limitada a 1000 leads/tarefas | todos os leads e tarefas lidos em blocos (métricas e regras automáticas completas); colunas mostram 30 cartões e a lista 50, cada uma com **Carregar mais** |
+| Master → Acesso e segurança | avisos de pagamento e registro limitados a 200; resumo e filtros só sobre o que estava carregado | 50 por vez; filtros (plataforma, status, e-mail, tipo de ação) e resumos (hoje, processados, erros, último aviso) contados no banco inteiro; "Ações registradas" mostra sempre o total geral |
+| Assinante → Configurações → Privacidade | 200 atividades, grupos filtrados no navegador | 20 por vez, grupo (Acessos, Lançamentos e dados, Conta e plano) filtrado no servidor com a mesma regra |
+
+Também corrigido: no celular, "voltar" na conversa não reabre mais sozinha a primeira conversa a cada 8 segundos; abrir outra conversa desce até a última mensagem; aviso de estrutura de página em Leads.
+
+**Como funciona:** regra comum em `src/lib/common/pagination-rules.ts` (janela que cresce, blocos de até 1000 linhas, total real, busca segura). Testes: `tests/pagination-rules.test.ts` e `tests/audit-group-filter.test.ts` (o filtro do banco escolhe exatamente o mesmo grupo de antes).
+
+**Conferido no navegador** (Super Admin, computador e celular): totais iguais aos do banco — 2 conversas, 225 mensagens (100 → 200 → 225), 3 assinantes, 1 lead, 17 ações (5 de `plan.update`), 1 aviso de pagamento. Com páginas simuladas menores, Conversas (1 → 2), Assinantes (1 → 2 → 3) e Registro (5 → 10 → 15 → 17) carregaram corretamente. O histórico do assinante não tem atividades gravadas hoje; os quatro filtros responderam sem erro.

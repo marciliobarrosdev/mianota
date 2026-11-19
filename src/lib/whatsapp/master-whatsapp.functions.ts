@@ -8,6 +8,17 @@ import {
   saveIntegrationValues,
 } from "@/lib/common/integration-secrets.server";
 import { assertSuperAdmin } from "@/lib/master/master-guards";
+import {
+  chunkList,
+  clampWindow,
+  fetchWindow,
+  hasMore,
+  safeSearchTerm,
+} from "@/lib/common/pagination-rules";
+
+/** Conversas por "Carregar mais" e mensagens por "Mensagens anteriores". */
+export const SUPPORT_PAGE = 30;
+export const SUPPORT_MESSAGES_PAGE = 100;
 
 function currentOrigin() {
   const request = getRequest();
@@ -223,54 +234,126 @@ export const saveMetaSupportWhatsapp = createServerFn({ method: "POST" })
 
 export const getSupportInbox = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { conversationId?: string | null }) => ({
-    conversationId: data?.conversationId ? String(data.conversationId) : null,
-  }))
+  .inputValidator(
+    (data: {
+      conversationId?: string | null;
+      limit?: number;
+      messageLimit?: number;
+      filter?: string;
+      search?: string;
+    }) => ({
+      conversationId: data?.conversationId ? String(data.conversationId) : null,
+      limit: clampWindow(data?.limit, SUPPORT_PAGE),
+      messageLimit: clampWindow(data?.messageLimit, SUPPORT_MESSAGES_PAGE),
+      filter: (["all", "unread", "open", "resolved"].includes(String(data?.filter))
+        ? data.filter
+        : "all") as "all" | "unread" | "open" | "resolved",
+      search: safeSearchTerm(data?.search),
+    }),
+  )
   .handler(async ({ context, data }) => {
     await assertSuperAdmin(context.supabase);
     const { platformDb, getOrCreateSupportChannel } = await import("@/lib/whatsapp/master-whatsapp.server");
     const db = await platformDb();
-    const [channel, conversations] = await Promise.all([
-      getOrCreateSupportChannel(),
-      db
+    const fields =
+      "id,phone_e164,contact_name,subscriber_company_id,status,unread_count,last_message_at,last_message_preview";
+
+    // A busca também encontra pelo nome/e-mail do assinante: primeiro achamos as empresas.
+    let companyMatches: string[] = [];
+    if (data.search) {
+      const like = `%${data.search}%`;
+      const found = await db
+        .from("company")
+        .select("id")
+        .or(`nome.ilike.${like},nome_fantasia.ilike.${like},email_corporativo.ilike.${like}`)
+        .limit(200);
+      if (found.error) throw new Error(found.error.message);
+      companyMatches = (found.data ?? []).map((row: any) => row.id);
+    }
+
+    const filtered = (from: number, to: number) => {
+      let q = db
         .from("platform_support_conversation")
-        .select(
-          "id,phone_e164,contact_name,subscriber_company_id,status,unread_count,last_message_at,last_message_preview",
-        )
-        .order("last_message_at", { ascending: false })
-        .limit(250),
+        .select(fields, { count: "exact" })
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (data.filter === "unread") q = q.gt("unread_count", 0);
+      if (data.filter === "open") q = q.neq("status", "resolved");
+      if (data.filter === "resolved") q = q.eq("status", "resolved");
+      if (data.search) {
+        const like = `%${data.search}%`;
+        const parts = [`contact_name.ilike.${like}`, `phone_e164.ilike.${like}`];
+        if (companyMatches.length) parts.push(`subscriber_company_id.in.(${companyMatches.join(",")})`);
+        q = q.or(parts.join(","));
+      }
+      return q.then(({ data: rows, count, error }: any) => {
+        if (error) throw new Error(error.message);
+        return { rows: (rows ?? []) as any[], count: count as number | null };
+      });
+    };
+    const countWhere = async (apply: (q: any) => any) => {
+      const { count, error } = await apply(
+        db.from("platform_support_conversation").select("id", { count: "exact", head: true }),
+      );
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    };
+
+    const [channel, page, all, unread, open, activeRow] = await Promise.all([
+      getOrCreateSupportChannel(),
+      fetchWindow(data.limit, filtered),
+      countWhere((q) => q),
+      countWhere((q) => q.gt("unread_count", 0)),
+      countWhere((q) => q.neq("status", "resolved")),
+      data.conversationId
+        ? db.from("platform_support_conversation").select(fields).eq("id", data.conversationId).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
-    if (conversations.error) throw new Error(conversations.error.message);
+    if ((activeRow as any).error) throw new Error((activeRow as any).error.message);
+
+    // A conversa aberta continua visível mesmo quando um filtro a esconde da lista.
+    const activeConversation = (activeRow as any).data ?? null;
+    const rowsToDecorate = activeConversation ? [...page.rows, activeConversation] : page.rows;
     const companyIds = Array.from(
-      new Set(
-        (conversations.data ?? []).map((item: any) => item.subscriber_company_id).filter(Boolean),
-      ),
-    );
-    let companies: any[] = [];
-    if (companyIds.length) {
+      new Set(rowsToDecorate.map((item: any) => item.subscriber_company_id).filter(Boolean)),
+    ) as string[];
+    const companies = new Map<string, any>();
+    for (const ids of chunkList(companyIds)) {
       const companyRows = await db
         .from("company")
         .select("id,nome,nome_fantasia,email:email_corporativo,logo_url")
-        .in("id", companyIds);
+        .in("id", ids);
       if (companyRows.error) throw new Error(companyRows.error.message);
-      companies = companyRows.data ?? [];
+      for (const company of companyRows.data ?? []) companies.set((company as any).id, company);
     }
-    const conversationRows = (conversations.data ?? []).map((item: any) => ({
+    const withCompany = (item: any) => ({
       ...item,
-      company: companies.find((company: any) => company.id === item.subscriber_company_id) || null,
-    }));
+      company: companies.get(item.subscriber_company_id) ?? null,
+    });
+
     let messages: any[] = [];
+    let hasOlderMessages = false;
     if (data.conversationId) {
-      const result = await db
-        .from("platform_support_message")
-        .select(
-          "id,conversation_id,direction,sender_type,message_type,body,delivery_status,created_at",
-        )
-        .eq("conversation_id", data.conversationId)
-        .order("created_at", { ascending: true })
-        .limit(500);
-      if (result.error) throw new Error(result.error.message);
-      messages = result.data ?? [];
+      // Busca as mensagens MAIS RECENTES (antes, as 500 mais antigas escondiam as novas).
+      const latest = await fetchWindow(data.messageLimit, (from, to) =>
+        db
+          .from("platform_support_message")
+          .select(
+            "id,conversation_id,direction,sender_type,message_type,body,delivery_status,created_at",
+            { count: "exact" },
+          )
+          .eq("conversation_id", data.conversationId as string)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, to)
+          .then(({ data: rows, count, error }: any) => {
+            if (error) throw new Error(error.message);
+            return { rows: (rows ?? []) as any[], count: count as number | null };
+          }),
+      );
+      messages = latest.rows.reverse();
+      hasOlderMessages = hasMore(messages.length, latest.total);
       await db
         .from("platform_support_conversation")
         .update({ unread_count: 0 })
@@ -282,8 +365,12 @@ export const getSupportInbox = createServerFn({ method: "POST" })
         status: channel.status,
         phone: channel.phone_e164,
       },
-      conversations: conversationRows,
+      conversations: page.rows.map(withCompany),
+      totalConversations: page.total,
+      counts: { all, unread, open },
+      activeConversation: activeConversation ? withCompany(activeConversation) : null,
       messages,
+      hasOlderMessages,
     };
   });
 

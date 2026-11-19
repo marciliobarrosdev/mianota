@@ -1,1 +1,2 @@
 - Client-only route guards (`/master`, `/app`) wrap `beforeLoad` in `guardAfterHydration` (`src/lib/common/hydration-gate.ts`) — why: a redirect thrown during first-page hydration crashes the router match and forces a full re-render.
+- Long lists use "Carregar mais" windows via `pagination-rules.ts` (`fetchWindow`/`fetchAll` in ≤1000-row chunks, exact totals, filters applied server-side) — why: the database caps each request at 1000 rows, so no list may silently stop there.

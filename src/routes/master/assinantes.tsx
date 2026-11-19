@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { hasMore } from "@/lib/common/pagination-rules";
 import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 import { brandedRouteHead } from "@/config/brand";
 import {
   listCompanies,
+  COMPANIES_PAGE,
   suspendCompany,
   setCompanyTrial,
   resetCompanyOwnerPassword,
@@ -73,8 +75,9 @@ function EmpresasPage() {
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [stats, setStats] = useState({ total: 0, active: 0, trial: 0, suspended: 0, attention: 0 });
-  const [pageSize, setPageSize] = useState(20);
-  const [page, setPage] = useState(0);
+  // "Carregar mais": a janela cresce de 20 em 20; recarregar mantém o que já está na tela.
+  const [limit, setLimit] = useState(COMPANIES_PAGE);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [tipoPessoa, setTipoPessoa] = useState<"" | "pf" | "pj">("");
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
@@ -85,24 +88,33 @@ function EmpresasPage() {
   const [trialSaving, setTrialSaving] = useState(false);
   const [releaseCompany, setReleaseCompany] = useState<any | null>(null);
 
-  async function reload() {
-    setLoading(true);
+  async function reload(nextLimit = limit, more = false) {
+    if (more) setLoadingMore(true);
+    else setLoading(true);
     try {
-      const r = await list({ data: { search, page, tipoPessoa, status: statusFilter } });
+      const r = await list({ data: { search, limit: nextLimit, tipoPessoa, status: statusFilter } });
       setRows(r.rows);
       setTotal(r.total);
-      setPageSize(r.pageSize);
       setStats(r.stats);
     } catch (e: any) {
       toast.error(e?.message);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }
 
+  // Filtro novo volta para os primeiros 20.
   useEffect(() => {
-    void reload();
-  }, [page, tipoPessoa, statusFilter]);
+    setLimit(COMPANIES_PAGE);
+    void reload(COMPANIES_PAGE);
+  }, [tipoPessoa, statusFilter]);
+
+  function loadMore() {
+    const next = limit + COMPANIES_PAGE;
+    setLimit(next);
+    void reload(next, true);
+  }
 
   function exportCsv() {
     const csv = toCsv(
@@ -122,7 +134,6 @@ function EmpresasPage() {
 
   function pickStatus(v: string) {
     setStatusFilter((cur) => (cur === v ? "" : v));
-    setPage(0);
   }
 
   function impersonate(companyId: string) {
@@ -239,8 +250,6 @@ function EmpresasPage() {
     }
   }
 
-  const pages = Math.ceil(total / pageSize);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -292,11 +301,11 @@ function EmpresasPage() {
           className="flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            setPage(0);
-            reload();
+            setLimit(COMPANIES_PAGE);
+            void reload(COMPANIES_PAGE);
           }}
         >
-          <select aria-label="Tipo de pessoa" className="rounded-md border bg-background p-2" value={tipoPessoa} onChange={e => {setTipoPessoa(e.target.value as "" | "pf" | "pj");setPage(0);}}><option value="">Todos os tipos</option><option value="pf">Pessoa física</option><option value="pj">Pessoa jurídica</option></select>
+          <select aria-label="Tipo de pessoa" className="rounded-md border bg-background p-2" value={tipoPessoa} onChange={e => {setTipoPessoa(e.target.value as "" | "pf" | "pj");}}><option value="">Todos os tipos</option><option value="pf">Pessoa física</option><option value="pj">Pessoa jurídica</option></select>
           <Input
             placeholder="Buscar por nome…"
             value={search}
@@ -384,7 +393,7 @@ function EmpresasPage() {
         )}
       </Card>
 
-      <ReleasePlanDialog company={releaseCompany} onClose={() => setReleaseCompany(null)} onDone={reload} />
+      <ReleasePlanDialog company={releaseCompany} onClose={() => setReleaseCompany(null)} onDone={() => void reload()} />
       <Dialog open={!!trialCompany} onOpenChange={(open) => !open && setTrialCompany(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -435,27 +444,17 @@ function EmpresasPage() {
         </DialogContent>
       </Dialog>
 
-      {pages > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(Math.max(0, page - 1))}
-            disabled={page === 0}
-          >
-            Anterior
-          </Button>
+      {rows.length > 0 && (
+        <div className="flex flex-col items-center gap-2 text-sm">
           <span className="text-muted-foreground">
-            Página {page + 1} de {pages}
+            Mostrando {rows.length} de {total}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(Math.min(pages - 1, page + 1))}
-            disabled={page >= pages - 1}
-          >
-            Próxima
-          </Button>
+          {hasMore(rows.length, total) && (
+            <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore}>
+              {loadingMore && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              Carregar mais
+            </Button>
+          )}
         </div>
       )}
 

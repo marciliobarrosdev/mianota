@@ -176,3 +176,4 @@ Na primeira visita aparece o aviso de cookies. Para mudar a escolha, use "Prefer
 - Visão do mês: `src/components/finance/finance-overview.tsx` + `overview/`.
 - Movimentações: `src/components/finance/transactions-view.tsx` + `transactions/`.
 - Funções do Master: um arquivo por assunto em `src/lib/master/` (indicadores, assinantes, planos, administradores).
+- Listas longas ("Carregar mais"): regra comum em `src/lib/common/pagination-rules.ts`; o servidor devolve as primeiras N linhas e o total real, em blocos de até 1000.
