@@ -96,4 +96,3 @@
 - [ ] 7. Comentários e documentação de cada etapa
 - [ ] Aviso de estrutura de página em IA e créditos (parágrafo com bloco dentro)
 
-- [ ] WhatsApp: aceitar o número da lista ao responder a forma de pagamento (aguarda o usuário decidir)

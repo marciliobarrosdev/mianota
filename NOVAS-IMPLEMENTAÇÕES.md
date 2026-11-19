@@ -286,4 +286,4 @@ Também corrigido: no celular, "voltar" na conversa não reabre mais sozinha a p
 - **Comparação antes/depois:** 14 situações simuladas (vincular ok/vencido, sem plano, celular não vinculado, cancelar, confirmar, sem créditos, pergunta de pagamento, prévia, conta a pagar, resumo, falha da IA com devolução do crédito) deram exatamente as mesmas respostas e as mesmas leituras/gravações nas duas versões.
 - Testes permanentes em `tests/finance-whatsapp-rules.test.ts`.
 - Tela WhatsApp do assinante conferida no computador e no celular, claro e escuro. Corrigido no tema escuro: o topo da tela ficava branco com o título quase invisível, o aviso "Dados separados por conta" ficava cinza e o item "Falar com MIA" do menu clareava.
-- **Achado (não alterado):** responder só com o número da lista de formas de pagamento (ex.: "1") não é aceito; a MIA repete a pergunta. Responder com o nome (PIX, cartão…) funciona.
+- **Achado (não alterado):** responder só com o número da lista de formas de pagamento (ex.: "1") não é aceito; a MIA repete a pergunta. Responder com o nome (PIX, cartão…) funciona. Decisão do responsável: manter assim (só pelo nome).
