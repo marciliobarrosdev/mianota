@@ -2,6 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertSuperAdmin } from "@/lib/master/master-guards";
 
 const CompanyInput = z.object({ companyId: z.string().uuid() });
 
@@ -141,11 +142,6 @@ export const cancelAccountDeletion = createServerFn({ method: "POST" })
     if (error) throw new Error("Não foi possível cancelar o pedido.");
     return { ok: true as const };
   });
-
-async function assertSuperAdmin(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error || data !== true) throw new Error("Acesso restrito ao proprietário da instalação.");
-}
 
 export const listDeletionRequests = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

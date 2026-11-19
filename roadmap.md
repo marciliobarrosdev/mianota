@@ -85,3 +85,13 @@
 - [ ] Vários lançamentos numa mensagem
 - [ ] Conversa unificada com WhatsApp
 - [x] Remover integração Stripe; InfinitePay é o único checkout integrado (Kiwify/Cakto/PerfectPay mantidos)
+
+## Refatoração por etapas (plano aprovado em 19/11/2026)
+- [x] 1. Uma única verificação de Super Admin (master-guards.ts) + testes
+- [x] 2. Falhas escondidas passam a ser registradas; aviso "senha copiada" só quando copiou
+- [ ] 3. Listas com "Carregar mais" (Conversas, Assinantes, Leads, Segurança)
+- [ ] 4. Dividir arquivos grandes (painel financeiro, WhatsApp financeiro, Assinantes Master, Planejamento, Configurações, MIA, Conversas)
+- [ ] 5. Carregar antes de abrir (Início, Movimentações, Visão geral, Assinantes)
+- [ ] 6. Tirar `any` dos arquivos tocados
+- [ ] 7. Comentários e documentação de cada etapa
+- [ ] Aviso de estrutura de página em IA e créditos (parágrafo com bloco dentro)

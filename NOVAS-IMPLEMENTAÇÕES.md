@@ -242,3 +242,9 @@ Divisão em arquivos menores, sem mudar comportamento, dados ou integrações.
 - **Planos:** todo plano pago usa o campo "Link de Checkout InfinitePay"; a conferência "Prontos para cobrar" e o progresso de implantação passam a olhar só esse link.
 - **Dados preservados:** nenhum plano nem cobrança usava Stripe; as colunas/tabelas antigas `stripe_*` continuam no banco, vazias e sem uso, para não apagar nada.
 - **Verificação:** testes automáticos passaram (268) e as telas Master → Pagamentos e Master → Planos foram abertas logado.
+
+## 29. Refatoração por etapas — etapas 1 e 2 (19/11/2026)
+
+- **Verificação de Super Admin única:** as 11 cópias espalhadas foram trocadas por `assertSuperAdmin` em `src/lib/master/master-guards.ts`. Mensagem igual em todo o Master; o erro técnico do banco fica só no registro do servidor. Testado em `tests/master-guards.test.ts`.
+- **Falhas visíveis:** consultas auxiliares da Evolution e os selos de crédito agora registram a falha em vez de ignorá-la. Em Assinantes, o aviso de senha temporária só diz "(copiada)" quando a cópia realmente aconteceu.
+- **Próximas etapas:** listas com "Carregar mais", divisão dos arquivos grandes, carregamento antes de abrir a tela, tipagem e documentação (ver roadmap.md).

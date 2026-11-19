@@ -11,13 +11,9 @@ import {
   saveIntegrationValues,
   type IntegrationProvider,
 } from "@/lib/common/integration-secrets.server";
+import { assertSuperAdmin } from "@/lib/master/master-guards";
 
 const PROVIDERS: IntegrationProvider[] = ["evolution", "google", "infinitepay"];
-
-async function assertSuperAdmin(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error || data !== true) throw new Error("Acesso restrito ao proprietário da instalação.");
-}
 
 function currentOrigin() {
   try {

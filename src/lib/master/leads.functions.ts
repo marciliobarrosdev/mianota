@@ -2,12 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isLeadStage, needsCreditUpgrade, shouldAutoLose, type LeadStage, type LeadTemp } from "@/lib/master/lead-pipeline-rules";
-
-async function assertSuper(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error) throw new Error(`Não foi possível validar o acesso: ${error.message}`);
-  if (data !== true) throw new Error("Acesso negado");
-}
+import { assertSuper } from "@/lib/master/master-guards";
 
 async function audit(actorId: string, action: string, target: string, details: Record<string, unknown> = {}) {
   const { writeMasterAudit } = await import("@/lib/master/master-audit.server");

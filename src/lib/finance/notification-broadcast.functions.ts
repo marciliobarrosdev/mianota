@@ -2,11 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-async function assertSuperAdmin(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error || data !== true) throw new Error("Acesso restrito ao proprietário da instalação.");
-}
+import { assertSuperAdmin } from "@/lib/master/master-guards";
 
 export const getBroadcastOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

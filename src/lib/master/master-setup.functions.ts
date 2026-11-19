@@ -10,11 +10,7 @@ import {
   type SetupGroup,
   type SetupStatus,
 } from "@/lib/master/master-setup-rules";
-
-async function assertSuperAdmin(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error || data !== true) throw new Error("Acesso restrito ao proprietário da instalação.");
-}
+import { assertSuperAdmin } from "@/lib/master/master-guards";
 
 export type MasterSetupCheck = {
   id:

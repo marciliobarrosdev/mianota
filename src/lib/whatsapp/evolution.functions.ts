@@ -37,7 +37,8 @@ async function resolveCompanyId(supabase: any, userId: string): Promise<string> 
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  if (!data) throw new Error("Você ainda não possui uma conta de assinante. Finalize o onboarding.");
+  if (!data)
+    throw new Error("Você ainda não possui uma conta de assinante. Finalize o onboarding.");
   if (data.forcar_troca_senha) {
     throw new Error("Troque a senha temporária antes de usar a operação.");
   }
@@ -122,7 +123,10 @@ export const connectWhatsapp = createServerFn({ method: "POST" })
             webhookConfigured: Boolean(webhookConfiguredAt),
           };
         }
-      } catch {}
+      } catch (e) {
+        // Consulta auxiliar: a falha não interrompe a conexão, mas fica registrada.
+        console.warn("[evolution] consulta auxiliar falhou:", e instanceof Error ? e.message : e);
+      }
     }
 
     const instanceUserId =
@@ -208,7 +212,10 @@ export const connectWhatsapp = createServerFn({ method: "POST" })
       try {
         const s = await evoState(instanceName);
         state = s?.instance?.state || (s as any)?.state;
-      } catch {}
+      } catch (e) {
+        // Consulta auxiliar: a falha não interrompe a conexão, mas fica registrada.
+        console.warn("[evolution] consulta auxiliar falhou:", e instanceof Error ? e.message : e);
+      }
 
       // Uma instância abandonada pode permanecer eternamente como "connecting"
       // sem devolver outro QR. O assinante não deve precisar conhecer Evolution
@@ -255,7 +262,13 @@ export const connectWhatsapp = createServerFn({ method: "POST" })
           try {
             const refreshedState = await evoState(instanceName);
             state = refreshedState?.instance?.state || (refreshedState as any)?.state;
-          } catch {}
+          } catch (e) {
+            // Consulta auxiliar: a falha não interrompe a conexão, mas fica registrada.
+            console.warn(
+              "[evolution] consulta auxiliar falhou:",
+              e instanceof Error ? e.message : e,
+            );
+          }
         } catch (resetError) {
           lastQrError = resetError;
           console.warn("[evolution.recreate]", resetError);
@@ -364,7 +377,10 @@ export const checkWhatsappStatus = createServerFn({ method: "POST" })
     if (newStatus === "connected" && !numero) {
       try {
         numero = await evoFetchNumberFromInstance(row.instance_name);
-      } catch {}
+      } catch (e) {
+        // Consulta auxiliar: a falha não interrompe a conexão, mas fica registrada.
+        console.warn("[evolution] consulta auxiliar falhou:", e instanceof Error ? e.message : e);
+      }
     }
     if (newStatus === "connected" && row.webhook_token && !row.webhook_configured_at) {
       const webhookUrl = buildWebhookUrl(row.webhook_token);

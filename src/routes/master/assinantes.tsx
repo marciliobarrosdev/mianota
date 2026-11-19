@@ -190,11 +190,15 @@ function EmpresasPage() {
         data: { companyId: c.id, newPassword: newPassword || undefined },
       });
       if (r.tempPassword) {
+        let copied = false;
         try {
           await navigator.clipboard.writeText(r.tempPassword);
-        } catch {}
+          copied = true;
+        } catch {
+          // Sem acesso à área de transferência: a senha continua visível no aviso abaixo.
+        }
         toast.success(
-          `Senha temporária para ${r.ownerEmail ?? "responsável"}: ${r.tempPassword} (copiada)`,
+          `Senha temporária para ${r.ownerEmail ?? "responsável"}: ${r.tempPassword}${copied ? " (copiada)" : ""}`,
           { duration: 20000 },
         );
       } else {

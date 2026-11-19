@@ -108,7 +108,9 @@ function ConversasPage() {
                   tag: m.numero,
                 });
               }
-            } catch {}
+            } catch {
+              // Alguns navegadores bloqueiam notificações; a mensagem continua na lista.
+            }
           }
         },
       )

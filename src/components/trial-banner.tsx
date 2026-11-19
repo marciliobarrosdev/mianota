@@ -15,7 +15,8 @@ export function TrialBanner({ company }: { company: CompanyRow }) {
     const load = () =>
       void fetchCredits({ data: { companyId: company.id } })
         .then((result) => active && setCredits(result.saldo))
-        .catch(() => {});
+        // Aviso informativo: em falha mantém o último saldo e tenta no próximo ciclo.
+        .catch((e) => console.warn("[trial-banner]", e instanceof Error ? e.message : e));
     load();
     const timer = setInterval(load, 60_000);
     return () => {

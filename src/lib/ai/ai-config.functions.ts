@@ -2,11 +2,7 @@
 // Superadmin: "IA e créditos". Nenhuma chave é reexibida; apenas estado e máscara.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-async function assertSuperAdmin(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error || data !== true) throw new Error("Acesso restrito ao proprietário da instalação.");
-}
+import { assertSuperAdmin } from "@/lib/master/master-guards";
 
 async function adminDb() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

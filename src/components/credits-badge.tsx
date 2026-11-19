@@ -13,7 +13,8 @@ export function CreditsBadge({ companyId }: { companyId: string }) {
     const load = () =>
       void fetcher({ data: { companyId } })
         .then((r) => alive && setData(r))
-        .catch(() => {});
+        // Selo informativo: em falha mantém o último saldo e tenta no próximo ciclo.
+        .catch((e) => console.warn("[credits-badge]", e instanceof Error ? e.message : e));
     load();
     const t = setInterval(load, 60_000);
     return () => {

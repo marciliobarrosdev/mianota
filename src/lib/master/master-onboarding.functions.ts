@@ -6,11 +6,7 @@ import {
   SUGGESTED_EVOLUTION_PURCHASE_MESSAGE,
   SUGGESTED_META_TEMPLATE_BODY,
 } from "@/lib/whatsapp/purchase-onboarding-rules";
-
-async function assertSuperAdmin(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error || data !== true) throw new Error("Acesso restrito ao proprietário da instalação.");
-}
+import { assertSuperAdmin } from "@/lib/master/master-guards";
 
 async function adminDb() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-async function assertSuper(supabase: any) {
-  const { data, error } = await supabase.rpc("is_super_admin");
-  if (error || data !== true) throw new Error("Acesso negado");
-}
+import { assertSuper } from "@/lib/master/master-guards";
 
 /** Admins with owner flag, creation and last sign-in, plus the caller's e-mail. */
 export const getAdminAccessDetails = createServerFn({ method: "POST" })
