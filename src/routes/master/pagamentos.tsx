@@ -137,10 +137,10 @@ function PaymentsPage() {
             </div>
             <Badge
               variant={
-                setup?.counts.plansWithCheckout === setup?.counts.plans ? "default" : "secondary"
+                setup?.counts.plansWithCheckout === setup?.counts.paidPlans ? "default" : "secondary"
               }
             >
-              {setup?.counts.plansWithCheckout ?? 0}/{setup?.counts.plans ?? 0}
+              {setup?.counts.plansWithCheckout ?? 0}/{setup?.counts.paidPlans ?? 0}
             </Badge>
           </div>
           <div className="mt-4 space-y-2">

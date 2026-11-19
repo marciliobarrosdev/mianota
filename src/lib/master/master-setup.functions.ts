@@ -71,19 +71,12 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
       plans.every(
         (plan: any) => Number(plan.trial_days ?? 0) === 0 || Number(plan.creditos_trial ?? 0) > 0,
       );
-    // Todo plano cobra por link de checkout (InfinitePay ou link externo).
-    const hasCheckoutLink = (plan: any) => /^https?:\/\//i.test(String(plan.checkout_url || ""));
-    const plansWithCheckout = plans.filter(hasCheckoutLink).length;
-    const paymentPlans = plans.map((plan: any) => ({
-      id: String(plan.id),
-      name: String(plan.nome || "Plano"),
-      mode: "external" as const,
-      ready: hasCheckoutLink(plan),
-      detail: plan.checkout_url
-        ? "Link de checkout informado"
-        : "Falta informar o link de checkout",
-    }));
-    const paymentsReady = activePlans > 0 && plansWithCheckout === activePlans;
+    // Só planos pagos precisam de link de checkout (InfinitePay ou link externo).
+    const { paidPlansForCheckout } = await import("@/lib/billing/checkout-readiness-rules");
+    const paymentPlans = paidPlansForCheckout(plans);
+    const paidPlanCount = paymentPlans.length;
+    const plansWithCheckout = paymentPlans.filter((p) => p.ready).length;
+    const paymentsReady = paidPlanCount > 0 && plansWithCheckout === paidPlanCount;
     const ownerEmails = (configResult.data?.super_admin_emails ?? []).filter(Boolean);
 
     let supportChannel: any = null;
@@ -235,7 +228,7 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         description: "Cada plano pago precisa de um link de checkout válido (InfinitePay).",
         ready: paymentsReady,
         optional: false,
-        detail: `${plansWithCheckout} de ${activePlans} plano(s) prontos para cobrar`,
+        detail: `${plansWithCheckout} de ${paidPlanCount} plano(s) pago(s) prontos para cobrar`,
         to: "/master/pagamentos",
         action: "Preparar pagamentos",
       },
@@ -413,6 +406,7 @@ export const getMasterSetupProgress = createServerFn({ method: "GET" })
         companies: companyCount,
         plans: activePlans,
         plansWithCheckout,
+        paidPlans: paidPlanCount,
       },
       paymentPlans,
     };
