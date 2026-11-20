@@ -154,6 +154,28 @@ export async function handleFinanceWhatsapp(input: {
       .eq("id", active.data.id);
     return { authorized: true, userId, reply: "Tudo bem. Cancelei essa ação." };
   }
+
+  // Se o envio da resposta falhou após a gravação da despesa e o usuário ou webhook
+  // repete "CONFIRMAR", recupera o resultado já gravado sem alterar o saldo novamente.
+  if (!active.data && isConfirmReply(lower)) {
+    const recentlyExecuted = await input.db
+      .from("marcia_ai_command")
+      .select("*")
+      .eq("company_id", input.companyId)
+      .eq("user_id", userId)
+      .eq("status", "executed")
+      .gte("updated_at", new Date(Date.now() - 5 * 60_000).toISOString())
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (recentlyExecuted.data?.result?.message) {
+      return {
+        authorized: true,
+        userId,
+        reply: recentlyExecuted.data.result.message,
+      };
+    }
+  }
   if (active.data?.status === "ready" && isConfirmReply(lower)) {
     try {
       return {

@@ -72,7 +72,6 @@ import {
   type EventStatus,
 } from "@/lib/master/security-rules";
 
-type Provider = "kiwify" | "cakto" | "perfectpay";
 type EventsPage = Awaited<ReturnType<typeof listBillingEventsAdmin>>;
 type AuditPage = Awaited<ReturnType<typeof listMasterAudit>>;
 const EMPTY_EVENTS: EventsPage = {
@@ -83,12 +82,6 @@ const EMPTY_EVENTS: EventsPage = {
 };
 const EMPTY_AUDIT: AuditPage = { rows: [], total: 0, all: 0 };
 type AccessDetails = Awaited<ReturnType<typeof getAdminAccessDetails>>;
-
-const PROVIDERS: { id: Provider; secret: string }[] = [
-  { id: "kiwify", secret: "KIWIFY_WEBHOOK_TOKEN" },
-  { id: "cakto", secret: "CAKTO_WEBHOOK_TOKEN" },
-  { id: "perfectpay", secret: "PERFECTPAY_WEBHOOK_TOKEN" },
-];
 
 export const Route = createFileRoute("/master/configuracoes")({
   head: brandedRouteHead("Acesso e segurança"),
@@ -123,7 +116,6 @@ function SecurityPage() {
   const [access, setAccess] = useState<AccessDetails | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [toRemove, setToRemove] = useState<string | null>(null);
-  const [tokens, setTokens] = useState<Record<Provider, boolean> | null>(null);
   // Avisos e registro chegam por janela ("Carregar mais"), já filtrados pelo servidor.
   const [eventsPage, setEventsPage] = useState<EventsPage>(EMPTY_EVENTS);
   const [auditPage, setAuditPage] = useState<AuditPage>(EMPTY_AUDIT);
@@ -207,17 +199,15 @@ function SecurityPage() {
     const safe = <T,>(p: Promise<T>) => p.catch(() => null);
     void Promise.all([
       getEmails(),
-      getWebhooks(),
       getEvents({ data: { limit: BILLING_EVENTS_PAGE } }),
       safe(getAccess()),
       safe(getAudit({ data: { limit: MASTER_AUDIT_PAGE } })),
       safe(getIntegrations()),
       safe(getSetup()),
     ])
-      .then(([emailResult, tokenResult, eventResult, accessResult, auditResult, integ, setup]) => {
+      .then(([emailResult, eventResult, accessResult, auditResult, integ, setup]) => {
         setEmails(emailResult.emails);
         setSavedEmails(emailResult.emails);
-        setTokens(tokenResult);
         setEventsPage(eventResult);
         setAccess(accessResult);
         setAuditPage(auditResult ?? EMPTY_AUDIT);
@@ -228,11 +218,8 @@ function SecurityPage() {
         toast.error(error instanceof Error ? error.message : "Não foi possível carregar a área."),
       )
       .finally(() => setLoading(false));
-  }, [getEmails, getEvents, getWebhooks, getAccess, getAudit, getIntegrations, getSetup]);
+  }, [getEmails, getEvents, getAccess, getAudit, getIntegrations, getSetup]);
 
-  const origin = typeof window === "undefined" ? "" : window.location.origin;
-  const webhookUrl = (provider: Provider) =>
-    tokens?.[provider] ? `${origin}/api/public/billing/webhook?provider=${provider}` : "";
   const ipStatus = checkoutStatus("infinitepay", ip, plans);
   // Resumo e "último aviso" vêm contados no banco inteiro.
   const { summary, lastBy } = eventsPage;
@@ -501,58 +488,6 @@ function SecurityPage() {
               </div>
             </div>
           </Card>
-
-          <Card className="space-y-5 p-5 sm:p-6">
-            <div className="flex items-start gap-3">
-              <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
-                <Webhook className="size-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold">Outras plataformas</h2>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Kiwify, Cakto e PerfectPay. Os tokens ficam nos Secrets; aqui você copia a URL.
-                </p>
-              </div>
-            </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              {PROVIDERS.map((provider) => (
-                <div key={provider.id} className="rounded-xl border p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-xs font-black uppercase tracking-[.12em]">
-                      {provider.id}
-                    </div>
-                    <Badge variant={tokens?.[provider.id] ? "secondary" : "outline"}>
-                      {tokens?.[provider.id] ? "Pronto" : "Falta token"}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    Último aviso: {fmt(lastBy[provider.id])}
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <Input
-                      readOnly
-                      value={webhookUrl(provider.id) || `Cadastre ${provider.secret}`}
-                      className="font-mono text-[11px]"
-                    />
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      aria-label={`Copiar URL ${provider.id}`}
-                      disabled={!webhookUrl(provider.id)}
-                      onClick={() => copy(webhookUrl(provider.id))}
-                    >
-                      <Copy className="size-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="rounded-xl bg-muted/50 p-3 text-[11px] leading-5 text-muted-foreground">
-              O comprador é localizado pelo e-mail. Venda aprovada ou renovada libera; cancelamento,
-              reembolso e chargeback suspendem. Também é possível liberar manualmente em Assinantes.
-            </p>
-          </Card>
         </TabsContent>
 
         <TabsContent value="events">
@@ -582,7 +517,7 @@ function SecurityPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas plataformas</SelectItem>
-                  {["infinitepay", "kiwify", "cakto", "perfectpay"].map((p) => (
+                  {["infinitepay"].map((p) => (
                     <SelectItem key={p} value={p}>
                       {p}
                     </SelectItem>

@@ -256,67 +256,298 @@ async function findCompanyByPhone(phone: string) {
 }
 
 export async function persistSupportInbound(input: {
-  phone: string;
+  phone?: string | null;
+  remoteJid?: string | null;
+  lidJid?: string | null;
+  pnJid?: string | null;
   contactName?: string | null;
   body: string;
   messageType?: string;
   providerMessageId?: string | null;
+  mediaUrl?: string | null;
+  mediaMeta?: Record<string, unknown> | null;
+  quotedId?: string | null;
   payload?: unknown;
 }) {
   const db = await platformDb();
-  const phone = digits(input.phone);
-  if (!phone || !input.body.trim()) return { duplicate: false, conversationId: null };
+  const isLidRemote = input.remoteJid?.endsWith("@lid");
+  const lidJid = input.lidJid || (isLidRemote ? input.remoteJid : null);
+  const pnJid = input.pnJid || (!isLidRemote && input.phone ? `${digits(input.phone)}@s.whatsapp.net` : null);
+  const phone = pnJid ? digits(pnJid.split("@")[0]) : (!isLidRemote && input.phone ? digits(input.phone) : "");
+  if (!phone && !lidJid) return { duplicate: false, conversationId: null };
+  if (!input.body.trim()) return { duplicate: false, conversationId: null };
+
   if (input.providerMessageId) {
-    const existing = await db
+    const existingMsg = await db
       .from("platform_support_message")
       .select("id")
       .eq("provider_message_id", input.providerMessageId)
       .maybeSingle();
-    if (existing.data) return { duplicate: true, conversationId: null };
+    if (existingMsg.data) return { duplicate: true, conversationId: null };
   }
-  const company = await findCompanyByPhone(phone);
+
   const now = new Date().toISOString();
-  const conversation = await db
-    .from("platform_support_conversation")
-    .upsert(
-      {
-        phone_e164: phone,
+  const company = phone ? await findCompanyByPhone(phone) : null;
+
+  // Find existing conversation by phone or by lidJid
+  let existingConv: any = null;
+  if (phone) {
+    const res = await db
+      .from("platform_support_conversation")
+      .select("*")
+      .eq("phone_e164", phone)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    existingConv = res.data ?? null;
+  }
+  if (!existingConv && lidJid) {
+    const res = await db
+      .from("platform_support_conversation")
+      .select("*")
+      .eq("lid_jid", lidJid)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    existingConv = res.data ?? null;
+  }
+
+  let conversationId = existingConv?.id;
+  if (existingConv) {
+    // If was resolved, a new user message reopens it in 'pending' (Aguardando), without responsible
+    const nextStatus =
+      existingConv.status === "resolved" ? "pending" : existingConv.status || "pending";
+    const assignedTo = existingConv.status === "resolved" ? null : existingConv.assigned_to;
+    const assignedName = existingConv.status === "resolved" ? null : existingConv.assigned_name;
+    const unreadCount = Number(existingConv.unread_count || 0) + 1;
+
+    const updates: Record<string, unknown> = {
+      status: nextStatus,
+      assigned_to: assignedTo,
+      assigned_name: assignedName,
+      unread_count: unreadCount,
+      last_message_at: now,
+      last_message_preview: input.body.slice(0, 180),
+      updated_at: now,
+    };
+    const isOldPhoneLid = Boolean(
+      existingConv.lid_jid &&
+      existingConv.phone_e164 &&
+      existingConv.lid_jid.split("@")[0] === existingConv.phone_e164,
+    );
+    if (phone && (!existingConv.phone_e164 || existingConv.phone_e164 === "indisponivel" || isOldPhoneLid)) {
+      updates.phone_e164 = phone;
+    }
+    if (lidJid && !existingConv.lid_jid) updates.lid_jid = lidJid;
+    if (pnJid && !existingConv.pn_jid) updates.pn_jid = pnJid;
+    if (input.contactName && !existingConv.contact_name)
+      updates.contact_name = input.contactName.trim();
+    if (company?.id && !existingConv.subscriber_company_id)
+      updates.subscriber_company_id = company.id;
+
+    await db.from("platform_support_conversation").update(updates).eq("id", conversationId);
+  } else {
+    // Brand new contact: starts in 'pending' (Aguardando)
+    const insertedConv = await db
+      .from("platform_support_conversation")
+      .insert({
+        phone_e164: phone || "indisponivel",
+        lid_jid: lidJid || null,
+        pn_jid: pnJid || null,
         contact_name: input.contactName?.trim() || null,
         subscriber_company_id: company?.id || null,
-        status: "open",
+        status: "pending",
+        unread_count: 1,
         last_message_at: now,
         last_message_preview: input.body.slice(0, 180),
+        created_at: now,
         updated_at: now,
-      },
-      { onConflict: "phone_e164" },
-    )
-    .select("id,unread_count")
-    .single();
-  if (conversation.error) throw new Error(conversation.error.message);
-  await db
-    .from("platform_support_conversation")
-    .update({ unread_count: Number(conversation.data.unread_count || 0) + 1 })
-    .eq("id", conversation.data.id);
-  const inserted = await db.from("platform_support_message").insert({
-    conversation_id: conversation.data.id,
+      })
+      .select("id")
+      .single();
+    if (insertedConv.error) throw new Error(insertedConv.error.message);
+    conversationId = insertedConv.data.id;
+  }
+
+  // Insert inbound message
+  const insertedMsg = await db.from("platform_support_message").insert({
+    conversation_id: conversationId,
     provider_message_id: input.providerMessageId || null,
     direction: "inbound",
     sender_type: "subscriber",
     message_type: input.messageType || "text",
     body: input.body.trim().slice(0, 5000),
+    media_url: input.mediaUrl || null,
+    media_meta: input.mediaMeta || {},
+    quoted_message_id: input.quotedId || null,
     delivery_status: "received",
     provider_payload: input.payload || {},
     created_at: now,
   });
-  if (inserted.error && inserted.error.code !== "23505") throw new Error(inserted.error.message);
+  if (insertedMsg.error && insertedMsg.error.code !== "23505")
+    throw new Error(insertedMsg.error.message);
+
+  // Background fetch profile picture if not set
+  if (conversationId && !existingConv?.avatar_url) {
+    (async () => {
+      try {
+        const { getOrCreateSupportChannel } = await import(
+          "@/lib/whatsapp/master-whatsapp.server"
+        );
+        const channel = await getOrCreateSupportChannel();
+        const { evoGetProfilePicture } = await import("@/lib/whatsapp/evolution.server");
+        const target = phone || lidJid;
+        if (target) {
+          const picUrl = await evoGetProfilePicture(
+            channel.instance_name || "central",
+            target,
+          );
+          if (picUrl) {
+            await db
+              .from("platform_support_conversation")
+              .update({ avatar_url: picUrl })
+              .eq("id", conversationId);
+          }
+        }
+      } catch {
+        // best effort background
+      }
+    })();
+  }
+
   await updateSupportChannel({ last_sync_at: now, last_error: null });
-  return { duplicate: inserted.error?.code === "23505", conversationId: conversation.data.id };
+  return { duplicate: insertedMsg.error?.code === "23505", conversationId };
+}
+
+export async function persistSupportLinkedDeviceOutbound(input: {
+  remoteJid: string;
+  phone?: string | null;
+  contactName?: string | null;
+  body: string;
+  messageType?: string;
+  providerMessageId?: string | null;
+  lidJid?: string | null;
+  pnJid?: string | null;
+  quotedId?: string | null;
+  payload?: unknown;
+}) {
+  const db = await platformDb();
+  const phone = input.phone ? digits(input.phone) : "";
+  const lidJid = input.lidJid || (input.remoteJid.endsWith("@lid") ? input.remoteJid : null);
+  const now = new Date().toISOString();
+
+  // Find conversation
+  let existingConv: any = null;
+  if (phone) {
+    const res = await db
+      .from("platform_support_conversation")
+      .select("id")
+      .eq("phone_e164", phone)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    existingConv = res.data ?? null;
+  }
+  if (!existingConv && lidJid) {
+    const res = await db
+      .from("platform_support_conversation")
+      .select("id")
+      .eq("lid_jid", lidJid)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    existingConv = res.data ?? null;
+  }
+
+  let conversationId = existingConv?.id;
+  if (!conversationId) {
+    const company = phone ? await findCompanyByPhone(phone) : null;
+    const insertedConv = await db
+      .from("platform_support_conversation")
+      .insert({
+        phone_e164: phone || "indisponivel",
+        lid_jid: lidJid || null,
+        pn_jid: input.pnJid || null,
+        contact_name: input.contactName?.trim() || null,
+        subscriber_company_id: company?.id || null,
+        status: "open",
+        last_message_at: now,
+        last_message_preview: input.body.slice(0, 180),
+        created_at: now,
+        updated_at: now,
+      })
+      .select("id")
+      .single();
+    if (insertedConv.error) return;
+    conversationId = insertedConv.data.id;
+  } else {
+    await db
+      .from("platform_support_conversation")
+      .update({
+        last_message_at: now,
+        last_message_preview: input.body.slice(0, 180),
+        updated_at: now,
+      })
+      .eq("id", conversationId);
+  }
+
+  if (input.providerMessageId) {
+    const existingMsg = await db
+      .from("platform_support_message")
+      .select("id")
+      .eq("provider_message_id", input.providerMessageId)
+      .maybeSingle();
+    if (existingMsg.data) return;
+  }
+
+  await db.from("platform_support_message").insert({
+    conversation_id: conversationId,
+    provider_message_id: input.providerMessageId || null,
+    direction: "outbound",
+    sender_type: "owner",
+    sender_name: "Celular vinculado",
+    message_type: input.messageType || "text",
+    body: input.body.trim().slice(0, 5000),
+    delivery_status: "sent",
+    quoted_message_id: input.quotedId || null,
+    provider_payload: input.payload || {},
+    created_at: now,
+  });
+}
+
+export async function updateSupportMessageDeliveryStatus(
+  providerMessageId: string,
+  rawStatus: string,
+) {
+  if (!providerMessageId) return;
+  const db = await platformDb();
+  let status = "sent";
+  const s = rawStatus.toUpperCase();
+  if (s === "DELIVERY_ACK" || s === "DELIVERED") status = "delivered";
+  else if (s === "READ" || s === "PLAYED") status = "read";
+  else if (s === "ERROR" || s === "FAILED") status = "failed";
+
+  await db
+    .from("platform_support_message")
+    .update({ delivery_status: status })
+    .eq("provider_message_id", providerMessageId);
 }
 
 export async function persistSupportOutbound(input: {
   conversationId?: string | null;
   body: string;
   providerMessageId?: string | null;
+  senderType?: "owner" | "system";
+  senderName?: string | null;
+  senderId?: string | null;
+  messageType?: string;
+  mediaUrl?: string | null;
+  mediaMeta?: Record<string, unknown> | null;
+  quotedMessageId?: string | null;
   payload?: unknown;
 }) {
   if (!input.conversationId || !input.body.trim()) return;
@@ -326,9 +557,14 @@ export async function persistSupportOutbound(input: {
     conversation_id: input.conversationId,
     provider_message_id: input.providerMessageId || null,
     direction: "outbound",
-    sender_type: "system",
-    message_type: "text",
+    sender_type: input.senderType || "system",
+    sender_name: input.senderName || (input.senderType === "owner" ? "Atendente" : "MIA"),
+    sender_id: input.senderId || null,
+    message_type: input.messageType || "text",
     body: input.body.trim().slice(0, 5000),
+    media_url: input.mediaUrl || null,
+    media_meta: input.mediaMeta || {},
+    quoted_message_id: input.quotedMessageId || null,
     delivery_status: input.providerMessageId ? "sent" : "queued",
     provider_payload: input.payload || {},
     created_at: now,

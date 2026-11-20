@@ -3,33 +3,26 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { SubscriberAvatar } from "@/components/master/subscriber-avatar";
-import { dayLabel, isNearBottom, startsNewDay } from "@/lib/whatsapp/support-inbox-rules";
+import {
+  dayLabel,
+  formatContactPhone,
+  getStatusBadge,
+  isNearBottom,
+  startsNewDay,
+} from "@/lib/whatsapp/support-inbox-rules";
 import { hasMore } from "@/lib/common/pagination-rules";
-
-type CompanyInfo = {
-  nome?: string;
-  nome_fantasia?: string;
-  email?: string | null;
-  logo_url?: string | null;
-};
-function companyOf(item: { company: CompanyInfo | CompanyInfo[] | null }): CompanyInfo | null {
-  return Array.isArray(item.company) ? (item.company[0] ?? null) : item.company;
-}
-
 import {
   ArrowDown,
-  ArrowLeft,
   Building2,
-  CheckCheck,
-  Circle,
-  Clock3,
+  CheckCircle2,
   Inbox,
   Loader2,
   MessageCircleMore,
+  RadioTower,
   RefreshCw,
   Search,
-  Send,
   Settings2,
+  User,
   UserRound,
 } from "lucide-react";
 import { brandedRouteHead } from "@/config/brand";
@@ -39,57 +32,84 @@ import { Badge } from "@/components/ui/badge";
 import {
   SUPPORT_MESSAGES_PAGE,
   SUPPORT_PAGE,
+  deleteSupportConversation,
   getSupportInbox,
+  resolveSupportConversation,
+  returnSupportConversationToQueue,
+  sendSupportLocationReply,
+  sendSupportMediaReply,
   sendSupportReply,
-  updateSupportConversation,
+  takeSupportConversation,
 } from "@/lib/whatsapp/master-whatsapp.functions";
+import {
+  CompanyInfo,
+  Conversation,
+  Message,
+  Operator,
+} from "@/components/master/conversas/chat-types";
+import { ChatBubble } from "@/components/master/conversas/chat-bubble";
+import { ChatInput } from "@/components/master/conversas/chat-input";
+import { ConversationHeader } from "@/components/master/conversas/conversation-header";
+import {
+  ImageLightbox,
+  MediaPayload,
+  SendLocationDialog,
+  SendMediaDialog,
+} from "@/components/master/conversas/media-dialogs";
+import { DeleteConversationDialog } from "@/components/master/conversas/delete-conversation-dialog";
+
+function companyOf(item: { company: CompanyInfo | CompanyInfo[] | null }): CompanyInfo | null {
+  return Array.isArray(item.company) ? (item.company[0] ?? null) : item.company;
+}
+
+function companyName(item: Conversation) {
+  const comp = companyOf(item);
+  return comp?.nome_fantasia || comp?.nome || "";
+}
 
 export const Route = createFileRoute("/master/conversas")({
-  head: brandedRouteHead("Conversas dos assinantes"),
+  head: brandedRouteHead("Central de Atendimento WhatsApp"),
   component: SupportInboxPage,
 });
 
-interface Conversation {
-  id: string;
-  phone_e164: string;
-  contact_name: string | null;
-  subscriber_company_id: string | null;
-  status: "open" | "pending" | "resolved";
-  unread_count: number;
-  last_message_at: string | null;
-  last_message_preview: string | null;
-  company: CompanyInfo | CompanyInfo[] | null;
-}
-
-interface Message {
-  id: string;
-  conversation_id: string;
-  direction: "inbound" | "outbound";
-  sender_type: "subscriber" | "owner" | "system";
-  message_type: string;
-  body: string;
-  delivery_status: string;
-  created_at: string;
-}
-
 interface InboxData {
-  channel: { provider: "evolution" | "meta"; status: string; phone: string | null };
+  channel: {
+    provider: "evolution" | "meta";
+    activeProvider?: "evolution" | "meta" | null;
+    status: string;
+    phone: string | null;
+    isWhatsmeow?: boolean;
+    whatsmeowOnline?: boolean;
+    whatsmeowPort?: number;
+  };
   conversations: Conversation[];
-  /** Total de conversas no filtro atual (no servidor, não só as carregadas). */
   totalConversations: number;
-  counts: { all: number; unread: number; open: number };
-  /** Conversa aberta, mesmo quando o filtro a tira da lista. */
+  counts: {
+    all: number;
+    pending: number;
+    open: number;
+    resolved: number;
+    unread: number;
+  };
   activeConversation: Conversation | null;
   messages: Message[];
   hasOlderMessages: boolean;
+  operator?: Operator;
 }
-type Filter = "all" | "unread" | "open" | "resolved";
+
+type Filter = "all" | "pending" | "open" | "resolved" | "unread";
 type InboxParams = { limit: number; messageLimit: number; filter: Filter; search: string };
 
 function SupportInboxPage() {
   const fetchInbox = useServerFn(getSupportInbox);
   const sendReply = useServerFn(sendSupportReply);
-  const changeStatus = useServerFn(updateSupportConversation);
+  const sendMedia = useServerFn(sendSupportMediaReply);
+  const sendLocation = useServerFn(sendSupportLocationReply);
+  const takeConversation = useServerFn(takeSupportConversation);
+  const returnToQueue = useServerFn(returnSupportConversationToQueue);
+  const resolveConversation = useServerFn(resolveSupportConversation);
+  const deleteConversation = useServerFn(deleteSupportConversation);
+
   const [data, setData] = useState<InboxData | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -99,34 +119,47 @@ function SupportInboxPage() {
   const [messageLimit, setMessageLimit] = useState(SUPPORT_MESSAGES_PAGE);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
-  const [body, setBody] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState(false);
+
+  // Mensagem sendo respondida / citada
+  const [quotingMessage, setQuotingMessage] = useState<Message | null>(null);
+
+  // Modais de Anexo e Exclusão
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+
   const threadRef = useRef<HTMLDivElement>(null);
-  // Parâmetros atuais da janela: o polling de 8s recarrega exatamente o que está na tela.
   const params = useRef<InboxParams>({ limit, messageLimit, filter, search: debouncedSearch });
   params.current = { limit, messageLimit, filter, search: debouncedSearch };
-  // Posição do histórico antes de "Mensagens anteriores", para a tela não pular.
   const olderAnchor = useRef<{ height: number; top: number } | null>(null);
   const autoOpened = useRef(false);
+  const reqSeqRef = useRef(0);
 
   const load = useCallback(
     async (conversationId = activeId, quiet = false, override: Partial<InboxParams> = {}) => {
+      const seq = ++reqSeqRef.current;
       try {
         const query = { ...params.current, ...override };
-        const result = await fetchInbox({ data: { conversationId, ...query } });
+        const result = (await fetchInbox({
+          data: { conversationId, ...query },
+        })) as unknown as InboxData;
+        if (seq !== reqSeqRef.current) return;
         setData(result);
-        // Abre a primeira conversa só na primeira carga; depois, "voltar" no celular
-        // (sem conversa aberta) não pode ser desfeito pelo polling ou por "Carregar mais".
+
         if (!autoOpened.current && !conversationId && result.conversations.length && !activeId) {
           autoOpened.current = true;
           setActiveId(result.conversations[0].id);
-          const first = await fetchInbox({
+          const first = (await fetchInbox({
             data: { ...query, conversationId: result.conversations[0].id },
-          });
-          setData(first);
+          })) as unknown as InboxData;
+          if (seq === reqSeqRef.current) {
+            setData(first);
+          }
         }
       } catch (error) {
-        if (!quiet)
+        if (!quiet && seq === reqSeqRef.current)
           toast.error(
             error instanceof Error ? error.message : "Não foi possível sincronizar as conversas.",
           );
@@ -136,15 +169,18 @@ function SupportInboxPage() {
   );
 
   useEffect(() => void load(null), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Polling em segundo plano a cada 6 segundos para atualização em tempo real
   useEffect(() => {
-    const timer = window.setInterval(() => void load(activeId, true), 8000);
+    const timer = window.setInterval(() => void load(activeId, true), 6000);
     return () => window.clearInterval(timer);
   }, [activeId, load]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => window.clearTimeout(timer);
   }, [search]);
-  // Filtro ou busca novos voltam para a primeira página.
+
   const firstFilterRun = useRef(true);
   useEffect(() => {
     if (firstFilterRun.current) {
@@ -179,17 +215,16 @@ function SupportInboxPage() {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
     setHasNew(false);
   }
+
   const messages = (data?.messages ?? []) as Message[];
   const firstMessageId = messages[0]?.id;
   const lastMessageId = messages[messages.length - 1]?.id;
-  // Conversa a que as mensagens carregadas pertencem: troca só conta quando elas chegam.
   const threadConversationId = messages[0]?.conversation_id ?? null;
-  // Observa a primeira e a última mensagem (não a quantidade): com a janela cheia,
-  // uma mensagem nova mantém o total igual, mas muda a última.
+
   useLayoutEffect(() => {
     const el = threadRef.current;
     if (!el) {
-      lastActive.current = null; // histórico fechado (celular): reabrir desce até o fim
+      lastActive.current = null;
       return;
     }
     const anchor = olderAnchor.current;
@@ -206,7 +241,6 @@ function SupportInboxPage() {
     } else setHasNew(true);
   }, [firstMessageId, lastMessageId, threadConversationId, activeId]);
 
-  // A lista já chega filtrada e buscada pelo servidor.
   const conversations = data?.conversations ?? [];
   const active =
     (data?.activeConversation?.id === activeId ? data?.activeConversation : null) ??
@@ -214,34 +248,140 @@ function SupportInboxPage() {
     null;
 
   async function selectConversation(item: Conversation) {
+    const seq = ++reqSeqRef.current;
     setActiveId(item.id);
+    setQuotingMessage(null);
     setMessageLimit(SUPPORT_MESSAGES_PAGE);
-    const result = await fetchInbox({
-      data: { ...params.current, messageLimit: SUPPORT_MESSAGES_PAGE, conversationId: item.id },
-    });
-    setData(result);
-  }
-
-  async function send() {
-    const message = body.trim();
-    if (!activeId || !message) return;
-    setBusy(true);
     try {
-      await sendReply({ data: { conversationId: activeId, body: message } });
-      setBody("");
-      await load(activeId, true);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível enviar.");
-    } finally {
-      setBusy(false);
+      const result = (await fetchInbox({
+        data: { ...params.current, messageLimit: SUPPORT_MESSAGES_PAGE, conversationId: item.id },
+      })) as unknown as InboxData;
+      if (seq === reqSeqRef.current) {
+        setData(result);
+      }
+    } catch (err) {
+      if (seq === reqSeqRef.current) {
+        toast.error("Erro ao carregar mensagens da conversa.");
+      }
     }
   }
 
-  async function setStatus(status: "open" | "pending" | "resolved") {
+  // --- Handlers de Envio ---
+  async function handleSendText(body: string, quotedMessageId?: string) {
     if (!activeId) return;
-    await changeStatus({ data: { conversationId: activeId, status } });
-    toast.success(status === "resolved" ? "Conversa resolvida" : "Status atualizado");
+    await sendReply({ data: { conversationId: activeId, body, quotedMessageId } });
     await load(activeId, true);
+  }
+
+  async function handleSendVoice(base64Data: string, mimeType: string, quotedMessageId?: string) {
+    if (!activeId) return;
+    await sendMedia({
+      data: {
+        conversationId: activeId,
+        mediaType: "audio",
+        base64Data,
+        mimeType,
+        quotedMessageId,
+      },
+    });
+    toast.success("Mensagem de voz enviada.");
+    await load(activeId, true);
+  }
+
+  async function handleSendMedia(payload: MediaPayload) {
+    if (!activeId) return;
+    await sendMedia({
+      data: {
+        conversationId: activeId,
+        mediaType: payload.mediaType,
+        base64Data: payload.base64Data,
+        mimeType: payload.mimeType,
+        fileName: payload.fileName,
+        caption: payload.caption,
+        quotedMessageId: quotingMessage?.id,
+      },
+    });
+    setQuotingMessage(null);
+    toast.success("Arquivo enviado pelo WhatsApp.");
+    await load(activeId, true);
+  }
+
+  async function handleSendLocation(loc: {
+    latitude: number;
+    longitude: number;
+    name?: string;
+    address?: string;
+  }) {
+    if (!activeId) return;
+    await sendLocation({
+      data: {
+        conversationId: activeId,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        name: loc.name,
+        address: loc.address,
+        quotedMessageId: quotingMessage?.id,
+      },
+    });
+    setQuotingMessage(null);
+    toast.success("Localização enviada.");
+    await load(activeId, true);
+  }
+
+  // --- Ações de Atendimento ---
+  async function handleTake() {
+    if (!activeId) return;
+    setBusyAction(true);
+    try {
+      await takeConversation({ data: { conversationId: activeId } });
+      toast.success("Você assumiu este atendimento.");
+      await load(activeId, true);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível assumir o atendimento.");
+    } finally {
+      setBusyAction(false);
+    }
+  }
+
+  async function handleReturnToQueue() {
+    if (!activeId) return;
+    setBusyAction(true);
+    try {
+      await returnToQueue({ data: { conversationId: activeId } });
+      toast.success("Conversa devolvida à fila (Aguardando).");
+      await load(activeId, true);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao devolver à fila.");
+    } finally {
+      setBusyAction(false);
+    }
+  }
+
+  async function handleResolve() {
+    if (!activeId) return;
+    setBusyAction(true);
+    try {
+      await resolveConversation({ data: { conversationId: activeId } });
+      toast.success("Atendimento marcado como resolvido.");
+      await load(activeId, true);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao resolver atendimento.");
+    } finally {
+      setBusyAction(false);
+    }
+  }
+
+  async function handleDeleteConfirm(confirmation: string) {
+    if (!activeId) return;
+    try {
+      await deleteConversation({ data: { conversationId: activeId, confirmation } });
+      toast.success("Conversa excluída do painel.");
+      setActiveId(null);
+      await load(null, false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir conversa.");
+      throw err;
+    }
   }
 
   if (!data)
@@ -251,82 +391,143 @@ function SupportInboxPage() {
       </div>
     );
 
-  const connected = data.channel.status === "connected";
+  const connected =
+    data.channel.status === "connected" ||
+    Boolean(data.channel.isWhatsmeow && data.channel.whatsmeowOnline);
 
   return (
-    <main className="mx-auto w-full max-w-[1500px] px-3 py-4 md:px-6 md:py-7">
+    <main className="mx-auto w-full max-w-[1540px] px-3 py-4 md:px-6 md:py-6">
+      {/* Top Header */}
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.16em] text-primary">
-            <Inbox className="size-4" /> Atendimento central
+            <Inbox className="size-4" /> Atendimento central WhatsApp
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight mt-1">
             Conversas dos seus assinantes.
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Mensagens sincronizadas do número oficial do seu SaaS.
+            Central de atendimento unificada conectada ao microserviço Go nativo (whatsmeow).
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Stat label="Conversas" value={data.counts.all} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Stat label="Todas" value={data.counts.all} />
+          <Stat label="Aguardando" value={data.counts.pending} color="amber" />
+          <Stat label="Em atendimento" value={data.counts.open} color="blue" />
+          <Stat label="Resolvidas" value={data.counts.resolved} color="emerald" />
           <Stat label="Não lidas" value={data.counts.unread} accent />
-          <Stat label="Em aberto" value={data.counts.open} />
           <Button variant="outline" size="sm" onClick={() => load(activeId)}>
             <RefreshCw className="size-4" /> Atualizar
           </Button>
         </div>
       </div>
 
-      {!connected && (
-        <div className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 flex flex-wrap items-center gap-3 text-amber-950">
-          <Circle className="size-3 fill-amber-500 text-amber-500" />
-          <div className="min-w-0 flex-1">
-            <strong className="block text-sm">WhatsApp do sistema desconectado</strong>
-            <span className="text-xs opacity-75">
-              Conecte por QR Code ou Meta oficial para receber e responder.
-            </span>
+      {/* Banner de Status do Microserviço Whatsmeow */}
+      {data.channel.isWhatsmeow ? (
+        <div className="mb-4 rounded-2xl border border-violet-200/80 bg-gradient-to-r from-violet-50/70 via-white to-fuchsia-50/40 p-4 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="grid size-11 place-items-center rounded-2xl bg-violet-600 text-white shadow-sm">
+                <RadioTower className="size-6" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display text-base font-bold text-foreground">
+                    WhatsApp Go (whatsmeow)
+                  </h2>
+                  <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                    <CheckCircle2 className="mr-1 size-3.5" /> Serviço Ativo (Porta 8085)
+                  </Badge>
+                  {data.channel.phone && (
+                    <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-800">
+                      +{data.channel.phone}
+                    </span>
+                  )}
+                  {connected && (
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[11px]"
+                    >
+                      Conectado & Sincronizado
+                    </Badge>
+                  )}
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Atendimento em tempo real com suporte a mensagens de voz, imagens, localização,
+                  respostas citadas e identificação de LID/PN.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5 border-violet-200 hover:bg-violet-50"
+              >
+                <Link to="/master/whatsapp-qr">
+                  <Settings2 className="size-4" /> Gerenciar Conexão
+                </Link>
+              </Button>
+            </div>
           </div>
-          <Button asChild size="sm">
-            <Link to="/master/whatsapp-qr">
-              <Settings2 className="size-4" /> Configurar canal
-            </Link>
-          </Button>
         </div>
-      )}
+      ) : null}
 
-      <section className="grid h-[calc(100dvh-7rem)] min-h-[480px] grid-cols-1 grid-rows-1 overflow-hidden rounded-[24px] border bg-card shadow-sm lg:grid-cols-[380px_1fr]">
-        <aside className={`${activeId ? "hidden lg:flex" : "flex"} min-h-0 min-w-0 flex-col border-r`}>
-          <div className="border-b p-4 space-y-3">
+      {/* Grid Principal do Chat */}
+      <section className="grid h-[calc(100dvh-7.5rem)] min-h-[520px] grid-cols-1 grid-rows-1 overflow-hidden rounded-[24px] border bg-card shadow-sm lg:grid-cols-[400px_1fr]">
+        {/* Painel Lateral: Lista de Conversas & Filtros */}
+        <aside
+          className={`${activeId ? "hidden lg:flex" : "flex"} min-h-0 min-w-0 flex-col border-r bg-card`}
+        >
+          <div className="border-b p-3.5 space-y-2.5 bg-muted/10">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Nome, assinante ou telefone"
-                className="pl-9"
+                placeholder="Buscar por nome, número ou atendente…"
+                className="pl-9 text-xs"
               />
             </div>
-            <div className="flex gap-1 overflow-x-auto">
+            {/* Abas / Filtros com Contadores */}
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
               {(
                 [
-                  ["all", "Todas"],
-                  ["unread", "Não lidas"],
-                  ["open", "Abertas"],
-                  ["resolved", "Resolvidas"],
+                  ["all", "Todas", data.counts.all],
+                  ["pending", "Aguardando", data.counts.pending],
+                  ["open", "Em atendimento", data.counts.open],
+                  ["resolved", "Resolvidas", data.counts.resolved],
+                  ["unread", "Não lidas", data.counts.unread],
                 ] as const
-              ).map(([value, label]) => (
+              ).map(([value, label, count]) => (
                 <button
                   type="button"
                   key={value}
                   onClick={() => setFilter(value)}
-                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${filter === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+                    filter === value
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
-                  {label}
+                  <span>{label}</span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                      filter === value
+                        ? "bg-white/20 text-white"
+                        : "bg-background text-muted-foreground"
+                    }`}
+                  >
+                    {count}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+
+          {/* Lista de Contatos */}
+          <div className="min-h-0 flex-1 overflow-y-auto divide-y divide-border/60">
             {conversations.length ? (
               conversations.map((item) => (
                 <ConversationRow
@@ -337,7 +538,7 @@ function SupportInboxPage() {
                 />
               ))
             ) : (
-              <EmptyList />
+              <EmptyList filter={filter} />
             )}
             {conversations.length > 0 && (
               <LoadMoreFooter
@@ -350,45 +551,23 @@ function SupportInboxPage() {
           </div>
         </aside>
 
-        <div className={`${activeId ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col`}>
+        {/* Painel Direito: Thread da Conversa Aberta */}
+        <div className={`${activeId ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col bg-muted/15`}>
           {active ? (
             <>
-              <header className="flex min-h-[76px] items-center gap-3 border-b px-4 md:px-5">
-                <button
-                  type="button"
-                  onClick={() => setActiveId(null)}
-                  className="lg:hidden size-9 grid place-items-center rounded-lg hover:bg-muted"
-                >
-                  <ArrowLeft className="size-5" />
-                </button>
-                <SubscriberAvatar
-                  name={companyName(active) || active.contact_name || active.phone_e164}
-                  src={companyOf(active)?.logo_url}
-                  size={40}
-                />
-                <div className="min-w-0 flex-1">
-                  <strong className="block truncate">
-                    {active.contact_name || formatPhone(active.phone_e164)}
-                  </strong>
-                  {companyOf(active)?.email && (
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {companyOf(active)?.email}
-                    </span>
-                  )}
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    <span>{formatPhone(active.phone_e164)}</span>
-                    {companyName(active) && (
-                      <>
-                        <span>·</span>
-                        <span className="inline-flex items-center gap-1">
-                          <Building2 className="size-3" /> {companyName(active)}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <StatusPicker status={active.status} onChange={setStatus} />
-              </header>
+              {/* Header da conversa ativa */}
+              <ConversationHeader
+                conversation={active}
+                currentOperator={data.operator}
+                onBack={() => setActiveId(null)}
+                onTake={handleTake}
+                onReturnToQueue={handleReturnToQueue}
+                onResolve={handleResolve}
+                onDeleteClick={() => setDeleteModalOpen(true)}
+                busy={busyAction}
+              />
+
+              {/* Mensagens do chat */}
               <div className="relative min-h-0 flex-1">
                 <div
                   ref={threadRef}
@@ -397,18 +576,19 @@ function SupportInboxPage() {
                     if (isNearBottom(el.scrollTop, el.clientHeight, el.scrollHeight))
                       setHasNew(false);
                   }}
-                  className="absolute inset-0 overflow-y-auto overscroll-contain bg-muted/25 p-4 md:p-6"
+                  className="absolute inset-0 overflow-y-auto overscroll-contain p-4 md:p-6"
                 >
-                  <div className="mx-auto max-w-3xl space-y-3">
+                  <div className="mx-auto max-w-3xl space-y-3.5">
                     {data.hasOlderMessages && (
-                      <div className="flex justify-center">
+                      <div className="flex justify-center pb-2">
                         <Button
                           variant="outline"
                           size="sm"
                           disabled={loadingOlder}
                           onClick={() => void loadOlder()}
+                          className="h-8 text-xs gap-1.5 rounded-full shadow-xs"
                         >
-                          {loadingOlder && <Loader2 className="size-4 animate-spin" />} Mensagens
+                          {loadingOlder && <Loader2 className="size-3.5 animate-spin" />} Mensagens
                           anteriores
                         </Button>
                       </div>
@@ -418,82 +598,90 @@ function SupportInboxPage() {
                         <div key={message.id} className="space-y-3">
                           {startsNewDay(messages[index - 1]?.created_at, message.created_at) && (
                             <div className="flex justify-center pt-2">
-                              <span className="rounded-full bg-card px-3 py-1 text-[11px] font-semibold text-muted-foreground shadow-sm">
+                              <span className="rounded-full bg-card border px-3 py-1 text-[11px] font-semibold text-muted-foreground shadow-xs">
                                 {dayLabel(message.created_at)}
                               </span>
                             </div>
                           )}
-                          <Bubble message={message} />
+                          <ChatBubble
+                            message={message}
+                            allMessages={messages}
+                            onQuote={(msg) => setQuotingMessage(msg)}
+                            onPreviewImage={(url) => setPreviewImageUrl(url)}
+                          />
                         </div>
                       ))
                     ) : (
-                      <div className="py-20 text-center text-sm text-muted-foreground">
-                        As mensagens desta conversa aparecerão aqui.
+                      <div className="py-24 text-center text-sm text-muted-foreground">
+                        Nenhuma mensagem encontrada nesta conversa.
                       </div>
                     )}
                   </div>
                 </div>
+
                 {hasNew && (
                   <button
                     type="button"
                     onClick={scrollToBottom}
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-lg"
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-lg hover:brightness-110 cursor-pointer transition-all"
                   >
                     Novas mensagens <ArrowDown className="size-3.5" />
                   </button>
                 )}
               </div>
-              <footer className="border-t bg-card p-3 md:p-4">
-                <div className="mx-auto max-w-3xl">
-                  {data.channel.provider === "meta" && (
-                    <p className="mb-2 text-[11px] text-muted-foreground">
-                      Na API oficial, respostas livres respeitam a janela de 24 horas da Meta.
-                    </p>
-                  )}
-                  <div className="flex items-end gap-2">
-                    <textarea
-                      value={body}
-                      onChange={(event) => setBody(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && !event.shiftKey) {
-                          event.preventDefault();
-                          void send();
-                        }
-                      }}
-                      placeholder="Escreva sua resposta…"
-                      rows={2}
-                      className="min-h-[48px] max-h-32 flex-1 resize-none rounded-xl border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/25"
-                    />
-                    <Button
-                      size="icon"
-                      className="size-12 shrink-0 rounded-xl"
-                      onClick={send}
-                      disabled={busy || !body.trim() || !connected}
-                    >
-                      {busy ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Send className="size-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </footer>
+
+              {/* Barra de Envio e Microfone */}
+              <ChatInput
+                conversationId={active.id}
+                connected={connected}
+                isMetaProvider={data.channel.provider === "meta"}
+                quotingMessage={quotingMessage}
+                onClearQuote={() => setQuotingMessage(null)}
+                onSendText={handleSendText}
+                onSendVoice={handleSendVoice}
+                onOpenMediaModal={() => setMediaModalOpen(true)}
+                onOpenLocationModal={() => setLocationModalOpen(true)}
+              />
             </>
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center p-8 text-center bg-card">
               <div className="size-20 rounded-3xl bg-primary/10 text-primary grid place-items-center">
-                <MessageCircleMore className="size-9" />
+                <MessageCircleMore className="size-10" />
               </div>
-              <h2 className="font-display text-xl font-bold mt-4">Escolha uma conversa</h2>
+              <h2 className="font-display text-xl font-bold mt-4">Central de Atendimento</h2>
               <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                Veja o histórico, identifique o assinante assinante, responda e marque o atendimento
-                como resolvido.
+                Selecione uma conversa ao lado para responder mensagens, acompanhar o status e
+                prestar suporte direto via WhatsApp.
               </p>
             </div>
           )}
         </div>
       </section>
+
+      {/* Modais de Envio de Arquivos, Localização, Lightbox e Exclusão */}
+      <SendMediaDialog
+        open={mediaModalOpen}
+        onOpenChange={setMediaModalOpen}
+        onSend={handleSendMedia}
+      />
+
+      <SendLocationDialog
+        open={locationModalOpen}
+        onOpenChange={setLocationModalOpen}
+        onSend={handleSendLocation}
+      />
+
+      <ImageLightbox
+        url={previewImageUrl}
+        onClose={() => setPreviewImageUrl(null)}
+      />
+
+      <DeleteConversationDialog
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        conversation={active}
+        onConfirm={handleDeleteConfirm}
+      />
     </main>
   );
 }
@@ -502,16 +690,27 @@ function Stat({
   label,
   value,
   accent = false,
+  color,
 }: {
   label: string;
   value: number;
   accent?: boolean;
+  color?: "amber" | "blue" | "emerald";
 }) {
+  const colorClass =
+    color === "amber"
+      ? "border-amber-300 bg-amber-50/60 text-amber-900"
+      : color === "blue"
+        ? "border-blue-300 bg-blue-50/60 text-blue-900"
+        : color === "emerald"
+          ? "border-emerald-300 bg-emerald-50/60 text-emerald-900"
+          : accent && value
+            ? "border-primary/30 bg-primary/5 text-primary"
+            : "bg-card";
+
   return (
-    <div
-      className={`rounded-xl border px-3 py-2 ${accent && value ? "border-primary/30 bg-primary/5" : "bg-card"}`}
-    >
-      <strong className="text-lg leading-none">{value}</strong>
+    <div className={`rounded-xl border px-3 py-1.5 shadow-2xs ${colorClass}`}>
+      <strong className="text-base leading-none font-bold">{value}</strong>
       <span className="ml-1.5 text-xs text-muted-foreground">{label}</span>
     </div>
   );
@@ -526,34 +725,69 @@ function ConversationRow({
   active: boolean;
   onClick: () => void;
 }) {
+  const company = companyOf(item);
+  const compName = companyName(item);
+  const statusInfo = getStatusBadge(item.status);
+  const phoneFormatted = formatContactPhone(item.phone_e164, item.lid_jid);
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full border-b p-4 text-left transition-colors ${active ? "bg-primary/7" : "hover:bg-muted/50"}`}
+      className={`w-full p-3.5 text-left transition-colors cursor-pointer ${
+        active ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-muted/40"
+      }`}
     >
       <div className="flex gap-3">
         <SubscriberAvatar
-          name={companyName(item) || item.contact_name || item.phone_e164}
-          src={companyOf(item)?.logo_url}
-          size={40}
+          name={compName || item.contact_name || item.phone_e164}
+          src={item.avatar_url || company?.logo_url}
+          size={42}
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <strong className="truncate text-sm">
-              {item.contact_name || formatPhone(item.phone_e164)}
+          <div className="flex items-center gap-1.5 justify-between">
+            <strong className="truncate text-sm font-semibold text-foreground">
+              {item.contact_name || phoneFormatted}
             </strong>
-            <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+            <span className="shrink-0 text-[10px] text-muted-foreground">
               {relativeDate(item.last_message_at)}
             </span>
           </div>
-          <p className="mt-1 truncate text-xs text-muted-foreground">
-            {item.last_message_preview || "Sem mensagem"}
+
+          <div className="mt-0.5 text-xs text-muted-foreground truncate">
+            {phoneFormatted}
+          </div>
+
+          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+            {item.last_message_preview || "Nenhuma mensagem ainda"}
           </p>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant="secondary" className="max-w-[190px] truncate text-[10px] font-medium">
-              {companyName(item) || "Assinante não identificado"}
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <Badge
+              variant="outline"
+              className={`h-4.5 px-1.5 text-[9px] font-semibold ${statusInfo.className}`}
+            >
+              {statusInfo.label}
             </Badge>
+
+            {item.assigned_name && (
+              <Badge
+                variant="secondary"
+                className="h-4.5 px-1.5 text-[9px] font-medium text-foreground/80 max-w-[130px] truncate"
+              >
+                <User className="mr-0.5 size-2.5" /> {item.assigned_name}
+              </Badge>
+            )}
+
+            {compName && (
+              <Badge
+                variant="outline"
+                className="h-4.5 px-1.5 text-[9px] font-medium max-w-[120px] truncate border-border/80"
+              >
+                <Building2 className="mr-0.5 size-2.5" /> {compName}
+              </Badge>
+            )}
+
             {Number(item.unread_count) > 0 && (
               <span className="ml-auto min-w-5 h-5 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold grid place-items-center">
                 {item.unread_count}
@@ -566,51 +800,6 @@ function ConversationRow({
   );
 }
 
-function Bubble({ message }: { message: Message }) {
-  const outgoing = message.direction === "outbound";
-  return (
-    <div className={`flex ${outgoing ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-sm ${outgoing ? "bg-primary text-primary-foreground rounded-br-md" : "bg-card border rounded-bl-md"}`}
-      >
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.body}</p>
-        <div
-          className={`mt-1.5 flex items-center justify-end gap-1 text-[10px] ${outgoing ? "text-primary-foreground/65" : "text-muted-foreground"}`}
-        >
-          <span>
-            {new Date(message.created_at).toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-          {outgoing && <CheckCheck className="size-3" />}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatusPicker({
-  status,
-  onChange,
-}: {
-  status: string;
-  onChange: (status: "open" | "pending" | "resolved") => void;
-}) {
-  return (
-    <select
-      value={status}
-      onChange={(event) => onChange(event.target.value as "open" | "pending" | "resolved")}
-      className="h-9 rounded-lg border bg-background px-2 text-xs font-semibold outline-none"
-    >
-      <option value="open">Em atendimento</option>
-      <option value="pending">Aguardando</option>
-      <option value="resolved">Resolvida</option>
-    </select>
-  );
-}
-
-/** Rodapé da lista: quantas aparecem do total e o botão "Carregar mais". */
 function LoadMoreFooter({
   shown,
   total,
@@ -636,40 +825,29 @@ function LoadMoreFooter({
   );
 }
 
-function EmptyList() {
+function EmptyList({ filter }: { filter: string }) {
+  const msg =
+    filter === "pending"
+      ? "Nenhuma conversa aguardando atendimento."
+      : filter === "open"
+        ? "Nenhuma conversa em atendimento no momento."
+        : filter === "resolved"
+          ? "Nenhuma conversa resolvida recentemente."
+          : filter === "unread"
+            ? "Nenhuma conversa com mensagens não lidas."
+            : "Nenhuma conversa encontrada.";
+
   return (
     <div className="px-6 py-20 text-center">
-      <UserRound className="mx-auto size-8 text-muted-foreground/40" />
-      <p className="mt-3 text-sm font-semibold">Nenhuma conversa aqui</p>
+      <UserRound className="mx-auto size-9 text-muted-foreground/35" />
+      <p className="mt-3 text-sm font-semibold">{msg}</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Quando um assinante chamar, ele aparece automaticamente.
+        Quando um cliente entrar em contato pelo WhatsApp, ele aparecerá aqui.
       </p>
     </div>
   );
 }
-function companyName(item: Conversation) {
-  const company = item.company as unknown as
-    { nome?: string; nome_fantasia?: string } | { nome?: string; nome_fantasia?: string }[] | null;
-  const row = Array.isArray(company) ? company[0] : company;
-  return row?.nome_fantasia || row?.nome || "";
-}
-function initials(value: string) {
-  return (
-    value
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "?"
-  );
-}
-function formatPhone(value: string) {
-  const phone = value.replace(/\D/g, "");
-  if (phone.length === 13)
-    return `+${phone.slice(0, 2)} (${phone.slice(2, 4)}) ${phone.slice(4, 9)}-${phone.slice(9)}`;
-  return `+${phone}`;
-}
+
 function relativeDate(value: string | null) {
   if (!value) return "";
   const date = new Date(value);

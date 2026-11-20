@@ -174,25 +174,6 @@ function PaymentsPage() {
         </Card>
       </section>
 
-      <Card className="p-5 sm:p-6">
-        <div className="flex gap-3">
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-sky-500/10 text-sky-600">
-            <ExternalLink className="size-5" />
-          </div>
-          <div>
-            <h2 className="font-display text-lg font-black">Prefere link externo?</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Use Kiwify, Cakto, PerfectPay ou outro checkout. Em cada plano, cole a URL correta no
-              campo de link de checkout.
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-          O cliente será enviado para fora do sistema. A liberação automática depende do webhook
-          desse provedor estar integrado.
-        </div>
-      </Card>
-
       <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
         <ShieldCheck className="size-5 shrink-0" /> Nenhuma chave é exibida novamente. O teste usa a
         credencial somente no servidor.

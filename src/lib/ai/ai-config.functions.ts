@@ -3,74 +3,59 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertSuperAdmin } from "@/lib/master/master-guards";
+import type { IntegrationProvider } from "@/lib/common/integration-secrets.server";
 
 async function adminDb() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as any;
 }
 
-type Mode = "lovable" | "openai" | "anthropic" | "openrouter" | "gemini";
-type Byok = Exclude<Mode, "lovable">;
-const MODES: Mode[] = ["lovable", "openai", "anthropic", "openrouter", "gemini"];
-const INTEGRATION = {
+export type AiMode = "gemini" | "openrouter" | "deepseek" | "xai" | "openai" | "anthropic" | "lovable";
+export type Byok = "gemini" | "openrouter" | "deepseek" | "xai" | "openai" | "anthropic";
+export const MODES: AiMode[] = ["gemini", "openrouter", "deepseek", "xai", "openai", "anthropic"];
+
+const INTEGRATION: Record<Byok, IntegrationProvider> = {
+  gemini: "ai_gemini",
+  openrouter: "ai_openrouter",
+  deepseek: "ai_deepseek",
+  xai: "ai_xai",
   openai: "ai_openai",
   anthropic: "ai_anthropic",
-  openrouter: "ai_openrouter",
-  gemini: "ai_gemini",
-} as const;
+};
 
-/** Modelos válidos por provedor: estáticos (OpenAI/Anthropic/Lovable) + catálogo do banco. */
+/** Modelos válidos por provedor carregados do catálogo `ai_model_catalog` */
 async function modelOptions() {
-  const { AI_MODEL_OPTIONS, loadModelCatalog } = await import("@/lib/ai/ai-provider.server");
+  const { loadModelCatalog } = await import("@/lib/ai/ai-provider.server");
   const catalog = await loadModelCatalog();
-  const fromCatalog = (p: "openrouter" | "gemini") =>
-    catalog
-      .filter((c) => c.provider === p)
-      .map((c) => ({
-        id: c.model_id,
-        label: c.label,
-        hint: [c.supports_vision && "imagem", c.supports_pdf && "PDF", c.supports_audio && "áudio"].filter(Boolean).join(" · ") || "texto (anexos convertidos)",
-      }));
-  return {
-    ...AI_MODEL_OPTIONS,
-    openrouter: fromCatalog("openrouter"),
-    gemini: fromCatalog("gemini"),
-  } as Record<Mode, { id: string; label: string; hint: string }[]>;
-}
+  const byProvider: Record<string, { id: string; label: string; hint: string; isEmbedding: boolean; dimension: number | null }[]> = {
+    gemini: [],
+    openrouter: [],
+    deepseek: [],
+    xai: [],
+    openai: [],
+    anthropic: [],
+    lovable: [],
+  };
 
-async function probeAiProvider(provider: Mode, providedKey?: string, chosenModel?: string) {
-  const probe = [{ role: "user" as const, content: "Responda apenas: ok" }];
-  if (provider === "lovable") {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("Lovable AI não está disponível neste ambiente.");
-    const { LOVABLE_AI_MODEL } = await import("@/lib/ai/lovable-ai-config");
-    const { fetchAiProvider } = await import("@/lib/ai/ai-request.server");
-    const res = await fetchAiProvider(
-      "Lovable AI",
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: LOVABLE_AI_MODEL, messages: probe }),
-      },
-    );
-    if (!res.ok) throw new Error(`Lovable AI respondeu ${res.status}.`);
-    return;
+  for (const c of catalog) {
+    if (!byProvider[c.provider]) byProvider[c.provider] = [];
+    byProvider[c.provider].push({
+      id: c.model_id,
+      label: c.label,
+      hint: c.is_embedding
+        ? `Embedding · ${c.embedding_dimension || 768} dim`
+        : [c.supports_vision && "imagem", c.supports_pdf && "PDF", c.supports_audio && "áudio"].filter(Boolean).join(" · ") || "texto",
+      isEmbedding: Boolean(c.is_embedding),
+      dimension: c.embedding_dimension ?? null,
+    });
   }
 
-  let key = String(providedKey || "").trim();
-  const byok = provider as Byok;
-  if (!key) {
-    const { resolveIntegration } = await import("@/lib/common/integration-secrets.server");
-    key = (await resolveIntegration(INTEGRATION[byok])).api_key;
+  // Se lovable não tiver itens próprios, herda gemini para compatibilidade
+  if (byProvider.lovable.length === 0) {
+    byProvider.lovable = byProvider.gemini;
   }
-  if (!key) throw new Error("Nenhuma chave salva para este provedor.");
-  const { byokChat } = await import("@/lib/ai/ai-provider.server");
-  const options = (await modelOptions())[provider];
-  if (!options.length) throw new Error("Nenhum modelo ativo no catálogo deste provedor.");
-  const model = chosenModel && options.some((m) => m.id === chosenModel) ? chosenModel : options[0].id;
-  const out = await byokChat(byok, key, model, probe);
-  if (!out) throw new Error(`O modelo ${model} respondeu vazio.`);
+
+  return byProvider;
 }
 
 export const getAiOverview = createServerFn({ method: "POST" })
@@ -82,14 +67,31 @@ export const getAiOverview = createServerFn({ method: "POST" })
     await assertSuperAdmin(context.supabase);
     const db = await adminDb();
     const { describeIntegration } = await import("@/lib/common/integration-secrets.server");
+    const { getEmbeddingCoverageStats } = await import("@/lib/ai/ai-embeddings.server");
     const since = new Date(Date.now() - data.days * 86400_000).toISOString();
-    const [config, openai, anthropic, openrouter, gemini, models, ledger, companies] = await Promise.all([
+
+    const [
+      config,
+      gemini,
+      openrouter,
+      deepseek,
+      xai,
+      openai,
+      anthropic,
+      models,
+      coverage,
+      ledger,
+      companies,
+    ] = await Promise.all([
       db.from("ai_provider_config").select("*").eq("id", true).maybeSingle(),
+      describeIntegration("ai_gemini"),
+      describeIntegration("ai_openrouter"),
+      describeIntegration("ai_deepseek"),
+      describeIntegration("ai_xai"),
       describeIntegration("ai_openai"),
       describeIntegration("ai_anthropic"),
-      describeIntegration("ai_openrouter"),
-      describeIntegration("ai_gemini"),
       modelOptions(),
+      getEmbeddingCoverageStats(),
       db
         .from("credit_ledger")
         .select("company_id,delta,motivo,created_at")
@@ -97,6 +99,7 @@ export const getAiOverview = createServerFn({ method: "POST" })
         .limit(20000),
       db.from("company").select("id,nome,nome_fantasia,creditos_saldo,trial_ate").limit(5000),
     ]);
+
     const rows = ledger.data ?? [];
     const consumed = rows.filter((r: any) => r.delta < 0);
     const refunds = rows.filter(
@@ -124,30 +127,56 @@ export const getAiOverview = createServerFn({ method: "POST" })
       const d = String(r.created_at).slice(0, 10);
       days.set(d, (days.get(d) || 0) + Math.abs(r.delta));
     }
-    const cfg = config.data ?? { mode: "lovable", optimized: true };
+    const cfg = config.data ?? {
+      mode: "gemini",
+      model: "gemini-3.8-flash",
+      optimized: true,
+      embedding_provider: "gemini",
+      embedding_model: "gemini-embedding-2",
+      embedding_dimension: 768,
+    };
+
     const mask = (item: any) => ({
       configured: item.fields[0]?.configured ?? false,
+      source: item.fields[0]?.source ?? "none",
+      envVar: item.fields[0]?.envVar ?? "",
       last4: item.fields[0]?.last4 ?? null,
       testedAt: item.testedAt,
       testOk: item.testOk,
+      lastError: item.lastError,
     });
+
+    const providerMasks = {
+      gemini: mask(gemini),
+      openrouter: mask(openrouter),
+      deepseek: mask(deepseek),
+      xai: mask(xai),
+      openai: mask(openai),
+      anthropic: mask(anthropic),
+    };
+
     return {
       config: {
-        mode: cfg.mode as Mode,
-        model: (cfg.model ?? null) as string | null,
+        mode: (cfg.mode || "gemini") as AiMode,
+        model: (cfg.model ?? "gemini-3.8-flash") as string,
         optimized: cfg.optimized !== false,
+        fallbackEnabled: Boolean(cfg.fallback_enabled),
+        fallbackMode: (cfg.fallback_mode ?? null) as string | null,
+        fallbackModel: (cfg.fallback_model ?? null) as string | null,
+        embeddingProvider: (cfg.embedding_provider ?? "gemini") as string,
+        embeddingModel: (cfg.embedding_model ?? "gemini-embedding-2") as string,
+        embeddingDimension: (cfg.embedding_dimension ?? 768) as number,
+        fallbackEmbeddingProvider: (cfg.fallback_embedding_provider ?? null) as string | null,
+        fallbackEmbeddingModel: (cfg.fallback_embedding_model ?? null) as string | null,
         testedAt: cfg.tested_at ?? null,
         testOk: cfg.test_ok ?? null,
         lastError: cfg.last_error ?? null,
         lastTestMs: (cfg.last_test_ms ?? null) as number | null,
       },
       models,
-      byok: {
-        openai: mask(openai),
-        anthropic: mask(anthropic),
-        openrouter: mask(openrouter),
-        gemini: mask(gemini),
-      },
+      coverage,
+      providers: providerMasks,
+      byok: providerMasks,
       metrics: {
         days: data.days,
         aiActions: consumed.length,
@@ -171,61 +200,46 @@ export const getAiOverview = createServerFn({ method: "POST" })
 
 export const saveAiMode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { mode: Mode; model?: string | null; optimized: boolean }) => {
-    if (!MODES.includes(data?.mode)) throw new Error("Modo inválido.");
-    return {
-      mode: data.mode,
-      model: data?.model ? String(data.model).slice(0, 80) : null,
-      optimized: Boolean(data?.optimized),
-    };
-  })
+  .inputValidator(
+    (data: {
+      mode: string;
+      model?: string | null;
+      optimized: boolean;
+      fallbackEnabled?: boolean;
+      fallbackMode?: string | null;
+      fallbackModel?: string | null;
+      embeddingProvider?: string | null;
+      embeddingModel?: string | null;
+      embeddingDimension?: number | null;
+      fallbackEmbeddingProvider?: string | null;
+      fallbackEmbeddingModel?: string | null;
+    }) => data,
+  )
   .handler(async ({ context, data }) => {
     await assertSuperAdmin(context.supabase);
     const { clearAiProviderCache } = await import("@/lib/ai/ai-provider.server");
-    const options = (await modelOptions())[data.mode];
-    if (data.model && !options.some((m) => m.id === data.model))
-      throw new Error("Modelo não disponível para este provedor.");
-    if (["openrouter", "gemini"].includes(data.mode) && !data.model)
-      throw new Error("Escolha um modelo para ativar.");
-    const started = Date.now();
     const db = await adminDb();
-    let testOk: boolean | null = null;
-    if (data.mode !== "lovable") {
-      const { describeIntegration, recordIntegrationTest } =
-        await import("@/lib/common/integration-secrets.server");
-      const item = await describeIntegration(INTEGRATION[data.mode]);
-      if (!item.configured) throw new Error("Salve a chave deste provedor antes de ativá-lo.");
-      {
-        const integration = INTEGRATION[data.mode];
-        try {
-          await probeAiProvider(data.mode, undefined, data.model || undefined);
-          await recordIntegrationTest(integration, true, null);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : "Provedor indisponível.";
-          await recordIntegrationTest(integration, false, message);
-          throw new Error(`Não foi possível ativar automaticamente: ${message}`);
-        }
-      }
-      testOk = true;
-    } else {
-      testOk = Boolean(process.env.LOVABLE_API_KEY);
-    }
+
     const { error } = await db.from("ai_provider_config").upsert({
       id: true,
       mode: data.mode,
-      model: data.model,
-      optimized: data.optimized,
-      test_ok: testOk,
-      tested_at: new Date().toISOString(),
-      last_test_ms: Date.now() - started,
-      last_error: null,
-      // Uma ativação testada com sucesso encerra qualquer pausa automática.
-      consecutive_failures: 0,
-      paused_until: null,
+      model: data.model || null,
+      optimized: data.optimized !== false,
+      fallback_enabled: Boolean(data.fallbackEnabled),
+      fallback_mode: data.fallbackMode || null,
+      fallback_model: data.fallbackModel || null,
+      embedding_provider: data.embeddingProvider || "gemini",
+      embedding_model: data.embeddingModel || "gemini-embedding-2",
+      embedding_dimension: data.embeddingDimension || 768,
+      embedding_fallback_provider: data.fallbackEmbeddingProvider || null,
+      embedding_fallback_model: data.fallbackEmbeddingModel || null,
+      fallback_embedding_provider: data.fallbackEmbeddingProvider || null,
+      fallback_embedding_model: data.fallbackEmbeddingModel || null,
       updated_by: context.userId,
       updated_at: new Date().toISOString(),
     });
     if (error) throw new Error(error.message);
+
     clearAiProviderCache();
     const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
     await writeMasterAudit({
@@ -233,7 +247,78 @@ export const saveAiMode = createServerFn({ method: "POST" })
       action: "ai_provider_activated",
       target: `${data.mode}:${data.model ?? "padrão"}`,
     } as any);
-    return { ok: true, message: "Modelo ativado. A MIA já usa ele nas próximas mensagens." };
+
+    return { ok: true, message: "Configurações de IA salvas. A MIA já usa este modelo." };
+  });
+
+export const testAiProvider = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { provider: string; model?: string | null }) => data)
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { testLlmConnection } = await import("@/lib/ai/ai-orchestrator.server");
+    try {
+      const result = await testLlmConnection(data.provider as any, data.model || undefined);
+      return result;
+    } catch (error) {
+      return {
+        ok: false,
+        ms: 0,
+        message: error instanceof Error ? error.message : "Falha na conexão com o modelo de IA.",
+      };
+    }
+  });
+
+export const testAiEmbedding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { provider?: string; model?: string; dimension?: number }) => data)
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { testEmbeddingConnection } = await import("@/lib/ai/ai-orchestrator.server");
+    try {
+      const provider = (data.provider || "gemini") as "gemini" | "openrouter" | "openai";
+      const model = data.model || "gemini-embedding-2";
+      const dim = data.dimension || 768;
+      const result = await testEmbeddingConnection(provider, model, dim);
+      return result;
+    } catch (error) {
+      return {
+        ok: false,
+        ms: 0,
+        dimension: 0,
+        message: error instanceof Error ? error.message : "Falha ao gerar embedding vetorial.",
+      };
+    }
+  });
+
+export const reindexAllEmbeddings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase);
+    const db = await adminDb();
+    const { data: lancamentos } = await db
+      .from("fin_lancamento")
+      .select("id,company_id,descricao")
+      .neq("status", "cancelado")
+      .limit(100);
+
+    const { indexTransactionEmbedding, getEmbeddingCoverageStats } = await import(
+      "@/lib/ai/ai-embeddings.server"
+    );
+    let indexed = 0;
+    for (const l of lancamentos || []) {
+      if (l.descricao) {
+        await indexTransactionEmbedding(l.id, l.company_id, l.descricao);
+        indexed++;
+      }
+    }
+    const coverage = await getEmbeddingCoverageStats();
+    return {
+      ok: true,
+      indexed,
+      coverage,
+      message: `${indexed} lançamentos reindexados com pgvector com sucesso.`,
+    };
   });
 
 export const saveByokKey = createServerFn({ method: "POST" })
@@ -241,15 +326,21 @@ export const saveByokKey = createServerFn({ method: "POST" })
   .inputValidator((data: { provider: Byok; apiKey: string; model?: string | null }) => {
     if (!(data?.provider in INTEGRATION)) throw new Error("Provedor inválido.");
     const apiKey = String(data?.apiKey || "").trim();
-    if (apiKey.length < 20 || apiKey.length > 300 || /\s/.test(apiKey))
+    if (apiKey.length < 10 || apiKey.length > 300 || /\s/.test(apiKey))
       throw new Error("Chave em formato inválido.");
-    return { provider: data.provider, apiKey, model: data?.model ? String(data.model).slice(0, 80) : undefined };
+    return {
+      provider: data.provider,
+      apiKey,
+      model: data?.model ? String(data.model).slice(0, 80) : undefined,
+    };
   })
   .handler(async ({ context, data }) => {
     await assertSuperAdmin(context.supabase);
-    const { saveIntegrationValues, recordIntegrationTest } =
-      await import("@/lib/common/integration-secrets.server");
-    await probeAiProvider(data.provider, data.apiKey, data.model);
+    const { saveIntegrationValues, recordIntegrationTest } = await import(
+      "@/lib/common/integration-secrets.server"
+    );
+    const { testLlmConnection } = await import("@/lib/ai/ai-orchestrator.server");
+    await testLlmConnection(data.provider, data.model);
     await saveIntegrationValues(
       INTEGRATION[data.provider],
       { api_key: data.apiKey },
@@ -274,43 +365,8 @@ export const deleteByokKey = createServerFn({ method: "POST" })
       .eq("id", true)
       .maybeSingle();
     if (cfg?.mode === data.provider)
-      throw new Error("Volte para Lovable AI antes de remover a chave do provedor ativo.");
+      throw new Error("Mude para outro provedor antes de remover a chave do provedor ativo.");
     const { deleteIntegrationValues } = await import("@/lib/common/integration-secrets.server");
     await deleteIntegrationValues(INTEGRATION[data.provider]);
     return { ok: true };
-  });
-
-export const testAiProvider = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { provider: Mode; model?: string | null }) => {
-    if (!MODES.includes(data?.provider)) throw new Error("Provedor inválido.");
-    return { provider: data.provider, model: data?.model ? String(data.model).slice(0, 80) : undefined };
-  })
-  .handler(async ({ context, data }) => {
-    await assertSuperAdmin(context.supabase);
-    const started = Date.now();
-    try {
-      await probeAiProvider(data.provider, undefined, data.model);
-      if (data.provider !== "lovable") {
-        const { recordIntegrationTest } = await import("@/lib/common/integration-secrets.server");
-        const provider = INTEGRATION[data.provider as Byok];
-        await recordIntegrationTest(provider, true, null);
-      }
-      return { ok: true, ms: Date.now() - started, message: "Provedor respondeu corretamente." };
-    } catch (error) {
-      if (data.provider !== "lovable") {
-        const { recordIntegrationTest } = await import("@/lib/common/integration-secrets.server");
-        const provider = INTEGRATION[data.provider as Byok];
-        await recordIntegrationTest(
-          provider,
-          false,
-          error instanceof Error ? error.message : "falha",
-        ).catch(() => undefined);
-      }
-      return {
-        ok: false,
-        ms: Date.now() - started,
-        message: error instanceof Error ? error.message : "Falha no teste.",
-      };
-    }
   });

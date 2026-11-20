@@ -11,6 +11,8 @@ export type IntegrationProvider =
   | "ai_anthropic"
   | "ai_openrouter"
   | "ai_gemini"
+  | "ai_deepseek"
+  | "ai_xai"
   | "infinitepay";
 
 export const INTEGRATION_FIELDS: Record<
@@ -32,11 +34,13 @@ export const INTEGRATION_FIELDS: Record<
     { field: "app_secret", env: "WHATSAPP_META_APP_SECRET", secret: true },
     { field: "api_version", env: "WHATSAPP_META_API_VERSION", secret: false },
   ],
-  // BYOK opcional (um único provedor ativo por vez em ai_provider_config).
-  ai_openai: [{ field: "api_key", env: "MARCIA_BYOK_OPENAI_API_KEY", secret: true }],
-  ai_anthropic: [{ field: "api_key", env: "MARCIA_BYOK_ANTHROPIC_API_KEY", secret: true }],
-  ai_openrouter: [{ field: "api_key", env: "OPENROUTER_API_KEY", secret: true }],
+  // Provedores de IA do MIAnota (ambiente tem precedência com fallback transitório para chaves salvas)
   ai_gemini: [{ field: "api_key", env: "GEMINI_API_KEY", secret: true }],
+  ai_openrouter: [{ field: "api_key", env: "OPENROUTER_API_KEY", secret: true }],
+  ai_deepseek: [{ field: "api_key", env: "DEEPSEEK_API_KEY", secret: true }],
+  ai_xai: [{ field: "api_key", env: "XAI_API_KEY", secret: true }],
+  ai_openai: [{ field: "api_key", env: "OPENAI_API_KEY", secret: true }],
+  ai_anthropic: [{ field: "api_key", env: "ANTHROPIC_API_KEY", secret: true }],
   infinitepay: [
     { field: "handle", env: "INFINITEPAY_TAG", secret: false },
     { field: "api_key", env: "INFINITEPAY_API_KEY", secret: true },
@@ -135,14 +139,43 @@ export async function resolveIntegration(
   for (const def of INTEGRATION_FIELDS[provider]) {
     const row = rows.find((r) => r.field === def.field);
     let value = "";
-    if (row) {
-      try {
-        value = await decrypt(row.ciphertext, row.iv, `${provider}:${def.field}`);
-      } catch {
-        console.error(`[integrations] falha ao ler ${provider}.${def.field}`);
+    const isAi = provider.startsWith("ai_");
+
+    if (isAi) {
+      // Para IA, a chave de ambiente tem prioridade máxima (Section 5)
+      if (provider === "ai_openai") {
+        value = usableIntegrationValue(process.env.OPENAI_API_KEY || process.env.MARCIA_BYOK_OPENAI_API_KEY);
+      } else if (provider === "ai_anthropic") {
+        value = usableIntegrationValue(process.env.ANTHROPIC_API_KEY || process.env.MARCIA_BYOK_ANTHROPIC_API_KEY);
+      } else if (provider === "ai_gemini") {
+        value = usableIntegrationValue(process.env.GEMINI_API_KEY);
+      } else if (provider === "ai_openrouter") {
+        value = usableIntegrationValue(process.env.OPENROUTER_API_KEY);
+      } else if (provider === "ai_deepseek") {
+        value = usableIntegrationValue(process.env.DEEPSEEK_API_KEY);
+      } else if (provider === "ai_xai") {
+        value = usableIntegrationValue(process.env.XAI_API_KEY);
+      } else {
+        value = usableIntegrationValue(process.env[def.env]);
       }
+      // Fallback para chave previamente salva no banco durante a transição
+      if (!value && row) {
+        try {
+          value = await decrypt(row.ciphertext, row.iv, `${provider}:${def.field}`);
+        } catch {
+          console.error(`[integrations] falha ao ler ${provider}.${def.field}`);
+        }
+      }
+    } else {
+      if (row) {
+        try {
+          value = await decrypt(row.ciphertext, row.iv, `${provider}:${def.field}`);
+        } catch {
+          console.error(`[integrations] falha ao ler ${provider}.${def.field}`);
+        }
+      }
+      if (!value) value = usableIntegrationValue(process.env[def.env]);
     }
-    if (!value) value = usableIntegrationValue(process.env[def.env]);
     out[def.field] = usableIntegrationValue(value);
   }
   return out;
@@ -158,25 +191,39 @@ export async function describeIntegration(provider: IntegrationProvider) {
     db.from("platform_integration_status").select("*").eq("provider", provider).maybeSingle(),
     resolveIntegration(provider),
   ]);
+  const isAi = provider.startsWith("ai_");
   const fields = INTEGRATION_FIELDS[provider].map((def) => {
     const row = (rows ?? []).find((r: any) => r.field === def.field);
-    const fromEnv = !row && Boolean(usableIntegrationValue(process.env[def.env]));
+    const resolvedVal = resolved[def.field];
+    const isConfigured = Boolean(usableIntegrationValue(resolvedVal));
+    let source: "env" | "panel" | "fallback" | null = null;
+    if (isConfigured) {
+      if (isAi) {
+        source = process.env[def.env] ? "env" : row ? "panel" : "env";
+      } else {
+        source = row ? "panel" : "fallback";
+      }
+    }
     return {
       field: def.field,
-      // Uma linha antiga pode conter PLACEHOLDER_VALUE_TO_BE_REPLACED. A mera
-      // existência da linha não significa que o servidor esteja configurado.
-      configured: Boolean(usableIntegrationValue(resolved[def.field])),
-      source: row ? "panel" : fromEnv ? "fallback" : null,
-      last4: row?.last4 ?? null,
+      envVar: def.env,
+      configured: isConfigured,
+      source,
+      last4: isConfigured ? (resolvedVal.length >= 4 ? resolvedVal.slice(-4) : "••••") : (row?.last4 ?? null),
     };
   });
+  const isWhatsmeow =
+    provider === "evolution" &&
+    (process.env.WHATSAPP_PROVIDER === "whatsmeow" ||
+      Boolean(process.env.WHATSAPP_GO_URL && process.env.WHATSAPP_PROVIDER !== "evolution"));
+
   return {
     provider,
     fields,
-    configured: fields.every((f) => f.configured),
-    testedAt: status?.tested_at ?? null,
-    testOk: status?.test_ok ?? null,
-    lastError: status?.last_error ?? null,
+    configured: isWhatsmeow ? true : fields.every((f) => f.configured),
+    testedAt: isWhatsmeow ? new Date().toISOString() : (status?.tested_at ?? null),
+    testOk: isWhatsmeow ? true : (status?.test_ok ?? null),
+    lastError: isWhatsmeow ? null : (status?.last_error ?? null),
   };
 }
 

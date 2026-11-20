@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getPushPublicKey = createServerFn({ method: "GET" }).handler(async () => {
-  return { publicKey: (process.env["VAPID_PUBLIC_KEY"] || "").trim() };
+  return { publicKey: (process.env["VAPID_PUBLIC_KEY"] || process.env["VITE_VAPID_PUBLIC_KEY"] || "").trim() };
 });
 
 export const sendTestPush = createServerFn({ method: "POST" })

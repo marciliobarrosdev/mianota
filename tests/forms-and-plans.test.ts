@@ -79,8 +79,8 @@ describe("e-mail e endereço", () => {
     expect(emailError("ana email.com")).not.toBeNull();
   });
   test("URL de checkout precisa ser endereço web completo", () => {
-    expect(isValidHttpUrl("https://pay.kiwify.com.br/abc123")).toBe(true);
-    expect(isValidHttpUrl("pay.kiwify.com.br")).toBe(false);
+    expect(isValidHttpUrl("https://pay.infinitepay.io/abc123")).toBe(true);
+    expect(isValidHttpUrl("pay.infinitepay.io")).toBe(false);
     expect(isValidHttpUrl("javascript:alert(1)")).toBe(false);
   });
 });

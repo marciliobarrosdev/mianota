@@ -13,9 +13,21 @@ export const getEmailOverview = createServerFn({ method: "POST" })
       sb.from("email_settings").select("from_name,from_email,reply_to,updated_at").eq("id", true).maybeSingle(),
       sb.from("email_event").select("id,event_type,message_id,recipient,subject,occurred_at,received_at").order("received_at", { ascending: false }).limit(100),
     ]);
+    let webhookUrl = "http://localhost:8080/api/public/email/resend";
+    try {
+      const { getRequest } = await import("@tanstack/react-start/server");
+      const req = getRequest();
+      const url = new URL(req.url);
+      const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || url.host;
+      const proto = req.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
+      webhookUrl = `${proto}://${host}/api/public/email/resend`;
+    } catch {
+      // fallback
+    }
     return {
       resendConnected: Boolean(process.env["RESEND_API_KEY"]),
       webhookSecretConfigured: Boolean(process.env["RESEND_WEBHOOK_SECRET"]),
+      webhookUrl,
       settings: settings ?? { from_name: "MIAnota", from_email: null, reply_to: null, updated_at: null },
       events: (events ?? []) as Array<{ id: string; event_type: string; message_id: string | null; recipient: string | null; subject: string | null; occurred_at: string | null; received_at: string }>,
     };

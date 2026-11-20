@@ -136,7 +136,16 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
             new URL(request.url).searchParams.get("t") ||
             request.headers.get("x-webhook-token") ||
             "";
-          if (!(await secureCompare(String(channel.webhook_token), receivedToken))) {
+          const apiKey =
+            request.headers.get("apikey") || request.headers.get("x-api-key") || "";
+          const isGoApiKeyValid =
+            Boolean(process.env.WHATSAPP_GO_API_KEY) &&
+            apiKey === process.env.WHATSAPP_GO_API_KEY;
+
+          if (
+            !isGoApiKeyValid &&
+            !(await secureCompare(String(channel.webhook_token), receivedToken))
+          ) {
             return new Response("invalid webhook", { status: 401 });
           }
           const event = String(payload?.event || "")
@@ -147,10 +156,16 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           if (event === "MESSAGES_UPDATE") {
             const updates = Array.isArray(payload?.data) ? payload.data : [payload?.data ?? {}];
             const { applyDeliveryStatus } = await import("@/lib/whatsapp/purchase-onboarding.server");
+            const { updateSupportMessageDeliveryStatus } = await import(
+              "@/lib/whatsapp/master-whatsapp.server"
+            );
             for (const update of updates) {
               const id = String(update?.keyId || update?.key?.id || "");
               const status = mapEvolutionAck(update?.status ?? update?.update?.status);
-              if (id && status) await applyDeliveryStatus("evolution", id, status, null, null);
+              if (id && status) {
+                await applyDeliveryStatus("evolution", id, status, null, null);
+                await updateSupportMessageDeliveryStatus(id, status);
+              }
             }
             return new Response("ok", { status: 200 });
           }
@@ -161,25 +176,87 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
           const data = payload?.data ?? payload;
           const key = data?.key ?? {};
           const remoteJid = String(key.remoteJid || "");
-          if (!remoteJid || remoteJid.endsWith("@g.us") || key.fromMe) {
+          if (!remoteJid || remoteJid.endsWith("@g.us")) {
             return new Response("ignored", { status: 200 });
           }
-          const phone = digits(remoteJid.split("@")[0]);
+
           const message = data?.message ?? {};
           const type = evolutionType(message);
           let body = evolutionBody(message, type);
-          if (type === "audio" && channel.instance_name && phone) {
+
+          // Resolve identificador LID vs PN
+          const isLid = remoteJid.endsWith("@lid");
+          const pnJid = data?.pn || (!isLid && remoteJid.endsWith("@s.whatsapp.net") ? remoteJid : null);
+          const lidJid = data?.lid || (isLid ? remoteJid : null);
+          const phone = pnJid ? digits(pnJid.split("@")[0]) : (!isLid ? digits(remoteJid.split("@")[0]) : null);
+
+          // Sincronização de mensagens enviadas pelo próprio celular vinculado WhatsApp:
+          // Salva no histórico da central de atendimento para visibilidade do operador,
+          // mas NÃO dispara IA nem comandos financeiros.
+          if (key.fromMe) {
+            if (body) {
+              const { persistSupportLinkedDeviceOutbound } = await import(
+                "@/lib/whatsapp/master-whatsapp.server"
+              );
+              await persistSupportLinkedDeviceOutbound({
+                remoteJid,
+                phone: phone || null,
+                contactName: String(data?.pushName || "") || null,
+                body,
+                messageType: type,
+                providerMessageId: String(key?.id || "") || null,
+                lidJid,
+                pnJid,
+                quotedId: data?.quotedId || null,
+                payload: data,
+              });
+            }
+            return new Response("ok", { status: 200 });
+          }
+
+          let audioFailed = false;
+          if (type === "audio" && channel.instance_name && (phone || isLid)) {
             try {
               const { evoGetMediaBase64 } = await import("@/lib/whatsapp/evolution.server");
               const media = await evoGetMediaBase64(String(channel.instance_name), data);
               const { transcribeAudioBase64 } = await import("@/lib/ai/audio-transcribe.server");
               const text = await transcribeAudioBase64(media.base64, media.mimetype || message?.audioMessage?.mimetype || null);
-              if (text) body = text;
+              if (text) {
+                body = text;
+              } else {
+                audioFailed = true;
+              }
             } catch (error) {
               console.error("[support-whatsapp.audio]", error instanceof Error ? error.message : error);
+              audioFailed = true;
             }
           }
-          if (phone && body) {
+
+          if (audioFailed) {
+            const { evoSendText } = await import("@/lib/whatsapp/evolution.server");
+            const target = phone || lidJid || remoteJid;
+            const errorReply = "Não consegui transcrever esse áudio. Tente gravar novamente com boa voz ou envie o valor e a descrição por texto.";
+            const monitored = await persistSupportInbound({
+              phone: phone || null,
+              remoteJid,
+              lidJid,
+              pnJid,
+              contactName: String(data?.pushName || "") || null,
+              body: "Áudio (falha na transcrição)",
+              messageType: type,
+              providerMessageId: String(key?.id || "") || null,
+              payload: data,
+            });
+            const sent: any = await evoSendText(String(channel.instance_name), target, errorReply).catch(() => null);
+            await persistSupportOutbound({
+              conversationId: monitored.conversationId,
+              body: errorReply,
+              providerMessageId: String(sent?.key?.id || sent?.messageId || "") || null,
+            });
+            await runOnboardingRecovery();
+            return new Response("ok", { status: 200 });
+          }
+          if ((phone || isLid) && body) {
             let imageDataUrl: string | null = null;
             if ((type === "image" || type === "document") && channel.instance_name) {
               const { evoGetMediaBase64 } = await import("@/lib/whatsapp/evolution.server");
@@ -201,22 +278,28 @@ export const Route = createFileRoute("/api/public/support-whatsapp-webhook")({
               await import("@/lib/whatsapp/central-finance-whatsapp.server");
             const { evoSendText } = await import("@/lib/whatsapp/evolution.server");
             const monitored = await persistSupportInbound({
-              phone,
+              phone: phone || null,
+              remoteJid,
+              lidJid,
+              pnJid,
               contactName: String(data?.pushName || "") || null,
               body,
               messageType: type,
               providerMessageId: String(key?.id || "") || null,
+              mediaUrl: imageDataUrl,
+              quotedId: data?.quotedId || null,
               payload: data,
             });
             await processCentralFinanceWhatsapp({
-              phone,
+              phone: phone || remoteJid,
               displayName: String(data?.pushName || "") || null,
               message: body,
               messageType: type,
               providerMessageId: String(key?.id || "") || null,
               imageDataUrl,
               sendText: async (reply) => {
-                const sent: any = await evoSendText(String(channel.instance_name), phone, reply);
+                const target = phone || lidJid || remoteJid;
+                const sent: any = await evoSendText(String(channel.instance_name), target, reply);
                 await persistSupportOutbound({
                   conversationId: monitored.conversationId,
                   body: reply,
@@ -270,10 +353,21 @@ function evolutionType(message: any) {
   if (message?.audioMessage) return "audio";
   if (message?.documentMessage) return "document";
   if (message?.videoMessage) return "video";
+  if (message?.locationMessage) return "location";
   return "text";
 }
 
 function evolutionBody(message: any, type: string) {
+  if (type === "location") {
+    const loc = message?.locationMessage;
+    if (loc?.name || loc?.address) {
+      return `📍 ${[loc?.name, loc?.address].filter(Boolean).join(" - ")}`;
+    }
+    if (loc?.degreesLatitude && loc?.degreesLongitude) {
+      return `📍 Localização: ${loc.degreesLatitude}, ${loc.degreesLongitude}`;
+    }
+    return "Localização recebida";
+  }
   return String(
     message?.conversation ||
       message?.extendedTextMessage?.text ||

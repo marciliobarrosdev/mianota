@@ -68,8 +68,8 @@ function EmailsPage() {
           </div>
           <Label>Webhook do MIAnota</Label>
           <div className="flex gap-2">
-            <Input readOnly value={WEBHOOK_URL} />
-            <Button variant="outline" size="icon" onClick={() => { navigator.clipboard.writeText(WEBHOOK_URL); toast.success("Copiado"); }}><Copy className="h-4 w-4" /></Button>
+            <Input readOnly value={data?.webhookUrl || WEBHOOK_URL} />
+            <Button variant="outline" size="icon" onClick={() => { navigator.clipboard.writeText(data?.webhookUrl || WEBHOOK_URL); toast.success("Copiado"); }}><Copy className="h-4 w-4" /></Button>
           </div>
           <p className="text-xs text-muted-foreground">No Resend: Webhooks → Add endpoint → cole este endereço e marque todos os eventos.</p>
         </Card>

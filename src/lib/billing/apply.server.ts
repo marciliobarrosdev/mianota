@@ -53,19 +53,31 @@ export async function applyEvent(evt: NormalizedBillingEvent, eventKey: string) 
     event_key: eventKey,
   };
 
+  let logId = "";
   const { data: log, error: logError } = await supabase
     .from("billing_event_log")
     .insert(logRow)
     .select("id")
     .maybeSingle();
-  if (logError?.code === "23505") return { duplicate: true };
-  if (logError || !log)
+  if (logError?.code === "23505") {
+    const { data: existingLog } = await supabase
+      .from("billing_event_log")
+      .select("id,processed")
+      .eq("event_key", eventKey)
+      .maybeSingle();
+    if (existingLog?.processed) return { duplicate: true };
+    if (existingLog?.id) logId = existingLog.id;
+    else return { duplicate: true };
+  } else if (logError || !log) {
     throw new Error(logError?.message || "Falha ao registrar evento de cobrança");
+  } else {
+    logId = log.id;
+  }
   const finishLog = (patch: Record<string, unknown>) =>
     supabase
       .from("billing_event_log")
       .update(patch as any)
-      .eq("id", log.id);
+      .eq("id", logId);
 
   if (!evt.buyerEmail) {
     await finishLog({ error: "sem email do comprador" });
@@ -127,10 +139,22 @@ export async function applyEvent(evt: NormalizedBillingEvent, eventKey: string) 
   if (subStatus === "canceled") subPayload.canceled_at = new Date().toISOString();
 
   // Upsert por company_id (1 assinatura por empresa).
-  await supabase.from("subscription").upsert(subPayload, { onConflict: "company_id" });
+  const { error: subError } = await supabase
+    .from("subscription")
+    .upsert(subPayload, { onConflict: "company_id" });
+  if (subError) {
+    await finishLog({ error: `falha ao gravar assinatura: ${subError.message}` });
+    throw new Error(`Falha ao gravar assinatura: ${subError.message}`);
+  }
 
   if (companyStatus) {
-    await supabase.from("company").update({ status_cobranca: companyStatus }).eq("id", companyId);
+    const { error: companyError } = await supabase
+      .from("company")
+      .update({ status_cobranca: companyStatus })
+      .eq("id", companyId);
+    if (companyError) {
+      console.warn("[applyEvent] Erro ao atualizar status_cobranca:", companyError.message);
+    }
   }
 
   // Recarrega créditos do plano quando assinatura ativa/renova
@@ -141,10 +165,13 @@ export async function applyEvent(evt: NormalizedBillingEvent, eventKey: string) 
       .eq("id", planId)
       .maybeSingle();
     if (planRow?.slug) {
-      await supabase.rpc("topup_plan_credits", {
+      const { error: rpcErr } = await supabase.rpc("topup_plan_credits", {
         _company_id: companyId,
         _plan_slug: planRow.slug,
       });
+      if (rpcErr) {
+        console.error("[applyEvent] Erro ao recarregar créditos:", rpcErr.message);
+      }
     }
   }
 

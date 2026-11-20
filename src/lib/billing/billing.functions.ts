@@ -7,9 +7,7 @@ export const getBillingWebhookInfo = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
     return {
-      kiwify: !!process.env.KIWIFY_WEBHOOK_TOKEN,
-      cakto: !!process.env.CAKTO_WEBHOOK_TOKEN,
-      perfectpay: !!process.env.PERFECTPAY_WEBHOOK_TOKEN,
+      infinitepay: true,
     };
   });
 

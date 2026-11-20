@@ -6,7 +6,6 @@
  * para que o cliente administrativo do banco nunca vá para o navegador.
  */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { LOVABLE_AI_MODEL } from "@/lib/ai/lovable-ai-config";
 import {
   buildFinanceCommandSystemPrompt,
   extractJson,
@@ -74,7 +73,7 @@ export async function requestFinanceDraft(
   extraSystem = "",
 ) {
   const system = buildFinanceCommandSystemPrompt(todayInSaoPaulo()) + extraSystem;
-  const { lovableAiChat } = await import("@/lib/ai/lovable-ai.server");
+  const { aiChat } = await import("@/lib/ai/ai-service.server");
   const prompt = `CONTEXTO REAL:\n${JSON.stringify(financeContext)}\n\nRASCUNHO ANTERIOR:\n${JSON.stringify(previous)}\n\nNOVA MENSAGEM:\n${message}`;
   const content = imageDataUrl
     ? [
@@ -87,13 +86,10 @@ export async function requestFinanceDraft(
           { type: "file" as const, file: { filename: pdf.name, file_data: pdf.dataUrl } },
         ]
       : prompt;
-  const raw = await lovableAiChat(
-    [
-      { role: "system", content: system },
-      { role: "user", content },
-    ],
-    { model: LOVABLE_AI_MODEL },
-  );
+  const raw = await aiChat([
+    { role: "system", content: system },
+    { role: "user", content },
+  ]);
   return normalizeDraft(extractJson(raw));
 }
 
@@ -105,22 +101,15 @@ export async function answerFinanceSummary(
   companyId: string,
   period: FinanceCommandDraft["queryPeriod"],
 ) {
-  const now = new Date();
-  let from: string | null = null;
-  if (period === "today")
-    from = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().slice(0, 10);
-  else if (period === "week") {
-    const start = new Date(now);
-    start.setDate(start.getDate() - 6);
-    from = start.toISOString().slice(0, 10);
-  } else if (period !== "all")
-    from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const { summaryPeriodBounds } = await import("./finance-whatsapp-rules");
+  const bounds = summaryPeriodBounds(period || "month");
   let query = supabaseAdmin
     .from("fin_lancamento")
     .select("tipo,status,valor_cents")
     .eq("company_id", companyId)
     .neq("status", "cancelado");
-  if (from) query = query.gte("competencia", from);
+  if (bounds.from) query = query.gte("competencia", bounds.from);
+  if (bounds.toExclusive) query = query.lt("competencia", bounds.toExclusive);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   const rows = data || [];
@@ -195,6 +184,18 @@ export async function executeFinanceDraft({
         .single();
       if (inserted.error) throw new Error(inserted.error.message);
       transaction = inserted.data;
+    }
+    if (transaction?.id) {
+      const summary = String(draft.summary || "").trim();
+      if (summary) {
+        import("@/lib/ai/ai-embeddings.server")
+          .then(({ indexTransactionEmbedding }) =>
+            indexTransactionEmbedding(transaction.id, companyId, summary),
+          )
+          .catch((err) =>
+            console.warn("[finance-command] Falha ao indexar embedding:", err?.message || err),
+          );
+      }
     }
     return {
       message: `${type === "receita" ? "Receita" : status === "pendente" ? "Conta a pagar" : "Despesa"} de ${money(draft.amountCents)} registrada.`,

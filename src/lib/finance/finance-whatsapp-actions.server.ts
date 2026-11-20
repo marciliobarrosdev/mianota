@@ -9,6 +9,7 @@ import {
   missing,
   money,
   normalize,
+  summaryPeriodBounds,
   summaryPeriodStart,
   summaryText,
   type Draft,
@@ -53,15 +54,16 @@ export async function loadContext(db: any, companyId: string): Promise<FinanceCo
   };
 }
 
-/** Resumo do período pedido, só com lançamentos não cancelados. */
+/** Resumo do período pedido, só com lançamentos não cancelados, início inclusivo e fim exclusivo. */
 export async function summary(db: any, companyId: string, period: Draft["queryPeriod"]) {
-  const from = summaryPeriodStart(period);
+  const bounds = summaryPeriodBounds(period);
   let query = db
     .from("fin_lancamento")
     .select("tipo,status,valor_cents")
     .eq("company_id", companyId)
     .neq("status", "cancelado");
-  if (from) query = query.gte("competencia", from);
+  if (bounds.from) query = query.gte("competencia", bounds.from);
+  if (bounds.toExclusive) query = query.lt("competencia", bounds.toExclusive);
   const result = await query;
   if (result.error) throw new Error(result.error.message);
   return summaryText(result.data || []);
@@ -79,7 +81,19 @@ export async function execute(db: any, companyId: string, userId: string, comman
     .select("id")
     .maybeSingle();
   if (claimed.error) throw new Error(claimed.error.message);
-  if (!claimed.data) throw new Error("Esse pedido já foi processado.");
+  if (!claimed.data) {
+    // Se a resposta se perdeu após o commit, recupera o resultado pelo ID
+    const existing = await db
+      .from("marcia_ai_command")
+      .select("status,result")
+      .eq("company_id", companyId)
+      .eq("id", command.id)
+      .maybeSingle();
+    if (existing.data?.status === "executed" && existing.data?.result?.message) {
+      return existing.data.result.message as string;
+    }
+    throw new Error("Esse pedido já foi processado.");
+  }
   let result: any;
   if (["record_expense", "record_income", "create_bill"].includes(draft.intent)) {
     const type = draft.intent === "record_income" ? "receita" : "despesa";
@@ -112,6 +126,18 @@ export async function execute(db: any, companyId: string, userId: string, comman
       .select("id")
       .single();
     if (saved.error) throw new Error(saved.error.message);
+
+    // Indexa semanticamente em segundo plano via pgvector (não bloqueia resposta)
+    try {
+      const summaryText = String(draft.summary || "").trim();
+      if (summaryText) {
+        const { indexTransactionEmbedding } = await import("@/lib/ai/ai-embeddings.server");
+        void indexTransactionEmbedding(saved.data.id, companyId, summaryText);
+      }
+    } catch {
+      /* indexação em segundo plano */
+    }
+
     result = {
       message: `${type === "receita" ? "Receita" : status === "pendente" ? "Conta a pagar" : "Despesa"} de ${money(draft.amountCents)} registrada.`,
     };

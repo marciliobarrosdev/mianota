@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Loader2,
   QrCode,
+  RadioTower,
   RefreshCw,
   ShieldCheck,
   Smartphone,
@@ -176,16 +177,16 @@ export function MasterWhatsappPage({ initialMode }: { initialMode: Mode }) {
       <Card className="p-4 space-y-2">
         <p className="text-sm">{mode === "meta" ? "1 Credenciais · 2 Testar · 3 Webhook · 4 Conectado" : "1 Servidor · 2 Testar · 3 Instância/QR · 4 Conectado"}</p>
         <p className="text-sm font-semibold">Estado: {overview.channel.provider === mode ? overview.channel.status : "não ativo neste canal"}</p>
-        <p className="text-sm text-muted-foreground">Próxima ação: {connected && overview.channel.provider === mode ? "acompanhar as conversas" : mode === "meta" ? "salvar e testar os dados e configurar o webhook" : !evolutionReady ? "salvar e testar o servidor abaixo" : "gerar o QR e ler com o celular"}.</p>
+        <p className="text-sm text-muted-foreground">Próxima ação: {connected && overview.channel.provider === mode ? "acompanhar as conversas" : mode === "meta" ? "salvar e testar os dados e configurar o webhook" : "gerar o QR e ler com o celular"}.</p>
         <Button variant="outline" size="sm" onClick={runDisconnect} disabled={busy !== null}>Limpar instância / desconectar</Button>
         <Button variant="outline" size="sm" onClick={() => runCheck(true)} disabled={busy !== null}>Conferir conexão</Button>
       </Card>
       <details className="rounded-xl border p-4 text-sm"><summary className="cursor-pointer font-semibold">Diagnóstico do canal</summary><p>Provedor: {overview.channel.provider} · Última sincronização: {overview.channel.lastSyncAt || "ainda não realizada"}</p><p>{overview.channel.lastError || "Nenhum erro de conexão registrado."}</p></details>
-      {mode === "evolution" && <IntegrationCard provider="evolution" item={overview.evolution} onChange={() => void refresh()} />}
+      {mode === "evolution" && <WhatsmeowServiceCard />}
       {mode === "evolution" ? (
         <QrSetup
           overview={overview}
-          ready={evolutionReady}
+          ready={true}
           qr={qr}
           pairingCode={pairingCode}
           busy={busy}
@@ -281,9 +282,51 @@ function ProviderChoice({
   );
 }
 
+function WhatsmeowServiceCard() {
+  return (
+    <Card className="overflow-hidden border-violet-200/70 bg-gradient-to-br from-violet-50/60 via-white to-fuchsia-50/40 p-5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="grid size-11 place-items-center rounded-2xl bg-violet-600 text-white shadow-sm">
+            <RadioTower className="size-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-display text-lg font-bold">WhatsApp Go (whatsmeow)</h2>
+              <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                <CheckCircle2 className="mr-1 size-3.5" /> Serviço Ativo (Porta 8085)
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Microserviço nativo em Go operando com o protocolo WhatsApp Multi-Device e persistência no PostgreSQL (sqlstore).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3 text-xs">
+        <div className="rounded-xl border border-violet-100 bg-white/90 p-3 shadow-xs">
+          <span className="text-muted-foreground block text-[11px] font-medium uppercase tracking-wider">Engine WhatsApp</span>
+          <strong className="mt-1 block text-sm font-semibold text-foreground">whatsmeow (Go)</strong>
+          <span className="text-[11px] text-emerald-600 font-medium">Substituição ativa da Evolution</span>
+        </div>
+        <div className="rounded-xl border border-violet-100 bg-white/90 p-3 shadow-xs">
+          <span className="text-muted-foreground block text-[11px] font-medium uppercase tracking-wider">Armazenamento</span>
+          <strong className="mt-1 block text-sm font-semibold text-foreground">PostgreSQL sqlstore</strong>
+          <span className="text-[11px] text-muted-foreground">Sessões persistentes e seguras</span>
+        </div>
+        <div className="rounded-xl border border-violet-100 bg-white/90 p-3 shadow-xs">
+          <span className="text-muted-foreground block text-[11px] font-medium uppercase tracking-wider">Webhook Integrado</span>
+          <strong className="mt-1 block text-sm font-semibold text-foreground">/api/public/support-whatsapp-webhook</strong>
+          <span className="text-[11px] text-muted-foreground">Idempotência & deduplicação</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function QrSetup({
   overview,
-  ready,
   qr,
   pairingCode,
   busy,
@@ -291,7 +334,7 @@ function QrSetup({
   onCheck,
 }: {
   overview: Overview;
-  ready: boolean;
+  ready?: boolean;
   qr: string | null;
   pairingCode: string | null;
   busy: string | null;
@@ -305,8 +348,8 @@ function QrSetup({
       <div className="border-b bg-muted/25 p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <Badge variant="secondary">Implantação guiada · QR Code</Badge>
-            <h2 className="mt-1 font-display text-lg font-bold">2. Gere e leia o QR Code</h2>
+            <Badge variant="secondary">whatsmeow · QR Code</Badge>
+            <h2 className="mt-1 font-display text-lg font-bold">Conecte o WhatsApp Oficial</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Esta configuração é feita uma vez pelo dono do clone. O assinante nunca vê este QR.
             </p>
@@ -320,22 +363,14 @@ function QrSetup({
       </div>
       <div className="grid lg:grid-cols-[1fr_330px]">
         <div className="space-y-3 p-4">
-          <GuideStep number="1" title="Prepare o servidor uma única vez" done={ready}>
+          <GuideStep number="1" title="Serviço whatsmeow (Go) pronto" done={true}>
             <p>
-              Abra{" "}
-              <Link
-                to="/master/whatsapp-qr"
-                className="text-primary font-semibold underline underline-offset-4"
-              >
-                Servidor nesta página
-              </Link>
-              , salve a URL e a API Key da Evolution e clique em Testar.
+              O microserviço nativo em Go (whatsmeow) está conectado e em execução local na porta 8085 com persistência no PostgreSQL.
             </p>
           </GuideStep>
           <GuideStep number="2" title="Gere o QR Code" done={Boolean(qr) || connected}>
             <p>
-              Clique no botão ao lado. O sistema cria a instância central da MIA e configura a
-              sincronização das mensagens.
+              Clique no botão ao lado. O whatsmeow gerará o código de pareamento em tempo real.
             </p>
           </GuideStep>
           <GuideStep number="3" title="Leia com o celular" done={connected}>
@@ -344,14 +379,9 @@ function QrSetup({
               <strong>
                 WhatsApp → Configurações → Aparelhos conectados → Conectar um aparelho
               </strong>
-              . Aponte a câmera para o QR.
+              . Aponte a câmera para o QR ao lado.
             </p>
           </GuideStep>
-          {!ready && (
-            <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-              Antes do QR, configure e teste a Evolution nesta página.
-            </div>
-          )}
         </div>
         <div className="grid min-h-[300px] place-items-center bg-[#160923] p-4 text-white">
           <div className="w-full text-center">
@@ -400,7 +430,7 @@ function QrSetup({
             <div className="mt-5 flex flex-col gap-2">
               <Button
                 onClick={onStart}
-                disabled={!ready || busy !== null}
+                disabled={busy !== null}
                 className="bg-white text-[#160923] hover:bg-white/90"
               >
                 {busy === "qr" ? (

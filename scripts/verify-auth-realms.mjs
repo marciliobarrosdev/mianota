@@ -104,7 +104,7 @@ const allowedDirect = new Set([
   "src/lib/auth/superadmin-client.ts",
 ]);
 for (const file of walk(join(root, "src"))) {
-  const rel = file.slice(root.length);
+  const rel = file.slice(root.length).replace(/\\/g, "/");
   if (rel.startsWith("src/integrations/") || !/\.(ts|tsx)$/.test(rel)) continue;
   const source = readFileSync(file, "utf8");
   if (/from "@\/integrations\/supabase\/client"/.test(source)) {

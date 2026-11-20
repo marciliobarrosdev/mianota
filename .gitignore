@@ -36,3 +36,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.exe
+*.exe~
+services/whatsapp-go/whatsapp-go.exe
+services/whatsapp-go/whatsapp-go.exe~
+supabase/.temp/

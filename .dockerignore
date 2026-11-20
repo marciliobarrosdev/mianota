@@ -1,0 +1,14 @@
+node_modules
+.output
+.nitro
+.tanstack
+dist
+dist-ssr
+.git
+.gitignore
+.env.local
+*.log
+scratch/
+services/whatsapp-go/*.exe
+services/whatsapp-go/*.exe~
+supabase/.temp

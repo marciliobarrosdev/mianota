@@ -318,20 +318,54 @@ export function completeDraft(
 }
 
 /**
+ * Limites inclusivo/exclusivo para resumos no fuso America/Sao_Paulo:
+ * - today: hoje (inclusivo) até amanhã (exclusivo)
+ * - week: últimos 7 dias (inclusivo) até amanhã (exclusivo)
+ * - month: dia 1º deste mês até dia 1º do próximo mês (exclusivo)
+ * - all: null
+ */
+export function summaryPeriodBounds(
+  period: Draft["queryPeriod"],
+  now = new Date(),
+): { from: string | null; toExclusive: string | null } {
+  if (period === "all") return { from: null, toExclusive: null };
+
+  const todayIso = now.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+
+  if (period === "today") {
+    const d = new Date(`${todayIso}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
+    return { from: todayIso, toExclusive: d.toISOString().slice(0, 10) };
+  }
+  if (period === "week") {
+    const start = new Date(`${todayIso}T12:00:00Z`);
+    start.setUTCDate(start.getUTCDate() - 6);
+    const end = new Date(`${todayIso}T12:00:00Z`);
+    end.setUTCDate(end.getUTCDate() + 1);
+    return {
+      from: start.toISOString().slice(0, 10),
+      toExclusive: end.toISOString().slice(0, 10),
+    };
+  }
+
+  // Padrão: mês civil corrente
+  const parts = todayIso.split("-");
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  const from = `${todayIso.slice(0, 7)}-01`;
+  const toExclusive =
+    m === 12
+      ? `${y + 1}-01-01`
+      : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+  return { from, toExclusive };
+}
+
+/**
  * Início do período pedido no resumo: hoje, últimos 7 dias, tudo (null) ou,
- * por padrão, o mês atual.
+ * por padrão, o mês atual no fuso de São Paulo.
  */
 export function summaryPeriodStart(period: Draft["queryPeriod"], now = new Date()): string | null {
-  let from: string | null = null;
-  if (period === "today")
-    from = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().slice(0, 10);
-  else if (period === "week") {
-    const start = new Date(now);
-    start.setDate(start.getDate() - 6);
-    from = start.toISOString().slice(0, 10);
-  } else if (period !== "all")
-    from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  return from;
+  return summaryPeriodBounds(period, now).from;
 }
 
 /** Texto do resumo: entradas e saídas pagas, despesas pendentes/atrasadas e resultado. */

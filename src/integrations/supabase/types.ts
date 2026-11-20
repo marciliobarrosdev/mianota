@@ -284,35 +284,113 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_execution_log: {
+        Row: {
+          attempts: number
+          company_id: string | null
+          created_at: string
+          credits_charged: number
+          duration_ms: number
+          effective_model: string
+          effective_provider: string
+          error_message: string | null
+          error_type: string | null
+          id: string
+          modality: string
+          operation_id: string
+          requested_model: string
+          requested_provider: string
+          status: string
+          switch_reason: string | null
+          tokens_completion: number | null
+          tokens_prompt: number | null
+          tokens_total: number | null
+        }
+        Insert: {
+          attempts?: number
+          company_id?: string | null
+          created_at?: string
+          credits_charged?: number
+          duration_ms: number
+          effective_model: string
+          effective_provider: string
+          error_message?: string | null
+          error_type?: string | null
+          id?: string
+          modality?: string
+          operation_id: string
+          requested_model: string
+          requested_provider: string
+          status: string
+          switch_reason?: string | null
+          tokens_completion?: number | null
+          tokens_prompt?: number | null
+          tokens_total?: number | null
+        }
+        Update: {
+          attempts?: number
+          company_id?: string | null
+          created_at?: string
+          credits_charged?: number
+          duration_ms?: number
+          effective_model?: string
+          effective_provider?: string
+          error_message?: string | null
+          error_type?: string | null
+          id?: string
+          modality?: string
+          operation_id?: string
+          requested_model?: string
+          requested_provider?: string
+          status?: string
+          switch_reason?: string | null
+          tokens_completion?: number | null
+          tokens_prompt?: number | null
+          tokens_total?: number | null
+        }
+        Relationships: []
+      }
       ai_model_catalog: {
         Row: {
           active: boolean
+          kind: string
           label: string
           model_id: string
           provider: string
           sort: number
+          supported_dimensions: number[] | null
           supports_audio: boolean
           supports_pdf: boolean
+          supports_structured: boolean
+          supports_vectors: boolean
           supports_vision: boolean
         }
         Insert: {
           active?: boolean
+          kind?: string
           label: string
           model_id: string
           provider: string
           sort?: number
+          supported_dimensions?: number[] | null
           supports_audio?: boolean
           supports_pdf?: boolean
+          supports_structured?: boolean
+          supports_vectors?: boolean
           supports_vision?: boolean
         }
         Update: {
           active?: boolean
+          kind?: string
           label?: string
           model_id?: string
           provider?: string
           sort?: number
+          supported_dimensions?: number[] | null
           supports_audio?: boolean
           supports_pdf?: boolean
+          supports_structured?: boolean
+          supports_vectors?: boolean
           supports_vision?: boolean
         }
         Relationships: []
@@ -320,9 +398,22 @@ export type Database = {
       ai_provider_config: {
         Row: {
           consecutive_failures: number
+          embedding_dimension: number
+          embedding_fallback_dimension: number | null
+          embedding_fallback_model: string | null
+          embedding_fallback_provider: string | null
+          fallback_embedding_model: string | null
+          fallback_embedding_provider: string | null
+          embedding_model: string
+          embedding_provider: string
+          fallback_enabled: boolean
+          fallback_mode: string | null
+          fallback_model: string | null
           id: boolean
           last_error: string | null
           last_test_ms: number | null
+          media_transcription_model: string | null
+          media_transcription_provider: string | null
           mode: string
           model: string | null
           optimized: boolean
@@ -334,9 +425,22 @@ export type Database = {
         }
         Insert: {
           consecutive_failures?: number
+          embedding_dimension?: number
+          embedding_fallback_dimension?: number | null
+          embedding_fallback_model?: string | null
+          embedding_fallback_provider?: string | null
+          fallback_embedding_model?: string | null
+          fallback_embedding_provider?: string | null
+          embedding_model?: string
+          embedding_provider?: string
+          fallback_enabled?: boolean
+          fallback_mode?: string | null
+          fallback_model?: string | null
           id?: boolean
           last_error?: string | null
           last_test_ms?: number | null
+          media_transcription_model?: string | null
+          media_transcription_provider?: string | null
           mode?: string
           model?: string | null
           optimized?: boolean
@@ -348,9 +452,22 @@ export type Database = {
         }
         Update: {
           consecutive_failures?: number
+          embedding_dimension?: number
+          embedding_fallback_dimension?: number | null
+          embedding_fallback_model?: string | null
+          embedding_fallback_provider?: string | null
+          fallback_embedding_model?: string | null
+          fallback_embedding_provider?: string | null
+          embedding_model?: string
+          embedding_provider?: string
+          fallback_enabled?: boolean
+          fallback_mode?: string | null
+          fallback_model?: string | null
           id?: boolean
           last_error?: string | null
           last_test_ms?: number | null
+          media_transcription_model?: string | null
+          media_transcription_provider?: string | null
           mode?: string
           model?: string | null
           optimized?: boolean
@@ -1768,6 +1885,66 @@ export type Database = {
           },
           {
             foreignKeyName: "fin_lancamento_split_lancamento_id_fkey"
+            columns: ["lancamento_id"]
+            isOneToOne: false
+            referencedRelation: "fin_lancamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_lancamento_embedding: {
+        Row: {
+          company_id: string
+          content_hash: string
+          created_at: string
+          dimension: number
+          embedding: string
+          id: string
+          index_version: number
+          is_primary: boolean
+          lancamento_id: string
+          model: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          content_hash: string
+          created_at?: string
+          dimension: number
+          embedding: string
+          id?: string
+          index_version?: number
+          is_primary?: boolean
+          lancamento_id: string
+          model: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          content_hash?: string
+          created_at?: string
+          dimension?: number
+          embedding?: string
+          id?: string
+          index_version?: number
+          is_primary?: boolean
+          lancamento_id?: string
+          model?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_lancamento_embedding_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lancamento_embedding_lancamento_id_fkey"
             columns: ["lancamento_id"]
             isOneToOne: false
             referencedRelation: "fin_lancamento"

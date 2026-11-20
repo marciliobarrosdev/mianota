@@ -594,8 +594,7 @@ export const testAiReply = createServerFn({ method: "POST" })
     const companyId = access.companyId;
     const { assertCompanyOperational } = await import("@/lib/billing/plan-limits.server");
     await assertCompanyOperational(companyId, { superAdminBypass: access.isSuperAdmin });
-    const { lovableAiChat } = await import("@/lib/ai/lovable-ai.server");
-    const { LOVABLE_AI_MODEL } = await import("@/lib/ai/lovable-ai-config");
+    const { aiChat } = await import("@/lib/ai/ai-service.server");
     const { buildSystemPrompt, parseAiOutput } = await import("@/lib/ai/ai-prompt");
     const [{ loadCloneBrandServer }, { applyAssistantBrand }] = await Promise.all([
       import("@/lib/common/brand.server"),
@@ -626,15 +625,10 @@ export const testAiReply = createServerFn({ method: "POST" })
       produtos,
     });
 
-    const raw = await lovableAiChat(
-      [
-        { role: "system", content: system },
-        { role: "user", content: data.message },
-      ],
-      {
-        model: LOVABLE_AI_MODEL,
-      },
-    );
+    const raw = await aiChat([
+      { role: "system", content: system },
+      { role: "user", content: data.message },
+    ]);
     const { parts, stage } = parseAiOutput(raw, []);
     if (!parts.length) throw new Error("A IA não retornou uma resposta utilizável.");
     return { reply: parts.join("\n\n"), parts, stage, system };

@@ -126,22 +126,11 @@ describe("normalização de nome e telefone", () => {
   test("máscara nunca mostra o número inteiro", () => {
     expect(maskPhone("+5511987654321")).toBe("+5511•••••21");
   });
-  test("plataformas entregam nome e telefone", () => {
-    const kiwify = normalize("kiwify", {
-      webhook_event_type: "order_approved",
-      Customer: { email: "A@X.COM", full_name: "Ana Souza", mobile: "11987654321" },
+  test("InfinitePay entrega nome e telefone do comprador", () => {
+    const ip = normalize("infinitepay", {
+      customer: { email: "A@X.COM", name: "Ana Souza", phone_number: "11987654321" },
     });
-    expect([kiwify.buyerName, kiwify.buyerPhone]).toEqual(["Ana Souza", "11987654321"]);
-    const cakto = normalize("cakto", {
-      event: "purchase_approved",
-      data: { customer: { email: "b@x.com", name: "Bia", phone: "5521999998888" } },
-    });
-    expect(cakto.buyerPhone).toBe("5521999998888");
-    const pp = normalize("perfectpay", {
-      sale_status_enum_key: "approved",
-      customer: { email: "c@x.com", full_name: "Caio", phone_area_code: "31", phone_number: "988887777" },
-    });
-    expect(pp.buyerPhone).toBe("31988887777");
+    expect([ip.buyerName, ip.buyerPhone]).toEqual(["Ana Souza", "11987654321"]);
   });
 });
 

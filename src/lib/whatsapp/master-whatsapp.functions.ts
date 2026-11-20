@@ -15,6 +15,7 @@ import {
   hasMore,
   safeSearchTerm,
 } from "@/lib/common/pagination-rules";
+import { resolveConversationRecipient } from "@/lib/whatsapp/support-inbox-rules";
 
 /** Conversas por "Carregar mais" e mensagens por "Mensagens anteriores". */
 export const SUPPORT_PAGE = 30;
@@ -245,18 +246,20 @@ export const getSupportInbox = createServerFn({ method: "POST" })
       conversationId: data?.conversationId ? String(data.conversationId) : null,
       limit: clampWindow(data?.limit, SUPPORT_PAGE),
       messageLimit: clampWindow(data?.messageLimit, SUPPORT_MESSAGES_PAGE),
-      filter: (["all", "unread", "open", "resolved"].includes(String(data?.filter))
+      filter: (["all", "pending", "open", "resolved", "unread"].includes(String(data?.filter))
         ? data.filter
-        : "all") as "all" | "unread" | "open" | "resolved",
+        : "all") as "all" | "pending" | "open" | "resolved" | "unread",
       search: safeSearchTerm(data?.search),
     }),
   )
   .handler(async ({ context, data }) => {
     await assertSuperAdmin(context.supabase);
-    const { platformDb, getOrCreateSupportChannel } = await import("@/lib/whatsapp/master-whatsapp.server");
+    const { platformDb, getOrCreateSupportChannel } = await import(
+      "@/lib/whatsapp/master-whatsapp.server"
+    );
     const db = await platformDb();
     const fields =
-      "id,phone_e164,contact_name,subscriber_company_id,status,unread_count,last_message_at,last_message_preview";
+      "id,phone_e164,contact_name,subscriber_company_id,status,unread_count,last_message_at,last_message_preview,assigned_to,assigned_name,assigned_at,resolved_by,resolved_at,avatar_url,lid_jid,pn_jid";
 
     // A busca também encontra pelo nome/e-mail do assinante: primeiro achamos as empresas.
     let companyMatches: string[] = [];
@@ -275,16 +278,25 @@ export const getSupportInbox = createServerFn({ method: "POST" })
       let q = db
         .from("platform_support_conversation")
         .select(fields, { count: "exact" })
+        .is("deleted_at", null)
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .order("id", { ascending: true })
         .range(from, to);
+
       if (data.filter === "unread") q = q.gt("unread_count", 0);
-      if (data.filter === "open") q = q.neq("status", "resolved");
-      if (data.filter === "resolved") q = q.eq("status", "resolved");
+      else if (data.filter === "pending") q = q.eq("status", "pending");
+      else if (data.filter === "open") q = q.eq("status", "open");
+      else if (data.filter === "resolved") q = q.eq("status", "resolved");
+
       if (data.search) {
         const like = `%${data.search}%`;
-        const parts = [`contact_name.ilike.${like}`, `phone_e164.ilike.${like}`];
-        if (companyMatches.length) parts.push(`subscriber_company_id.in.(${companyMatches.join(",")})`);
+        const parts = [
+          `contact_name.ilike.${like}`,
+          `phone_e164.ilike.${like}`,
+          `assigned_name.ilike.${like}`,
+        ];
+        if (companyMatches.length)
+          parts.push(`subscriber_company_id.in.(${companyMatches.join(",")})`);
         q = q.or(parts.join(","));
       }
       return q.then(({ data: rows, count, error }: any) => {
@@ -292,22 +304,33 @@ export const getSupportInbox = createServerFn({ method: "POST" })
         return { rows: (rows ?? []) as any[], count: count as number | null };
       });
     };
+
     const countWhere = async (apply: (q: any) => any) => {
       const { count, error } = await apply(
-        db.from("platform_support_conversation").select("id", { count: "exact", head: true }),
+        db
+          .from("platform_support_conversation")
+          .select("id", { count: "exact", head: true })
+          .is("deleted_at", null),
       );
       if (error) throw new Error(error.message);
       return count ?? 0;
     };
 
-    const [channel, page, all, unread, open, activeRow] = await Promise.all([
+    const [channel, page, all, pending, open, resolved, unread, activeRow] = await Promise.all([
       getOrCreateSupportChannel(),
       fetchWindow(data.limit, filtered),
       countWhere((q) => q),
+      countWhere((q) => q.eq("status", "pending")),
+      countWhere((q) => q.eq("status", "open")),
+      countWhere((q) => q.eq("status", "resolved")),
       countWhere((q) => q.gt("unread_count", 0)),
-      countWhere((q) => q.neq("status", "resolved")),
       data.conversationId
-        ? db.from("platform_support_conversation").select(fields).eq("id", data.conversationId).maybeSingle()
+        ? db
+            .from("platform_support_conversation")
+            .select(fields)
+            .eq("id", data.conversationId)
+            .is("deleted_at", null)
+            .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
     ]);
     if ((activeRow as any).error) throw new Error((activeRow as any).error.message);
@@ -335,12 +358,12 @@ export const getSupportInbox = createServerFn({ method: "POST" })
     let messages: any[] = [];
     let hasOlderMessages = false;
     if (data.conversationId) {
-      // Busca as mensagens MAIS RECENTES (antes, as 500 mais antigas escondiam as novas).
+      // Busca as mensagens MAIS RECENTES
       const latest = await fetchWindow(data.messageLimit, (from, to) =>
         db
           .from("platform_support_message")
           .select(
-            "id,conversation_id,direction,sender_type,message_type,body,delivery_status,created_at",
+            "id,conversation_id,direction,sender_type,sender_name,sender_id,message_type,body,delivery_status,media_url,media_meta,quoted_message_id,created_at",
             { count: "exact" },
           )
           .eq("conversation_id", data.conversationId as string)
@@ -359,42 +382,263 @@ export const getSupportInbox = createServerFn({ method: "POST" })
         .update({ unread_count: 0 })
         .eq("id", data.conversationId);
     }
+
+    const isWhatsmeow =
+      process.env.WHATSAPP_PROVIDER === "whatsmeow" ||
+      Boolean(process.env.WHATSAPP_GO_URL && process.env.WHATSAPP_PROVIDER !== "evolution");
+    let whatsmeowOnline = false;
+    let whatsmeowPhone: string | null = null;
+    if (isWhatsmeow) {
+      try {
+        const { evoState } = await import("@/lib/whatsapp/evolution.server");
+        const instName = channel.instance_name || "central";
+        const state = await evoState(instName).catch(() => null);
+        if (state?.state === "open" || state?.instance?.state === "open") {
+          whatsmeowOnline = true;
+          whatsmeowPhone =
+            (state as any)?.instance?.owner ||
+            (state as any)?.instance?.number ||
+            channel.phone_e164 ||
+            null;
+        }
+      } catch {
+        whatsmeowOnline = false;
+      }
+    }
+
+    const operatorName =
+      (context.claims as any)?.user_metadata?.nome ||
+      (context.claims as any)?.email?.split("@")[0] ||
+      "Atendente";
+
     return {
       channel: {
         provider: channel.active_provider || channel.provider,
-        status: channel.status,
-        phone: channel.phone_e164,
+        activeProvider: (channel.active_provider ?? null) as "evolution" | "meta" | null,
+        status: whatsmeowOnline || channel.status === "connected" ? "connected" : channel.status,
+        phone: whatsmeowPhone || channel.phone_e164,
+        isWhatsmeow,
+        whatsmeowOnline,
+        whatsmeowPort: 8085,
       },
       conversations: page.rows.map(withCompany),
       totalConversations: page.total,
-      counts: { all, unread, open },
+      counts: { all, pending, open, resolved, unread },
       activeConversation: activeConversation ? withCompany(activeConversation) : null,
       messages,
       hasOlderMessages,
+      operator: {
+        id: context.userId,
+        name: operatorName,
+        email: (context.claims as any)?.email || null,
+      },
     };
+  });
+
+export const takeSupportConversation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { conversationId: string }) => ({
+    conversationId: String(data?.conversationId || ""),
+  }))
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { platformDb } = await import("@/lib/whatsapp/master-whatsapp.server");
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    const db = await platformDb();
+    const now = new Date().toISOString();
+    const operatorName =
+      (context.claims as any)?.user_metadata?.nome ||
+      (context.claims as any)?.email?.split("@")[0] ||
+      "Atendente";
+
+    const existing = await db
+      .from("platform_support_conversation")
+      .select("id,assigned_to,assigned_name,status")
+      .eq("id", data.conversationId)
+      .is("deleted_at", null)
+      .single();
+
+    if (existing.error || !existing.data) throw new Error("Conversa não encontrada.");
+    if (existing.data.assigned_to && existing.data.assigned_to !== context.userId) {
+      throw new Error(
+        `Esta conversa já foi assumida por ${existing.data.assigned_name || "outro atendente"}.`,
+      );
+    }
+
+    const updated = await db
+      .from("platform_support_conversation")
+      .update({
+        status: "open",
+        assigned_to: context.userId,
+        assigned_name: operatorName,
+        assigned_at: now,
+        updated_at: now,
+      })
+      .eq("id", data.conversationId);
+    if (updated.error) throw new Error(updated.error.message);
+
+    await writeMasterAudit({
+      action: "take_support_conversation",
+      target: data.conversationId,
+      actorId: context.userId,
+      details: { detail: `Atendimento assumido por ${operatorName}` },
+    });
+
+    return { ok: true, assignedTo: context.userId, assignedName: operatorName };
+  });
+
+export const returnSupportConversationToQueue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { conversationId: string }) => ({
+    conversationId: String(data?.conversationId || ""),
+  }))
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { platformDb } = await import("@/lib/whatsapp/master-whatsapp.server");
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    const db = await platformDb();
+    const now = new Date().toISOString();
+
+    const updated = await db
+      .from("platform_support_conversation")
+      .update({
+        status: "pending",
+        assigned_to: null,
+        assigned_name: null,
+        assigned_at: null,
+        updated_at: now,
+      })
+      .eq("id", data.conversationId);
+    if (updated.error) throw new Error(updated.error.message);
+
+    await writeMasterAudit({
+      action: "return_support_conversation_to_queue",
+      target: data.conversationId,
+      actorId: context.userId,
+      details: { detail: "Conversa devolvida à fila de espera (Aguardando)" },
+    });
+
+    return { ok: true };
+  });
+
+export const resolveSupportConversation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { conversationId: string }) => ({
+    conversationId: String(data?.conversationId || ""),
+  }))
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { platformDb } = await import("@/lib/whatsapp/master-whatsapp.server");
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    const db = await platformDb();
+    const now = new Date().toISOString();
+
+    const updated = await db
+      .from("platform_support_conversation")
+      .update({
+        status: "resolved",
+        resolved_by: context.userId,
+        resolved_at: now,
+        updated_at: now,
+      })
+      .eq("id", data.conversationId);
+    if (updated.error) throw new Error(updated.error.message);
+
+    await writeMasterAudit({
+      action: "resolve_support_conversation",
+      target: data.conversationId,
+      actorId: context.userId,
+      details: { detail: "Atendimento marcado como resolvido" },
+    });
+
+    return { ok: true };
+  });
+
+export const deleteSupportConversation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { conversationId: string; confirmation: string }) => ({
+    conversationId: String(data?.conversationId || ""),
+    confirmation: String(data?.confirmation || "").trim(),
+  }))
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { platformDb } = await import("@/lib/whatsapp/master-whatsapp.server");
+    const { writeMasterAudit } = await import("@/lib/master/master-audit.server");
+    const db = await platformDb();
+    const now = new Date().toISOString();
+
+    const existing = await db
+      .from("platform_support_conversation")
+      .select("id,contact_name,phone_e164")
+      .eq("id", data.conversationId)
+      .is("deleted_at", null)
+      .single();
+    if (existing.error || !existing.data) throw new Error("Conversa não encontrada.");
+
+    const expectedName = String(existing.data.contact_name || "").trim().toLowerCase();
+    const expectedPhone = String(existing.data.phone_e164 || "").replace(/\D/g, "");
+    const conf = data.confirmation.trim().toLowerCase();
+    const confDigits = conf.replace(/\D/g, "");
+
+    const matches =
+      conf === "excluir" ||
+      conf === "confirmar" ||
+      (expectedName && conf === expectedName) ||
+      (expectedPhone && confDigits === expectedPhone);
+
+    if (!matches) {
+      throw new Error("Digite o nome ou número do contato para confirmar a exclusão.");
+    }
+
+    const updated = await db
+      .from("platform_support_conversation")
+      .update({
+        deleted_at: now,
+        deleted_by: context.userId,
+        updated_at: now,
+      })
+      .eq("id", data.conversationId);
+    if (updated.error) throw new Error(updated.error.message);
+
+    await writeMasterAudit({
+      action: "delete_support_conversation",
+      target: data.conversationId,
+      actorId: context.userId,
+      details: { detail: `Conversa com ${existing.data.contact_name || existing.data.phone_e164} excluída do painel` },
+    });
+
+    return { ok: true };
   });
 
 export const sendSupportReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { conversationId: string; body: string }) => {
-    const conversationId = String(data?.conversationId || "");
-    const body = String(data?.body || "").trim();
-    if (!conversationId) throw new Error("Selecione uma conversa.");
-    if (!body || body.length > 4000)
-      throw new Error("Escreva uma mensagem de até 4.000 caracteres.");
-    return { conversationId, body };
-  })
+  .inputValidator(
+    (data: { conversationId: string; body: string; quotedMessageId?: string }) => {
+      const conversationId = String(data?.conversationId || "");
+      const body = String(data?.body || "").trim();
+      if (!conversationId) throw new Error("Selecione uma conversa.");
+      if (!body || body.length > 4000)
+        throw new Error("Escreva uma mensagem de até 4.000 caracteres.");
+      return {
+        conversationId,
+        body,
+        quotedMessageId: data?.quotedMessageId ? String(data.quotedMessageId) : undefined,
+      };
+    },
+  )
   .handler(async ({ context, data }) => {
     await assertSuperAdmin(context.supabase);
-    const { getOrCreateSupportChannel, platformDb, sendMetaText } =
-      await import("@/lib/whatsapp/master-whatsapp.server");
+    const { getOrCreateSupportChannel, platformDb, sendMetaText } = await import(
+      "@/lib/whatsapp/master-whatsapp.server"
+    );
     const db = await platformDb();
     const [channel, conversation, recentInbound] = await Promise.all([
       getOrCreateSupportChannel(),
       db
         .from("platform_support_conversation")
-        .select("id,phone_e164")
+        .select("id,phone_e164,lid_jid,pn_jid")
         .eq("id", data.conversationId)
+        .is("deleted_at", null)
         .single(),
       db
         .from("platform_support_message")
@@ -406,7 +650,11 @@ export const sendSupportReply = createServerFn({ method: "POST" })
         .maybeSingle(),
     ]);
     if (conversation.error || !conversation.data) throw new Error("Conversa não encontrada.");
-    if (channel.status !== "connected" || !channel.active_provider)
+    const isWhatsmeow =
+      process.env.WHATSAPP_PROVIDER === "whatsmeow" ||
+      Boolean(process.env.WHATSAPP_GO_URL && process.env.WHATSAPP_PROVIDER !== "evolution");
+
+    if (!isWhatsmeow && (channel.status !== "connected" || !channel.active_provider))
       throw new Error("Ative e conecte o canal central antes de responder.");
     const inboundAt = recentInbound.data?.created_at ? +new Date(recentInbound.data.created_at) : 0;
     if (channel.active_provider === "meta" && Date.now() - inboundAt > 24 * 60 * 60 * 1000) {
@@ -414,20 +662,29 @@ export const sendSupportReply = createServerFn({ method: "POST" })
         "A janela de 24 horas terminou. Inicie o contato com um modelo aprovado pela Meta.",
       );
     }
+    const target = resolveConversationRecipient(conversation.data);
+    if (!target) throw new Error("Contato sem destinatário válido no WhatsApp.");
+
     let providerMessageId: string | null = null;
     if (channel.active_provider === "meta") {
-      providerMessageId = await sendMetaText(conversation.data.phone_e164, data.body);
+      providerMessageId = await sendMetaText(target, data.body);
     } else {
-      if (!channel.instance_name) throw new Error("Instância do QR Code indisponível.");
+      const instanceName = channel.instance_name || "central";
       const { evoSendText } = await import("@/lib/whatsapp/evolution.server");
       const sent: any = await evoSendText(
-        channel.instance_name,
-        conversation.data.phone_e164,
+        instanceName,
+        target,
         data.body,
+        data.quotedMessageId,
       );
       providerMessageId = String(sent?.key?.id || sent?.messageId || "") || null;
     }
     const now = new Date().toISOString();
+    const operatorName =
+      (context.claims as any)?.user_metadata?.nome ||
+      (context.claims as any)?.email?.split("@")[0] ||
+      "Atendente";
+
     const inserted = await db
       .from("platform_support_message")
       .insert({
@@ -435,14 +692,15 @@ export const sendSupportReply = createServerFn({ method: "POST" })
         provider_message_id: providerMessageId,
         direction: "outbound",
         sender_type: "owner",
+        sender_name: operatorName,
+        sender_id: context.userId,
         message_type: "text",
         body: data.body,
+        quoted_message_id: data.quotedMessageId || null,
         delivery_status: providerMessageId ? "sent" : "queued",
         created_at: now,
       })
-      .select(
-        "id,conversation_id,direction,sender_type,message_type,body,delivery_status,created_at",
-      )
+      .select()
       .single();
     if (inserted.error) throw new Error(inserted.error.message);
     await db
@@ -453,6 +711,230 @@ export const sendSupportReply = createServerFn({ method: "POST" })
         updated_at: now,
       })
       .eq("id", data.conversationId);
+    return inserted.data;
+  });
+
+export const sendSupportMediaReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      conversationId: string;
+      mediaType: string;
+      base64Data: string;
+      mimeType: string;
+      fileName?: string;
+      caption?: string;
+      quotedMessageId?: string;
+    }) => {
+      const conversationId = String(data?.conversationId || "");
+      if (!conversationId) throw new Error("Selecione uma conversa.");
+      const mediaType = (
+        ["image", "video", "audio", "document"].includes(String(data?.mediaType))
+          ? data.mediaType
+          : "document"
+      ) as "image" | "video" | "audio" | "document";
+      const base64Data = String(data?.base64Data || "").replace(/^data:[^;]+;base64,/, "").trim();
+      if (!base64Data) throw new Error("Arquivo de mídia inválido.");
+      return {
+        conversationId,
+        mediaType,
+        base64Data,
+        mimeType: String(data?.mimeType || "application/octet-stream"),
+        fileName: String(data?.fileName || ""),
+        caption: String(data?.caption || "").trim(),
+        quotedMessageId: data?.quotedMessageId ? String(data.quotedMessageId) : undefined,
+      };
+    },
+  )
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { getOrCreateSupportChannel, platformDb } = await import(
+      "@/lib/whatsapp/master-whatsapp.server"
+    );
+    const db = await platformDb();
+    const [channel, conversation] = await Promise.all([
+      getOrCreateSupportChannel(),
+      db
+        .from("platform_support_conversation")
+        .select("id,phone_e164,lid_jid,pn_jid")
+        .eq("id", data.conversationId)
+        .is("deleted_at", null)
+        .single(),
+    ]);
+    if (conversation.error || !conversation.data) throw new Error("Conversa não encontrada.");
+    const target = resolveConversationRecipient(conversation.data);
+    if (!target) throw new Error("Contato sem destinatário válido no WhatsApp.");
+
+    const instanceName = channel.instance_name || "central";
+    let providerMessageId: string | null = null;
+
+    if (data.mediaType === "audio" && data.mimeType.includes("ogg")) {
+      const { evoSendVoice } = await import("@/lib/whatsapp/evolution.server");
+      const sent: any = await evoSendVoice(instanceName, {
+        number: target,
+        audio: data.base64Data,
+        mimeType: data.mimeType,
+        quotedMsgId: data.quotedMessageId,
+      });
+      providerMessageId = String(sent?.key?.id || sent?.messageId || "") || null;
+    } else {
+      const { evoSendMedia } = await import("@/lib/whatsapp/evolution.server");
+      const sent: any = await evoSendMedia(instanceName, {
+        number: target,
+        mediaType: data.mediaType,
+        mimeType: data.mimeType,
+        media: data.base64Data,
+        fileName: data.fileName,
+        caption: data.caption,
+        quotedMsgId: data.quotedMessageId,
+      });
+      providerMessageId = String(sent?.key?.id || sent?.messageId || "") || null;
+    }
+
+    const now = new Date().toISOString();
+    const operatorName =
+      (context.claims as any)?.user_metadata?.nome ||
+      (context.claims as any)?.email?.split("@")[0] ||
+      "Atendente";
+
+    const preview =
+      data.caption ||
+      (data.mediaType === "audio"
+        ? "Mensagem de voz"
+        : data.mediaType === "image"
+          ? "Foto enviada"
+          : data.mediaType === "video"
+            ? "Vídeo enviado"
+            : data.fileName || "Documento enviado");
+
+    const inserted = await db
+      .from("platform_support_message")
+      .insert({
+        conversation_id: data.conversationId,
+        provider_message_id: providerMessageId,
+        direction: "outbound",
+        sender_type: "owner",
+        sender_name: operatorName,
+        sender_id: context.userId,
+        message_type: data.mediaType,
+        body: preview,
+        media_url: `data:${data.mimeType};base64,${data.base64Data.slice(0, 500000)}`,
+        media_meta: {
+          fileName: data.fileName,
+          mimeType: data.mimeType,
+          mediaType: data.mediaType,
+        },
+        quoted_message_id: data.quotedMessageId || null,
+        delivery_status: providerMessageId ? "sent" : "queued",
+        created_at: now,
+      })
+      .select()
+      .single();
+    if (inserted.error) throw new Error(inserted.error.message);
+
+    await db
+      .from("platform_support_conversation")
+      .update({
+        last_message_at: now,
+        last_message_preview: preview.slice(0, 180),
+        updated_at: now,
+      })
+      .eq("id", data.conversationId);
+
+    return inserted.data;
+  });
+
+export const sendSupportLocationReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      conversationId: string;
+      latitude: number;
+      longitude: number;
+      name?: string;
+      address?: string;
+      quotedMessageId?: string;
+    }) => ({
+      conversationId: String(data?.conversationId || ""),
+      latitude: Number(data?.latitude || 0),
+      longitude: Number(data?.longitude || 0),
+      name: String(data?.name || "").trim(),
+      address: String(data?.address || "").trim(),
+      quotedMessageId: data?.quotedMessageId ? String(data.quotedMessageId) : undefined,
+    }),
+  )
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.supabase);
+    const { getOrCreateSupportChannel, platformDb } = await import(
+      "@/lib/whatsapp/master-whatsapp.server"
+    );
+    const db = await platformDb();
+    const [channel, conversation] = await Promise.all([
+      getOrCreateSupportChannel(),
+      db
+        .from("platform_support_conversation")
+        .select("id,phone_e164,lid_jid,pn_jid")
+        .eq("id", data.conversationId)
+        .is("deleted_at", null)
+        .single(),
+    ]);
+    if (conversation.error || !conversation.data) throw new Error("Conversa não encontrada.");
+    const target = resolveConversationRecipient(conversation.data);
+    if (!target) throw new Error("Contato sem destinatário válido no WhatsApp.");
+
+    const instanceName = channel.instance_name || "central";
+    const { evoSendLocation } = await import("@/lib/whatsapp/evolution.server");
+    const sent: any = await evoSendLocation(instanceName, {
+      number: target,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      name: data.name,
+      address: data.address,
+      quotedMsgId: data.quotedMessageId,
+    });
+    const providerMessageId = String(sent?.key?.id || sent?.messageId || "") || null;
+
+    const now = new Date().toISOString();
+    const operatorName =
+      (context.claims as any)?.user_metadata?.nome ||
+      (context.claims as any)?.email?.split("@")[0] ||
+      "Atendente";
+    const preview = `📍 Localização: ${[data.name, data.address].filter(Boolean).join(" - ") || `${data.latitude}, ${data.longitude}`}`;
+
+    const inserted = await db
+      .from("platform_support_message")
+      .insert({
+        conversation_id: data.conversationId,
+        provider_message_id: providerMessageId,
+        direction: "outbound",
+        sender_type: "owner",
+        sender_name: operatorName,
+        sender_id: context.userId,
+        message_type: "location",
+        body: preview,
+        media_meta: {
+          latitude: data.latitude,
+          longitude: data.longitude,
+          name: data.name,
+          address: data.address,
+        },
+        quoted_message_id: data.quotedMessageId || null,
+        delivery_status: providerMessageId ? "sent" : "queued",
+        created_at: now,
+      })
+      .select()
+      .single();
+    if (inserted.error) throw new Error(inserted.error.message);
+
+    await db
+      .from("platform_support_conversation")
+      .update({
+        last_message_at: now,
+        last_message_preview: preview.slice(0, 180),
+        updated_at: now,
+      })
+      .eq("id", data.conversationId);
+
     return inserted.data;
   });
 

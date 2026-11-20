@@ -26,18 +26,21 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
           const message = data?.message ?? {};
           const hasImage = Boolean(message.imageMessage);
           const hasAudio = Boolean(message.audioMessage);
-          const body = String(
+          const hasDocument = Boolean(message.documentMessage);
+          let body = String(
             message.conversation ||
               message.extendedTextMessage?.text ||
               message.imageMessage?.caption ||
               message.documentMessage?.caption ||
               (hasImage
                 ? "Comprovante enviado por imagem"
-                : hasAudio
-                  ? "Áudio enviado pelo WhatsApp"
-                  : ""),
+                : hasDocument
+                  ? "Documento enviado pelo WhatsApp"
+                  : hasAudio
+                    ? "Áudio enviado pelo WhatsApp"
+                    : ""),
           ).trim();
-          if (!body) return ok("empty");
+          if (!body && !hasAudio && !hasImage && !hasDocument) return ok("empty");
 
           const token =
             new URL(request.url).searchParams.get("t") ||
@@ -114,35 +117,53 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
           }
 
           if (hasAudio) {
-            const identity = await db
-              .from("fin_whatsapp_identity")
-              .select("user_id")
-              .eq("company_id", companyId)
-              .eq("phone_e164", `+${phone}`)
-              .eq("active", true)
-              .maybeSingle();
-            const audioReply = identity.data
-              ? "Para lançar por voz, toque no microfone dentro do aplicativo. Aqui no WhatsApp você pode escrever ou enviar a foto de um comprovante."
-              : "Este celular ainda não está vinculado. Abra o aplicativo, vá em Canais e conexões e gere seu código de segurança.";
-            await deliver({
-              db,
-              companyId,
-              instanceName,
-              instanceUserId: identity.data?.user_id || instanceUserId,
-              phone,
-              pushName,
-              reply: audioReply,
-              ref: `audio-help:${messageId || crypto.randomUUID()}`,
-            });
-            return ok(identity.data ? "audio_redirected" : "not_linked");
-          }
-
-          let imageDataUrl: string | null = null;
-          if (hasImage) {
             try {
               const { evoGetMediaBase64 } = await import("@/lib/whatsapp/evolution.server");
               const media = await evoGetMediaBase64(instanceName, data);
-              const mime = media.mimetype?.startsWith("image/") ? media.mimetype : "image/jpeg";
+              const { transcribeAudioBase64 } = await import("@/lib/ai/audio-transcribe.server");
+              const text = await transcribeAudioBase64(
+                media.base64,
+                media.mimetype || message?.audioMessage?.mimetype || null,
+              );
+              if (text) {
+                body = text;
+              } else {
+                throw new Error("Transcrição vazia");
+              }
+            } catch (error: any) {
+              console.error("[finance-whatsapp.audio]", error?.message);
+              await deliver({
+                db,
+                companyId,
+                instanceName,
+                instanceUserId,
+                phone,
+                pushName,
+                reply:
+                  "Não consegui transcrever esse áudio. Tente gravar novamente com boa voz ou envie o valor e a descrição por texto.",
+                ref: `audio-error:${messageId || crypto.randomUUID()}`,
+              });
+              return ok("audio_error");
+            }
+          }
+
+          let imageDataUrl: string | null = null;
+          if (hasImage || hasDocument) {
+            try {
+              const { evoGetMediaBase64 } = await import("@/lib/whatsapp/evolution.server");
+              const media = await evoGetMediaBase64(instanceName, data);
+              const declared = String(
+                media.mimetype ||
+                  message?.documentMessage?.mimetype ||
+                  message?.imageMessage?.mimetype ||
+                  "",
+              ).split(";")[0].trim().toLowerCase();
+              const mime =
+                declared === "application/pdf"
+                  ? "application/pdf"
+                  : declared.startsWith("image/")
+                    ? declared
+                    : "image/jpeg";
               imageDataUrl = `data:${mime};base64,${media.base64}`;
             } catch (error: any) {
               console.error("[finance-whatsapp.media]", error?.message);
@@ -154,7 +175,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
                 phone,
                 pushName,
                 reply:
-                  "Não consegui ler essa foto. Tente novamente com boa luz ou escreva o valor e a descrição.",
+                  "Não consegui ler esse comprovante ou documento. Tente novamente com uma foto nítida ou escreva o valor e a descrição.",
                 ref: `media-error:${messageId || crypto.randomUUID()}`,
               });
               return ok("media_unavailable");

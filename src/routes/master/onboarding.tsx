@@ -272,8 +272,7 @@ function OnboardingQueuePage() {
         <Loader2 className="size-6 animate-spin text-primary" />
       ) : visible.length === 0 ? (
         <Card className="p-6 text-sm text-muted-foreground">
-          Nenhuma compra neste filtro. Quando uma compra for aprovada (InfinitePay, Kiwify, Cakto
-          ou PerfectPay), ela aparece aqui.
+          Nenhuma compra neste filtro. Quando uma compra for aprovada na InfinitePay, ela aparece aqui.
         </Card>
       ) : (
         <div className="space-y-2">
@@ -288,8 +287,7 @@ function OnboardingQueuePage() {
           Se uma compra parar em “Aguardando telefone”
         </p>
         <p>
-          InfinitePay, Kiwify, Cakto e PerfectPay: o telefone
-          só chega se o checkout da plataforma exigir esse campo — confira lá. Sem telefone, a
+          InfinitePay: o telefone só chega se o checkout da InfinitePay exigir esse campo. Sem telefone, a
           compra é ativada normalmente e fica aqui como “Aguardando telefone”.
         </p>
       </Card>

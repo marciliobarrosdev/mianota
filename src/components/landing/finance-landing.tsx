@@ -118,8 +118,7 @@ export function FinanceLanding({
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-    void avatarUrl;
-  const avatar = miaFace;
+  const avatar = avatarUrl || miaFace;
   const p = (v: string) => personalizeAssistantText(v, assistantName);
 
   const orderedPlans = useMemo(
@@ -235,7 +234,11 @@ export function FinanceLanding({
       <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3">
         <nav className="cl-nav ln-glass mx-auto flex h-14 max-w-6xl items-center rounded-2xl px-3.5 sm:px-5">
           <a href="#inicio" className="flex min-w-0 items-center gap-2.5">
-            {logoUrl ? <Logo logoUrl={logoUrl} name={brandName} /> : <BrandWordmark className="h-8 sm:h-9" />}
+            {logoUrl && logoUrl !== "/mianota-logo-trimmed.png" ? (
+              <Logo logoUrl={logoUrl} name={brandName} />
+            ) : (
+              <BrandWordmark className="h-8 sm:h-9" />
+            )}
           </a>
           <div className="ml-auto hidden items-center gap-6 text-[13px] font-semibold text-ln-muted lg:flex">
             {navLinks.map(([href, label]) => (
@@ -480,7 +483,9 @@ export function FinanceLanding({
           <div className="grid gap-9 border-b border-ln-line pb-9 sm:grid-cols-2 lg:grid-cols-[1.3fr_.7fr_.8fr_1.1fr]">
             <div>
               <div className="flex items-center gap-3">
-                {logoUrl && <Logo logoUrl={logoUrl} name={brandName} />}
+                {logoUrl && logoUrl !== "/mianota-logo-trimmed.png" && (
+                  <Logo logoUrl={logoUrl} name={brandName} />
+                )}
                 <div>
                   <BrandWordmark className="h-10" />
                   <div className="text-xs font-semibold text-ln-magenta">{tagline}</div>

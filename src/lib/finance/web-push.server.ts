@@ -110,7 +110,7 @@ export function isExpiredSubscriptionStatus(status: number) {
 export type PushTarget = { endpoint: string; p256dh: string; auth_secret: string };
 
 export async function sendWebPush(target: PushTarget, payload: unknown) {
-  const publicKey = (process.env["VAPID_PUBLIC_KEY"] || "").trim();
+  const publicKey = (process.env["VAPID_PUBLIC_KEY"] || process.env["VITE_VAPID_PUBLIC_KEY"] || "").trim();
   const privateKey = (process.env["VAPID_PRIVATE_KEY"] || "").trim();
   if (!publicKey || !privateKey) throw new Error("Chaves VAPID não configuradas.");
   const subject = (process.env["VAPID_SUBJECT"] || "mailto:suporte@mianota.lovable.app").trim();

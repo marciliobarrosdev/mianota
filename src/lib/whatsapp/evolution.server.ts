@@ -7,6 +7,16 @@ const SUPPORT_SUFFIX = supportNumber
   : "";
 
 async function env() {
+  const isWhatsmeow =
+    process.env.WHATSAPP_PROVIDER === "whatsmeow" ||
+    Boolean(process.env.WHATSAPP_GO_URL && process.env.WHATSAPP_PROVIDER !== "evolution");
+
+  if (isWhatsmeow) {
+    const url = process.env.WHATSAPP_GO_URL || "http://localhost:8085";
+    const key = process.env.WHATSAPP_GO_API_KEY || "mianota_whatsapp_go_secret_key";
+    return { url: url.replace(/\/+$/, ""), key };
+  }
+
   const { resolveIntegration } = await import("@/lib/common/integration-secrets.server");
   const cfg = await resolveIntegration("evolution");
   const url = cfg.api_url;
@@ -203,11 +213,98 @@ export async function evoSetWebhook(instanceName: string, webhookUrl: string) {
   });
 }
 
-export async function evoSendText(instanceName: string, number: string, text: string) {
+export async function evoSendText(
+  instanceName: string,
+  number: string,
+  text: string,
+  quotedMsgId?: string,
+) {
   return evo(`/message/sendText/${encodeURIComponent(instanceName)}`, {
     method: "POST",
-    json: { number, text },
+    json: { number, text, quotedMsgId },
   });
+}
+
+export async function evoSendMedia(
+  instanceName: string,
+  payload: {
+    number: string;
+    mediaType: "image" | "video" | "audio" | "document";
+    mimeType: string;
+    media: string;
+    fileName?: string;
+    caption?: string;
+    quotedMsgId?: string;
+  },
+) {
+  return evo(`/message/sendMedia/${encodeURIComponent(instanceName)}`, {
+    method: "POST",
+    json: {
+      number: payload.number,
+      mediatype: payload.mediaType,
+      mimetype: payload.mimeType,
+      media: payload.media,
+      fileName: payload.fileName || "",
+      caption: payload.caption || "",
+      quotedMsgId: payload.quotedMsgId || "",
+    },
+  });
+}
+
+export async function evoSendVoice(
+  instanceName: string,
+  payload: {
+    number: string;
+    audio: string;
+    mimeType?: string;
+    quotedMsgId?: string;
+  },
+) {
+  return evo(`/message/sendVoice/${encodeURIComponent(instanceName)}`, {
+    method: "POST",
+    json: {
+      number: payload.number,
+      audio: payload.audio,
+      mimetype: payload.mimeType || "audio/ogg; codecs=opus",
+      quotedMsgId: payload.quotedMsgId || "",
+    },
+  });
+}
+
+export async function evoSendLocation(
+  instanceName: string,
+  payload: {
+    number: string;
+    latitude: number;
+    longitude: number;
+    name?: string;
+    address?: string;
+    quotedMsgId?: string;
+  },
+) {
+  return evo(`/message/sendLocation/${encodeURIComponent(instanceName)}`, {
+    method: "POST",
+    json: {
+      number: payload.number,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      name: payload.name || "",
+      address: payload.address || "",
+      quotedMsgId: payload.quotedMsgId || "",
+    },
+  });
+}
+
+export async function evoGetProfilePicture(instanceName: string, numberOrJid: string) {
+  try {
+    const res = await evo<{ url?: string }>(
+      `/chat/profilePicture/${encodeURIComponent(instanceName)}?number=${encodeURIComponent(numberOrJid)}`,
+      { method: "GET" },
+    );
+    return res?.url || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function evoGetMediaBase64(

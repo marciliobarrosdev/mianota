@@ -257,11 +257,39 @@ export const setTransactionSplits = createServerFn({ method: "POST" })
       if (err) throw new Error(err);
       for (const p of data.parts) await checkCategory(db, data.companyId, p.categoryId);
     }
+    const { data: previousSplits } = await db
+      .from("fin_lancamento_split")
+      .select("categoria_id,valor_cents")
+      .eq("lancamento_id", row.id)
+      .eq("company_id", data.companyId);
+
     const { error: delErr } = await db.from("fin_lancamento_split").delete().eq("lancamento_id", row.id).eq("company_id", data.companyId);
     if (delErr) throw new Error(delErr.message);
     if (data.parts.length) {
-      const { error } = await db.from("fin_lancamento_split").insert(data.parts.map((p) => ({ company_id: data.companyId, lancamento_id: row.id, categoria_id: p.categoryId, valor_cents: p.amountCents })));
-      if (error) throw new Error(error.message);
+      const { error: insErr } = await db.from("fin_lancamento_split").insert(
+        data.parts.map((p) => ({
+          company_id: data.companyId,
+          lancamento_id: row.id,
+          categoria_id: p.categoryId,
+          valor_cents: p.amountCents,
+        }))
+      );
+      if (insErr) {
+        if (previousSplits && previousSplits.length > 0) {
+          await db
+            .from("fin_lancamento_split")
+            .insert(
+              previousSplits.map((p: any) => ({
+                company_id: data.companyId,
+                lancamento_id: row.id,
+                categoria_id: p.categoria_id,
+                valor_cents: p.valor_cents,
+              }))
+            )
+            .catch(() => {});
+        }
+        throw new Error(insErr.message);
+      }
     }
     await refreshNotices(db, data.companyId, context.userId);
     return { ok: true, message: data.parts.length ? `Dividido em ${data.parts.length} categorias.` : "Divisão removida." };

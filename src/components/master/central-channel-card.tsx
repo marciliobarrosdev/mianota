@@ -41,7 +41,7 @@ import {
 
 type Mode = "evolution" | "meta";
 type State = Awaited<ReturnType<typeof getCentralChannelState>>;
-const LABEL: Record<Mode, string> = { evolution: "QR Code (Evolution)", meta: "API oficial Meta" };
+const LABEL: Record<Mode, string> = { evolution: "WhatsApp QR Code (whatsmeow)", meta: "API oficial Meta" };
 
 export function CentralChannelCard({ mode, onChanged }: { mode: Mode; onChanged?: () => void }) {
   const load = useServerFn(getCentralChannelState);
@@ -136,7 +136,7 @@ export function CentralChannelCard({ mode, onChanged }: { mode: Mode; onChanged?
             <span className="text-xs text-muted-foreground self-center">
               {mode === "meta"
                 ? "Salve e teste as credenciais da Meta abaixo para liberar a ativação."
-                : "Configure o servidor e gere o QR Code abaixo para liberar a ativação."}
+                : "Gere o QR Code abaixo com o whatsmeow para liberar a ativação."}
             </span>
           )}
         </div>

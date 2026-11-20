@@ -1,0 +1,87 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mianota-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - HOST=0.0.0.0
+      - SUPABASE_PROJECT_ID=${SUPABASE_PROJECT_ID:-abgsdnrfyivkwqwwlixf}
+      - SUPABASE_PUBLISHABLE_KEY=${SUPABASE_PUBLISHABLE_KEY:-sb_publishable_RWXTp9hAmErHvLLD72G1sg_1Ppabdcp}
+      - SUPABASE_URL=${SUPABASE_URL:-https://abgsdnrfyivkwqwwlixf.supabase.co}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - WHATSAPP_PROVIDER=whatsmeow
+      - WHATSAPP_GO_URL=http://whatsapp-go:8085
+      - WHATSAPP_GO_API_KEY=${WHATSAPP_GO_API_KEY:-mianota_whatsapp_go_secret_key}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_WEBHOOK_SECRET=${RESEND_WEBHOOK_SECRET}
+      - RESEND_DEFAULT_FROM=${RESEND_DEFAULT_FROM:-MIAnota <onboarding@resend.dev>}
+      - RESEND_REPLY_TO=${RESEND_REPLY_TO:-mbarrosdev13@gmail.com}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - XAI_API_KEY=${XAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      whatsapp-go:
+        condition: service_healthy
+    networks:
+      - mianota-network
+
+  whatsapp-go:
+    build:
+      context: ./services/whatsapp-go
+      dockerfile: Dockerfile
+    container_name: mianota-whatsapp-go
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      - PORT=8085
+      - DATABASE_URL=${DATABASE_URL}
+      - WHATSAPP_GO_API_KEY=${WHATSAPP_GO_API_KEY:-mianota_whatsapp_go_secret_key}
+      - WEBHOOK_URL=http://app:8080/api/public/support-whatsapp-webhook
+      - WEBHOOK_TOKEN=${WHATSAPP_WEBHOOK_TOKEN:-c15872bc-c40d-4be5-8f83-f1b823848d51}
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8085/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - mianota-network
+
+  # Proxy reverso HTTPS automático com Let's Encrypt para mianota.zapyer.io
+  # Se você já utiliza outro proxy reverso (Nginx Proxy Manager, Traefik, etc.) na porta 80/443,
+  # comente este bloco e aponte seu proxy para http://127.0.0.1:8080
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: mianota-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - mianota-network
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  mianota-network:
+    driver: bridge

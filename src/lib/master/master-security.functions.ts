@@ -39,7 +39,7 @@ export const getAdminAccessDetails = createServerFn({ method: "POST" })
 /** Avisos de pagamento e registro do Master por "Carregar mais". */
 export const BILLING_EVENTS_PAGE = 50;
 export const MASTER_AUDIT_PAGE = 50;
-const BILLING_PROVIDERS = ["infinitepay", "kiwify", "cakto", "perfectpay"];
+const BILLING_PROVIDERS = ["infinitepay"];
 // Mesma regra de `eventStatus`: "evento ignorado" não é erro; erro = texto de erro ou não processado.
 const NOT_IGNORED = 'error.is.null,error.neq."evento ignorado"';
 const HAS_ERROR = "error.not.is.null,processed.is.false";
